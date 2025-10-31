@@ -1,0 +1,83 @@
+/* --- GENERAL PAGE STYLE --- */
+.main-pane {
+    -fx-background-color: #ffffff;
+    -fx-font-family: "Poppins", "Arial", sans-serif;
+}
+
+/* --- TOP NAVBAR --- */
+.brand-title {
+    -fx-font-size: 22px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #111111;
+}
+
+.nav-button {
+    -fx-background-color: transparent;
+    -fx-font-size: 14px;
+    -fx-text-fill: #111111;
+    -fx-cursor: hand;
+}
+
+.nav-button:hover {
+    -fx-underline: true;
+}
+
+/* --- MAIN TEXT --- */
+.headline {
+    -fx-font-size: 28px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #000000;
+}
+
+.subtext {
+    -fx-font-size: 14px;
+    -fx-fill: #555555;
+}
+
+/* --- BUTTONS --- */
+.login-button {
+    -fx-background-color: #2E7D32; /* green */
+    -fx-text-fill: white;
+    -fx-font-size: 16px;
+    -fx-background-radius: 30;
+    -fx-padding: 8 25 8 25;
+    -fx-font-weight: bold;
+    -fx-cursor: hand;
+}
+
+.login-button:hover {
+    -fx-background-color: #388E3C;
+}
+
+.signup-button {
+    -fx-background-color: #FFA000; /* orange */
+    -fx-text-fill: white;
+    -fx-font-size: 16px;
+    -fx-background-radius: 30;
+    -fx-padding: 8 25 8 25;
+    -fx-font-weight: bold;
+    -fx-cursor: hand;
+}
+
+.signup-button:hover {
+    -fx-background-color: #FFB300;
+}
+
+/* Exit button (simple gray corner button) */
+.exit-button {
+    -fx-background-color: #E0E0E0;
+    -fx-text-fill: #333333;
+    -fx-font-size: 13px;
+    -fx-background-radius: 10;
+    -fx-cursor: hand;
+}
+
+.exit-button:hover {
+    -fx-background-color: #C7C7C7;
+}
+
+/* --- FOOTER TEXT --- */
+.footer-text {
+    -fx-font-size: 13px;
+    -fx-text-fill: #444444;
+}

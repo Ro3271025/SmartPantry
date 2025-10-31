@@ -36,3 +36,6 @@ build/
 
 ### Mac OS ###
 .DS_Store
+src/main/resources/configuration.properties
+src/main/resources/key.json
+src/main/java/com/example/demo1/OAuthKeys.java
