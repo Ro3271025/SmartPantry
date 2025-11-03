@@ -3,12 +3,41 @@
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.TextArea?>
 <?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.text.Text?>
 
+<AnchorPane xmlns="http://javafx.com/javafx/24.0.1"
+            xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="com.example.demo1.HelpController"
+            prefHeight="400" prefWidth="600"
+            stylesheets="@style.css"
+            styleClass="help-root">
 
-<AnchorPane prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/24.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.example.demo1.HelpController">
    <children>
-      <Button fx:id="twoSignUpButton" layoutX="274.0" layoutY="221.0" mnemonicParsing="false" onAction="#twoSignUpButtonOnAction" text="Sign Up" />
-      <Button fx:id="goBackButton" layoutX="274.0" layoutY="263.0" mnemonicParsing="false" onAction="#goBackButtonOnAction" text="Go Back"/>
-      <TextArea layoutX="172.0" layoutY="75.0" prefHeight="125.0" prefWidth="264.0" text="Help:&#10;If you already have an account, click Go Back. &#10;Enter your email and password to sign in. &#10;&#10;If you do not have an account, click Sign Up. &#10; " />
+      <!-- Title -->
+      <Text text="Help and Support"
+            layoutX="230" layoutY="50"
+            styleClass="help-title" />
+
+      <!-- Help Description -->
+      <TextArea fx:id="helpTextArea"
+                layoutX="150" layoutY="80"
+                prefWidth="300" prefHeight="160"
+                wrapText="true"
+                editable="false"
+                styleClass="help-textarea"
+                text="Help: If you already have an account, click Go Back. Enter your email and password to sign in. If you do not have an account, click Sign Up." />
+
+      <!-- Buttons -->
+      <Button fx:id="twoSignUpButton"
+              layoutX="220" layoutY="270"
+              text="Sign Up"
+              onAction="#twoSignUpButtonOnAction"
+              styleClass="help-signup-button" />
+
+      <Button fx:id="goBackButton"
+              layoutX="320" layoutY="270"
+              text="Go Back"
+              onAction="#goBackButtonOnAction"
+              styleClass="help-back-button" />
    </children>
 </AnchorPane>

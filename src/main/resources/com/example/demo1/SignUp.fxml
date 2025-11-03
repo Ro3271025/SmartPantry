@@ -4,24 +4,39 @@
 <?import javafx.scene.control.PasswordField?>
 <?import javafx.scene.control.TextField?>
 <?import javafx.scene.layout.AnchorPane?>
-<?import javafx.scene.text.Font?>
 <?import javafx.scene.text.Text?>
-<AnchorPane prefHeight="448.0" prefWidth="266.0" xmlns="http://javafx.com/javafx/24.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.example.demo1.SignUpController">
+
+<AnchorPane prefHeight="500.0" prefWidth="800.0" styleClass="root-pane" stylesheets="@style.css" xmlns="http://javafx.com/javafx/24.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.example.demo1.SignUpController">
    <children>
-      <Button fx:id="cancelButton" layoutX="174.0" layoutY="392.0" mnemonicParsing="false" onAction="#cancelButtonOnAction" text="Cancel" />
-      <Text layoutX="91.0" layoutY="80.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Sign Up">
-         <font>
-            <Font size="24.0" />
-         </font>
-      </Text>
-      <Text layoutX="57.0" layoutY="124.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Full Name:" />
-      <Text layoutX="57.0" layoutY="179.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Email: " />
-      <Text layoutX="57.0" layoutY="237.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Password: " />
-      <Text layoutX="57.0" layoutY="294.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Confirm Password: " wrappingWidth="103.548828125" />
-      <TextField fx:id="emailTextField" layoutX="57.0" layoutY="183.0" promptText="Enter Email" />
-      <TextField fx:id="userNameTextField" layoutX="58.0" layoutY="128.0" promptText="Enter Full Name" />
-      <PasswordField fx:id="passwordPasswordField1" layoutX="57.0" layoutY="241.0" promptText="Enter Password" />
-      <PasswordField fx:id="passwordPasswordField2" layoutX="57.0" layoutY="298.0" promptText="Confirm Password" />
-      <Button layoutX="103.0" layoutY="347.0" mnemonicParsing="false" onAction="#createAccount" text="Sign Up" />
+      <!-- Centered Card -->
+      <AnchorPane layoutX="225" layoutY="70" prefHeight="380" prefWidth="350" styleClass="login-card">
+
+         <children>
+            <!-- Title -->
+            <Text layoutX="140.0" layoutY="50.0" styleClass="form-title" text="Sign Up" />
+
+            <!-- Full Name -->
+            <Text layoutX="60.0" layoutY="90.0" styleClass="form-label" text="Full Name:" />
+            <TextField fx:id="userNameTextField" layoutX="60.0" layoutY="100.0" promptText="Enter full name" styleClass="input-field" />
+
+            <!-- Email -->
+            <Text layoutX="60.0" layoutY="150.0" styleClass="form-label" text="Email:" />
+            <TextField fx:id="emailTextField" layoutX="60.0" layoutY="160.0" promptText="Enter email" styleClass="input-field" />
+
+            <!-- Password -->
+            <Text layoutX="60.0" layoutY="210.0" styleClass="form-label" text="Password:" />
+            <PasswordField fx:id="passwordPasswordField1" layoutX="60.0" layoutY="220.0" promptText="Enter password" styleClass="input-field" />
+
+            <!-- Confirm Password -->
+            <Text layoutX="60.0" layoutY="270.0" styleClass="form-label" text="Confirm Password:" />
+            <PasswordField fx:id="passwordPasswordField2" layoutX="60.0" layoutY="280.0" promptText="Confirm password" styleClass="input-field" />
+
+            <!-- Sign Up Button -->
+            <Button fx:id="signUpButton" layoutX="60.0" layoutY="330.0" onAction="#createAccount" styleClass="signup-button-login" text="Sign Up" />
+
+            <!-- Cancel Button -->
+            <Button fx:id="cancelButton" layoutX="200.0" layoutY="330.0" onAction="#cancelButtonOnAction" styleClass="cancel-button-login" text="Cancel" />
+         </children>
+      </AnchorPane>
    </children>
 </AnchorPane>
