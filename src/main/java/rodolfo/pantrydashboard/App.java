@@ -14,12 +14,12 @@ import java.util.Objects;
  */
 public class App extends Application {
 
-    @Override
+    //@Override
     public void start(Stage primaryStage) throws Exception {
         // Load FXML
         Parent root = FXMLLoader.load(
                 Objects.requireNonNull(
-                        App.class.getResource("/pantry/PantryDashboard.fxml"),
+                        App.class.getResource("/com/example/demo1/PantryDashboard.fxml"),
                         "Cannot find /pantry/PantryDashboard.fxml on classpath"
                 )
         );

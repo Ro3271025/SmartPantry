@@ -81,7 +81,7 @@ public class LoginController extends BaseController{
         }
         if (authenticateUser(username, password)) {
             System.out.println("Login successful!");
-            switchScene(event, "Dashboard");
+            switchScene(event, "PantryDashboard");
         } else {
             System.out.println("Login failed. Check your credentials.");
         }
@@ -244,7 +244,7 @@ public class LoginController extends BaseController{
             }
 
             // Switch to Dashboard scene
-            switchScene(event, "Dashboard");
+            switchScene(event, "PantryDashboard");
 
         } else {
             // Handle error
@@ -403,7 +403,7 @@ public class LoginController extends BaseController{
                 }
 
                 // Step 5: Go to dashboard
-                switchScene(event, "Dashboard");
+                switchScene(event, "PantryDashboard");
 
             } else {
                 BufferedReader errorReader = new BufferedReader(new InputStreamReader(conn.getErrorStream(), "utf-8"));
@@ -462,10 +462,5 @@ public class LoginController extends BaseController{
 
 
     }
-
-
-
-
-
 
 }
