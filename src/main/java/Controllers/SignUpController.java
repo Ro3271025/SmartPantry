@@ -1,9 +1,8 @@
-package com.example.demo1;
+package Controllers;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.UserRecord;
 import com.google.firebase.cloud.FirestoreClient;
 import com.google.cloud.firestore.Firestore;
-import com.google.firebase.auth.FirebaseToken;
 
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;

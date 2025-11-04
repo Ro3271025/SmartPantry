@@ -10,6 +10,7 @@ import com.google.firebase.auth.FirebaseToken;
 import java.io.InputStream;
 
 public class FirebaseConfiguration {
+
     public static Firestore initialize() {
         try{
             InputStream serviceAccount = FirebaseConfiguration.class.getResourceAsStream("/key.json");
@@ -28,4 +29,8 @@ public class FirebaseConfiguration {
         }
         return FirestoreClient.getFirestore();
     }
+    public static Firestore getDatabase() {
+        return FirestoreClient.getFirestore();
+    }
+
 }
