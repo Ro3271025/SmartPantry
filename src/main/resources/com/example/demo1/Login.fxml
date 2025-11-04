@@ -8,7 +8,7 @@
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Text?>
 
-<AnchorPane prefHeight="500" prefWidth="800" styleClass="root-pane" stylesheets="@style.css" xmlns="http://javafx.com/javafx/24.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.example.demo1.LoginController">
+<AnchorPane prefHeight="500" prefWidth="800" styleClass="root-pane" stylesheets="@style.css" xmlns="http://javafx.com/javafx/24.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="Controllers.LoginController">
 
    <children>
       <!-- Centered Card -->

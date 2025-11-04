@@ -5,11 +5,10 @@ import com.google.cloud.firestore.Firestore;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.paint.Color;
+
 import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.Map;
-import com.google.cloud.Timestamp;
-
 
 public class AddItemController {
 
@@ -21,9 +20,12 @@ public class AddItemController {
     @FXML private DatePicker expiryDatePicker;
     @FXML private Label statusLabel;
 
+    // 🔑 UID passed in from PantryController
+    private String currentUserId;
 
-    // ID from Firebase
-    private static final String CURRENT_USER_ID = "J9UNwz3YrJYHs97APHFoQmrZdG73";
+    public void setCurrentUserId(String uid) {
+        this.currentUserId = uid;
+    }
 
     @FXML
     public void initialize() {
@@ -32,13 +34,16 @@ public class AddItemController {
         unitComboBox.getItems().addAll("pcs", "kg", "L", "oz", "box");
         locationComboBox.getItems().addAll("Pantry", "Fridge", "Freezer");
         categoryComboBox.getItems().addAll("Dairy", "Produce", "Meat", "Snacks", "Beverages");
-
-        System.out.println("AddItemController initialized successfully!");
     }
 
     @FXML
     private void handleSaveItem() {
         try {
+            if (currentUserId == null) {
+                showError("No signed-in user. Please log in first.");
+                return;
+            }
+
             String name = itemNameField.getText();
             String quantityText = quantityField.getText();
             String unit = unitComboBox.getValue();
@@ -87,17 +92,15 @@ public class AddItemController {
             item.put("expiryDate", expiryDate.toString());
             item.put("dateAdded", com.google.cloud.Timestamp.now());
 
-            // Saving to  Firebase
             Firestore db = FirebaseConfiguration.getDatabase();
             db.collection("users")
-                    .document(CURRENT_USER_ID)
+                    .document(currentUserId)
                     .collection("pantryItems")
                     .add(item)
-                    .get(); // Wait for completion
+                    .get();
 
             statusLabel.setText("✓ Item saved successfully to Firebase!");
             statusLabel.setTextFill(Color.GREEN);
-            System.out.println("Item saved: " + item);
             clearForm();
 
         } catch (Exception e) {

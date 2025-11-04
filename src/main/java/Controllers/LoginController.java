@@ -1,15 +1,15 @@
-package com.example.demo1;
+package Controllers;
 
+import com.example.demo1.FireBaseKeys;
+import com.example.demo1.OAuthKeys;
 import com.google.cloud.firestore.Firestore;
 import com.google.firebase.cloud.FirestoreClient;
 import javafx.fxml.FXML;
-import javafx.fxml.FXMLLoader;
 import javafx.event.ActionEvent;
 import javafx.scene.control.Label;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.Pane;
-import javafx.stage.Stage;
 
 import java.io.*;
 import java.util.*;
@@ -26,7 +26,7 @@ import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpServer;
 import java.util.Scanner;
 
-public class LoginController extends BaseController{
+public class LoginController extends BaseController {
     @FXML
     private Pane root;
     @FXML
