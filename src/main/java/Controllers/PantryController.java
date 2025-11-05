@@ -48,7 +48,7 @@ public class PantryController {
 
             // Pass current user ID into AddItemController
             AddItemController controller = loader.getController();
-            controller.setCurrentUserId(currentUserId);
+           // controller.setCurrentUserId(currentUserId);
 
             Stage addItemStage = new Stage();
             addItemStage.setTitle("Add New Item");
@@ -56,7 +56,7 @@ public class PantryController {
             addItemStage.initModality(Modality.APPLICATION_MODAL);
             addItemStage.showAndWait();
 
-            // TODO: refresh dashboard after closing
+
             // render();
 
         } catch (IOException e) {

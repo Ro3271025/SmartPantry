@@ -1,6 +1,7 @@
 package Controllers;
 
 import com.example.demo1.FirebaseConfiguration;
+import com.example.demo1.UserSession;
 import com.google.cloud.firestore.Firestore;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
@@ -20,13 +21,6 @@ public class AddItemController {
     @FXML private DatePicker expiryDatePicker;
     @FXML private Label statusLabel;
 
-    // 🔑 UID passed in from PantryController
-    private String currentUserId;
-
-    public void setCurrentUserId(String uid) {
-        this.currentUserId = uid;
-    }
-
     @FXML
     public void initialize() {
         FirebaseConfiguration.initialize();
@@ -39,7 +33,10 @@ public class AddItemController {
     @FXML
     private void handleSaveItem() {
         try {
-            if (currentUserId == null) {
+            // Get current user ID from UserSession
+            String currentUserId = UserSession.getCurrentUserId();
+
+            if (currentUserId == null || currentUserId.isEmpty()) {
                 showError("No signed-in user. Please log in first.");
                 return;
             }
