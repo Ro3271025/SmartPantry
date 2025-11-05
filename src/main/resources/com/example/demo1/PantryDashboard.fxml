@@ -32,7 +32,7 @@ Main layout:
                 <!-- Style guide (icon) -->
                 <Button fx:id="styleBtn" styleClass="icon" text="🎨" />
                 <!-- Recipes -->
-                <Button fx:id="recipesBtn" styleClass="pill" text="👨‍🍳 Recipes" />
+                <Button fx:id="recipesBtn" onAction="#recipesBtnOnAction" styleClass="pill" text="👨‍🍳 Recipes" />
                 <!-- Shopping with badge graphic -->
                 <Button fx:id="shoppingBtn" styleClass="pill" text="🛒 Shopping">
                     <graphic>

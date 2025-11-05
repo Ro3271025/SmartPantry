@@ -1,0 +1,276 @@
+/* Recipe Tab CSS Stylesheet */
+
+/* Main Container */
+.main-container {
+    -fx-background-color: #FAFAFA;
+}
+
+/* Header Section */
+.header-section {
+    -fx-spacing: 8;
+}
+
+.back-button {
+    -fx-background-color: transparent;
+    -fx-text-fill: #717182;
+    -fx-cursor: hand;
+    -fx-border-color: transparent;
+    -fx-font-size: 14px;
+    -fx-padding: 0;
+}
+
+.back-button:hover {
+    -fx-text-fill: #030213;
+}
+
+.page-title {
+    -fx-font-size: 28px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #030213;
+}
+
+.page-subtitle {
+    -fx-text-fill: #717182;
+    -fx-font-size: 14px;
+}
+
+/* AI Input Container */
+.ai-input-container {
+    -fx-background-color: white;
+    -fx-border-color: #E0E0E0;
+    -fx-border-width: 1;
+    -fx-background-radius: 8;
+    -fx-border-radius: 8;
+    -fx-padding: 12;
+    -fx-spacing: 12;
+}
+
+.ai-input-field {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-font-size: 14px;
+    -fx-pref-width: 600;
+}
+
+.ai-input-field:focused {
+    -fx-border-color: transparent;
+    -fx-background-color: transparent;
+}
+
+.generate-button {
+    -fx-background-color: #4CAF50;
+    -fx-text-fill: white;
+    -fx-background-radius: 6;
+    -fx-padding: 8 16 8 16;
+    -fx-cursor: hand;
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+}
+
+.generate-button:hover {
+    -fx-background-color: #45a049;
+}
+
+/* Filter Buttons */
+.filter-container {
+    -fx-spacing: 12;
+}
+
+.filter-button {
+    -fx-background-color: white;
+    -fx-text-fill: #717182;
+    -fx-border-color: #E0E0E0;
+    -fx-border-width: 1;
+    -fx-border-radius: 6;
+    -fx-background-radius: 6;
+    -fx-padding: 8 16 8 16;
+    -fx-cursor: hand;
+    -fx-font-size: 14px;
+}
+
+.filter-button:hover {
+    -fx-background-color: #F5F5F5;
+}
+
+.filter-selected {
+    -fx-background-color: #030213;
+    -fx-text-fill: white;
+    -fx-border-color: #030213;
+}
+
+/* Recipe Grid */
+.recipes-grid {
+    -fx-hgap: 20;
+    -fx-vgap: 20;
+}
+
+/* Recipe Card */
+.recipe-card {
+    -fx-background-color: white;
+    -fx-border-color: #E0E0E0;
+    -fx-border-width: 1;
+    -fx-border-radius: 12;
+    -fx-background-radius: 12;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.08), 8, 0, 0, 2);
+    -fx-spacing: 12;
+    -fx-max-width: Infinity;
+}
+
+.recipe-card:hover {
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.12), 12, 0, 0, 4);
+}
+
+.recipe-image {
+    -fx-background-color: #F5F5F5;
+    -fx-background-radius: 8;
+}
+
+.image-placeholder-text {
+    -fx-text-fill: #BDBDBD;
+    -fx-font-size: 14px;
+}
+
+.recipe-name {
+    -fx-font-size: 16px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #030213;
+}
+
+/* Match Badges - Different colors based on percentage */
+.match-badge {
+    -fx-background-radius: 4;
+    -fx-padding: 4 8 4 8;
+    -fx-font-size: 11px;
+    -fx-font-weight: bold;
+}
+
+/* High match (60%+) - Orange */
+.match-badge-high {
+    -fx-background-color: #FF9800;
+    -fx-text-fill: white;
+}
+
+/* Medium match (40-59%) - Orange variant */
+.match-badge-medium {
+    -fx-background-color: #FF9800;
+    -fx-text-fill: white;
+}
+
+/* Low match (below 40%) - Red */
+.match-badge-low {
+    -fx-background-color: #F44336;
+    -fx-text-fill: white;
+}
+
+/* Ingredient Rows */
+.available-icon {
+    -fx-text-fill: #4CAF50;
+    -fx-font-weight: bold;
+    -fx-font-size: 14px;
+}
+
+.missing-icon {
+    -fx-text-fill: #F44336;
+    -fx-font-weight: bold;
+    -fx-font-size: 14px;
+}
+
+.ingredient-label {
+    -fx-font-weight: bold;
+    -fx-text-fill: #424242;
+    -fx-font-size: 13px;
+}
+
+.ingredient-text {
+    -fx-text-fill: #030213;
+    -fx-font-size: 13px;
+}
+
+/* Add to List Button */
+.add-to-list-button {
+    -fx-background-color: transparent;
+    -fx-border-color: #E0E0E0;
+    -fx-border-width: 1;
+    -fx-border-radius: 6;
+    -fx-background-radius: 6;
+    -fx-padding: 8 12 8 12;
+    -fx-cursor: hand;
+    -fx-font-size: 13px;
+    -fx-text-fill: #424242;
+}
+
+.add-to-list-button:hover {
+    -fx-background-color: #F5F5F5;
+    -fx-border-color: #BDBDBD;
+}
+
+/* AI Tip */
+.ai-tip {
+    -fx-background-color: #FFF9E6;
+    -fx-background-radius: 6;
+    -fx-padding: 12;
+    -fx-spacing: 8;
+}
+
+.ai-tip-text {
+    -fx-font-size: 12px;
+    -fx-text-fill: #5D4E00;
+}
+
+/* Bottom Buttons */
+.bottom-buttons {
+    -fx-spacing: 16;
+}
+
+.secondary-button {
+    -fx-background-color: white;
+    -fx-border-color: #E0E0E0;
+    -fx-border-width: 1;
+    -fx-border-radius: 6;
+    -fx-background-radius: 6;
+    -fx-padding: 10 20 10 20;
+    -fx-cursor: hand;
+    -fx-font-size: 14px;
+    -fx-text-fill: #424242;
+}
+
+.secondary-button:hover {
+    -fx-background-color: #F5F5F5;
+}
+
+.primary-button {
+    -fx-background-color: #030213;
+    -fx-text-fill: white;
+    -fx-background-radius: 6;
+    -fx-padding: 10 20 10 20;
+    -fx-cursor: hand;
+    -fx-font-size: 14px;
+}
+
+.primary-button:hover {
+    -fx-opacity: 0.9;
+}
+
+/* Scroll Pane */
+.scroll-pane {
+    -fx-background-color: transparent;
+    -fx-background: #FAFAFA;
+}
+
+.scroll-pane > .viewport {
+    -fx-background-color: #FAFAFA;
+}
+
+.scroll-pane > .scroll-bar {
+    -fx-background-color: transparent;
+}
+
+.scroll-pane > .scroll-bar:vertical .thumb {
+    -fx-background-color: #BDBDBD;
+    -fx-background-radius: 4;
+}
+
+.scroll-pane > .scroll-bar:horizontal .thumb {
+    -fx-background-color: #BDBDBD;
+    -fx-background-radius: 4;
+}
