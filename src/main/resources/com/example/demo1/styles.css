@@ -1,0 +1,30 @@
+ot { -fx-font-family: "Inter", "Segoe UI", system-ui; -fx-background-color: white; }
+.title { -fx-font-size: 22px; -fx-font-weight: 600; }
+
+.link-like { -fx-background-color: transparent; -fx-text-fill: #6b7280; }
+
+.segmented > .toggle-button {
+  -fx-background-color: #eef2f7;
+  -fx-background-radius: 999;
+  -fx-padding: 6 12;
+}
+.segmented > .toggle-button:selected {
+  -fx-background-color: white;
+  -fx-effect: dropshadow(gaussian, rgba(0,0,0,.08), 5,0,0,1);
+}
+.segmented { -fx-padding: 4; -fx-background-color: #eef2f7; -fx-background-radius: 999; }
+
+.table-view {
+  -fx-background-color: white;
+  -fx-background-radius: 12;
+  -fx-border-color: #e5e7eb;
+  -fx-border-radius: 12;
+}
+.table-view .column-header-background { -fx-background-color: #f8fafc; }
+
+.button {
+  -fx-background-radius: 12;
+  -fx-padding: 8 14;
+}
+/* Styles to echo the Figma look */
+.ro
