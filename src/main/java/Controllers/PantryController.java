@@ -64,6 +64,29 @@ public class PantryController {
             e.printStackTrace();
         }
     }
+    /** Opens the Recipe Tab screen */
+    @FXML
+    private void recipesBtnOnAction(ActionEvent event) throws IOException {
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/example/demo1/RecipeTab.fxml"));
+            Scene recipeScene = new Scene(loader.load());
+
+            // Pass current user ID to RecipeTabController
+            RecipeTabController controller = loader.getController();
+            controller.setCurrentUserId(currentUserId);
+            // Get current stage and switch scene
+            Stage stage = (Stage) recipesBtn.getScene().getWindow();
+            stage.setScene(recipeScene);
+            stage.setTitle("Recipe Recommendations - AI Pantry");
+            stage.show();
+
+        } catch (IOException e) {
+            System.err.println("Error opening Recipe Tab: " + e.getMessage());
+            e.printStackTrace();
+            showErrorAlert("Navigation Error", "Failed to open Recipe Recommendations");
+        }
+    }
+
 
     private void setupFilters() {
         ToggleGroup filterGroup = new ToggleGroup();
@@ -98,6 +121,16 @@ public class PantryController {
         };
     }
 
+    /**
+     * Show error alert dialog
+     */
+    private void showErrorAlert(String title, String message) {
+        Alert alert = new Alert(Alert.AlertType.ERROR);
+        alert.setTitle(title);
+        alert.setHeaderText(null);
+        alert.setContentText(message);
+        alert.showAndWait();
+    }
     private String statusToChipClass(ItemStatus status) {
         return switch (status) {
             case OK        -> "chip-ok";
