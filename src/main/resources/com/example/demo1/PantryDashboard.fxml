@@ -34,7 +34,7 @@ Main layout:
                 <!-- Recipes -->
                 <Button fx:id="recipesBtn" onAction="#recipesBtnOnAction" styleClass="pill" text="👨‍🍳 Recipes" />
                 <!-- Shopping with badge graphic -->
-                <Button fx:id="shoppingBtn" styleClass="pill" text="🛒 Shopping">
+                <Button fx:id="shoppingBtn" onAction="#goToShoppingList" styleClass="pill" text="🛒 Shopping">
                     <graphic>
                         <StackPane styleClass="badge-container">
                             <Label text=" " /> <!-- shim just to position badge -->
