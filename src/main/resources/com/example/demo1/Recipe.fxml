@@ -11,7 +11,7 @@
 
 <ScrollPane fitToWidth="true" styleClass="scroll-pane" stylesheets="@/pantry/Recipe.css" xmlns="http://javafx.com/javafx/24.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="Controllers.RecipeTabController">
 
-    <VBox spacing="24" styleClass="main-container" stylesheets="@../../../pantry/Recipe.css">
+    <VBox fx:id="vBox" spacing="24" styleClass="header-section" stylesheets="@../../../pantry/Recipe.css">
         <padding>
             <Insets bottom="32" left="48" right="48" top="32" />
         </padding>
