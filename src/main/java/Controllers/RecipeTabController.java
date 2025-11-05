@@ -20,7 +20,7 @@ public class RecipeTabController extends BaseController{
     @FXML private Button allRecipesBtn;
     @FXML private Button byPantryBtn;
     @FXML private Button missingIngrBtn;
-    @FXML private VBox recipeCardsContainer;
+    @FXML private VBox vBox;
     @FXML private Button generateAgainBtn;
     @FXML private Button seeMoreBtn;
 
@@ -164,7 +164,7 @@ public class RecipeTabController extends BaseController{
      * Load and display recipes based on current filter
      */
     private void loadRecipes() {
-        recipeCardsContainer.getChildren().clear();
+        vBox.getChildren().clear();
 
         List<Recipe> filteredRecipes = filterRecipes();
 
@@ -183,7 +183,7 @@ public class RecipeTabController extends BaseController{
                 HBox.setHgrow(card2, Priority.ALWAYS);
             }
 
-            recipeCardsContainer.getChildren().add(row);
+            vBox.getChildren().add(row);
         }
     }
 

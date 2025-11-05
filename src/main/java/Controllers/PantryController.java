@@ -16,7 +16,7 @@ import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.Locale;
 
-public class PantryController {
+public class PantryController extends BaseController{
 
     @FXML private TextField searchField;
     @FXML private Button addItemBtn;
@@ -67,24 +67,7 @@ public class PantryController {
     /** Opens the Recipe Tab screen */
     @FXML
     private void recipesBtnOnAction(ActionEvent event) throws IOException {
-        try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/example/demo1/RecipeTab.fxml"));
-            Scene recipeScene = new Scene(loader.load());
-
-            // Pass current user ID to RecipeTabController
-            RecipeTabController controller = loader.getController();
-            controller.setCurrentUserId(currentUserId);
-            // Get current stage and switch scene
-            Stage stage = (Stage) recipesBtn.getScene().getWindow();
-            stage.setScene(recipeScene);
-            stage.setTitle("Recipe Recommendations - AI Pantry");
-            stage.show();
-
-        } catch (IOException e) {
-            System.err.println("Error opening Recipe Tab: " + e.getMessage());
-            e.printStackTrace();
-            showErrorAlert("Navigation Error", "Failed to open Recipe Recommendations");
-        }
+        switchScene(event, "Recipe");
     }
 
 
