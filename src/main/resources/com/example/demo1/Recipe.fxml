@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+
+<ScrollPane fitToWidth="true" styleClass="scroll-pane" stylesheets="@/pantry/Recipe.css" xmlns="http://javafx.com/javafx/24.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="Controllers.RecipeTabController">
+
+    <VBox fx:id="vBox" spacing="24" styleClass="header-section" stylesheets="@../../../pantry/Recipe.css">
+        <padding>
+            <Insets bottom="32" left="48" right="48" top="32" />
+        </padding>
+
+        <!-- Back Button -->
+        <HBox alignment="CENTER_LEFT">
+            <Button fx:id="backButton" onAction="#handleBackToPantry" styleClass="back-button" stylesheets="@../../../pantry/Recipe.css" text="← Back to Pantry" />
+        </HBox>
+
+        <!-- Header Section -->
+        <VBox spacing="8" styleClass="header-section">
+            <!-- Title -->
+            <Label styleClass="page-title" text="Recipe Recommendations" />
+
+            <!-- Subtitle -->
+            <Label styleClass="page-subtitle" text="AI-powered recipe suggestions based on your pantry" />
+        </VBox>
+
+        <!-- AI Input Container -->
+        <HBox alignment="CENTER_LEFT" spacing="12" styleClass="ai-input-container">
+            <padding>
+                <Insets bottom="12" left="12" right="12" top="12" />
+            </padding>
+
+            <TextField fx:id="aiInputField" promptText="Ask AI for a recipe with... (e.g., 'something with chicken and rice')" styleClass="ai-input-field" HBox.hgrow="ALWAYS" />
+
+            <Button fx:id="generateButton" onAction="#handleGenerateRecipe" styleClass="generate-button" stylesheets="@../../../pantry/Recipe.css" text="✨ Generate" />
+        </HBox>
+
+        <!-- Filter Buttons -->
+        <HBox alignment="CENTER_LEFT" spacing="12" styleClass="filter-container">
+            <Button fx:id="allRecipesBtn" onAction="#handleFilterAll" styleClass="filter-button, filter-selected" text="All Recipes" />
+            <Button fx:id="byPantryBtn" onAction="#handleFilterByPantry" styleClass="filter-button" text="By Pantry Items" />
+            <Button fx:id="missingIngrBtn" onAction="#handleFilterMissing" styleClass="filter-button" text="Missing Ingredients" />
+        </HBox>
+
+        <!-- Recipe Cards Container (3 columns) -->
+        <GridPane fx:id="recipeGrid" hgap="20" styleClass="recipes-grid" vgap="20">
+            <!-- Cards will be added programmatically -->
+        </GridPane>
+
+        <!-- Bottom Buttons -->
+        <HBox alignment="CENTER" spacing="16" styleClass="bottom-buttons">
+            <padding>
+                <Insets bottom="0" left="0" right="0" top="20" />
+            </padding>
+
+            <Button fx:id="generateAgainBtn" onAction="#handleGenerateAgain" styleClass="secondary-button" stylesheets="@../../../pantry/Recipe.css" text="🔄 Generate Again" />
+            <Button fx:id="seeMoreBtn" onAction="#handleSeeMore" styleClass="primary-button" text="See More Recipes" />
+        </HBox>
+    </VBox>
+</ScrollPane>

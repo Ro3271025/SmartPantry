@@ -1,15 +1,16 @@
-package com.example.demo1;
+package Controllers;
 
+import com.example.demo1.FireBaseKeys;
+import com.example.demo1.OAuthKeys;
+import com.example.demo1.UserSession;
 import com.google.cloud.firestore.Firestore;
 import com.google.firebase.cloud.FirestoreClient;
 import javafx.fxml.FXML;
-import javafx.fxml.FXMLLoader;
 import javafx.event.ActionEvent;
 import javafx.scene.control.Label;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.Pane;
-import javafx.stage.Stage;
 
 import java.io.*;
 import java.util.*;
@@ -26,7 +27,7 @@ import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpServer;
 import java.util.Scanner;
 
-public class LoginController extends BaseController{
+public class LoginController extends BaseController {
     @FXML
     private Pane root;
     @FXML
@@ -60,17 +61,21 @@ public class LoginController extends BaseController{
             return;
         }
     }
+
     @FXML
     public void LCancelButtonOnAction(ActionEvent event) throws IOException {
         switchScene(event, "MainScreen");
     }
+
     @FXML
     public void signUpButtonOnAction(ActionEvent event) throws IOException {
         switchScene(event, "SignUp");
     }
+
     public void HelpButtonOnAction(ActionEvent event) throws IOException {
         switchScene(event, "Help");
     }
+
     public void loginButtonOnAction(ActionEvent event) throws IOException {
         String username = usernameTextField.getText();
         String password = passwordTextField.getText();
@@ -79,13 +84,18 @@ public class LoginController extends BaseController{
             loginErrorLabel.setText("Username or Password is incorrect. Please try again.");
             return;
         }
-        if (authenticateUser(username, password)) {
+
+        String userId = authenticateUser(username, password);
+        if (userId != null) {
             System.out.println("Login successful!");
-            switchScene(event, "Dashboard");
+            UserSession.setCurrentUserId(userId);
+            switchScene(event, "PantryDashboard");
         } else {
             System.out.println("Login failed. Check your credentials.");
+            loginErrorLabel.setText("Login failed. Check your credentials.");
         }
     }
+
     public void forgotPasswordButtonOnAction(ActionEvent event) throws IOException {
         String email = usernameTextField.getText();
 
@@ -99,6 +109,7 @@ public class LoginController extends BaseController{
             loginErrorLabel.setText("Email for Password reset was not successfully sent. Please try again.");
         }
     }
+
     private boolean sendPasswordResetEmail(String email) {
         try {
             URL url = new URL("https://identitytoolkit.googleapis.com/v1/accounts:sendOobCode?key=" + API_KEY);
@@ -144,6 +155,7 @@ public class LoginController extends BaseController{
             return false;
         }
     }
+
     @FXML
     public void googleLoginButtonOnAction(ActionEvent event) throws IOException {
         String authUrl = "https://accounts.google.com/o/oauth2/v2/auth"
@@ -163,6 +175,7 @@ public class LoginController extends BaseController{
         // Exchange code for tokens and authenticate with Firebase
         exchangeCodeForToken(code, event);
     }
+
     // Exchange auth code for ID token
     private void exchangeCodeForToken(String code, ActionEvent event) throws IOException {
         URL url = new URL("https://oauth2.googleapis.com/token");
@@ -190,6 +203,7 @@ public class LoginController extends BaseController{
         // Now authenticate with Firebase
         firebaseAuthWithGoogle(idToken, event);
     }
+
     private void firebaseAuthWithGoogle(String idToken, ActionEvent event) throws IOException {
         String firebaseUrl = "https://identitytoolkit.googleapis.com/v1/accounts:signInWithIdp?key=" + API_KEY;
 
@@ -231,6 +245,9 @@ public class LoginController extends BaseController{
             System.out.println("Google Sign-In successful for: " + email);
             System.out.println("Firebase ID Token: " + firebaseIdToken);
 
+            // Store user session
+            UserSession.setCurrentUserId(email);
+
             // (Optional) Store user info in Firestore
             try {
                 Firestore db = FirestoreClient.getFirestore();
@@ -244,7 +261,7 @@ public class LoginController extends BaseController{
             }
 
             // Switch to Dashboard scene
-            switchScene(event, "Dashboard");
+            switchScene(event, "PantryDashboard");
 
         } else {
             // Handle error
@@ -257,6 +274,7 @@ public class LoginController extends BaseController{
 
         conn.disconnect();
     }
+
     private String waitForOAuthCode() throws IOException {
         HttpServer server = HttpServer.create(new java.net.InetSocketAddress(8080), 0);
         final StringBuilder codeHolder = new StringBuilder();
@@ -294,6 +312,7 @@ public class LoginController extends BaseController{
 
         return codeHolder.toString();
     }
+
     @FXML
     public void facebookLoginButtonOnAction(ActionEvent event) throws IOException {
         // Step 1: Open Facebook OAuth
@@ -313,6 +332,7 @@ public class LoginController extends BaseController{
         // Step 2: Exchange code for Facebook access token
         exchangeFacebookCodeForToken(code, event);
     }
+
     private void exchangeFacebookCodeForToken(String code, ActionEvent event) {
         try {
             // Step 2: Get Facebook access token
@@ -347,6 +367,7 @@ public class LoginController extends BaseController{
             System.out.println("Error exchanging Facebook code for token: " + e.getMessage());
         }
     }
+
     private void signInWithFacebookToFirebase(String accessToken, ActionEvent event) {
         try {
             String firebaseUrl = "https://identitytoolkit.googleapis.com/v1/accounts:signInWithIdp?key=" + OAuthKeys.FIREBASE_API_KEY;
@@ -390,6 +411,9 @@ public class LoginController extends BaseController{
                 System.out.println("Firebase Facebook Sign-In Successful for: " + email);
                 System.out.println("Firebase ID Token: " + idToken);
 
+                // Store user session
+                UserSession.setCurrentUserId(email);
+
                 // Step 4: Store user info in Firestore
                 try {
                     Firestore db = FirestoreClient.getFirestore();
@@ -403,7 +427,7 @@ public class LoginController extends BaseController{
                 }
 
                 // Step 5: Go to dashboard
-                switchScene(event, "Dashboard");
+                switchScene(event, "PantryDashboard");
 
             } else {
                 BufferedReader errorReader = new BufferedReader(new InputStreamReader(conn.getErrorStream(), "utf-8"));
@@ -429,7 +453,7 @@ public class LoginController extends BaseController{
 
     private static final String API_KEY = FireBaseKeys.WEB_API_KEY;
 
-    private boolean authenticateUser(String email, String password) {
+    private String authenticateUser(String email, String password) {
         try {
             URL url = new URL("https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=" + API_KEY);
             HttpURLConnection conn = (HttpURLConnection) url.openConnection();
@@ -447,6 +471,7 @@ public class LoginController extends BaseController{
                 byte[] input = jsonInputString.getBytes("utf-8");
                 os.write(input, 0, input.length);
             }
+
             Scanner scanner = new Scanner(conn.getInputStream(), "UTF-8");
             String jsonResponse = scanner.useDelimiter("\\A").next();
             scanner.close();
@@ -454,18 +479,12 @@ public class LoginController extends BaseController{
 
             JsonObject response = JsonParser.parseString(jsonResponse).getAsJsonObject();
             String idToken = response.get("idToken").getAsString();
-            return true;
+
+            // Return the email as the user ID
+            return email;
         } catch (IOException e) {
             e.printStackTrace();
-            return false;
+            return null;
         }
-
-
     }
-
-
-
-
-
-
 }
