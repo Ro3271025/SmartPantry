@@ -1,5 +1,6 @@
 package Controllers;
 
+import javafx.event.Event;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
@@ -121,5 +122,9 @@ public class PantryController extends BaseController{
             case EXPIRED   -> "chip-danger";
             case LOW_STOCK -> "chip-warn";
         };
+    }
+    @FXML
+    private void goToShoppingList(Event event) throws IOException {
+        switchScene(event, "PantryItemsView");
     }
 }
