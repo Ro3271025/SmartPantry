@@ -1,30 +1,31 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import java.lang.*?>
-<?import java.util.*?>
-<?import javafx.scene.*?>
-<?import javafx.scene.control.*?>
-<?import javafx.scene.layout.*?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.control.ToggleButton?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
 
-<AnchorPane xmlns="http://javafx.com/javafx"
-            xmlns:fx="http://javafx.com/fxml"
-            fx:controller="Controllers.ShoppingListController"
-            prefHeight="400.0" prefWidth="600.0"
-            stylesheets="@styles.css">
+<AnchorPane prefHeight="400.0" prefWidth="600.0" stylesheets="@styles.css" xmlns="http://javafx.com/javafx/24.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="Controllers.ShoppingListController">
     <children>
-        <VBox spacing="12.0" AnchorPane.leftAnchor="16.0" AnchorPane.rightAnchor="16.0" AnchorPane.topAnchor="16.0" AnchorPane.bottomAnchor="16.0">
+        <VBox spacing="12.0" AnchorPane.bottomAnchor="16.0" AnchorPane.leftAnchor="16.0" AnchorPane.rightAnchor="16.0" AnchorPane.topAnchor="16.0">
             <children>
                 <HBox spacing="8">
                     <children>
-                        <Button text="← Back to Dashboard" styleClass="link-like"/>
+                        <Button fx:id="ReturnDashboardBtn" onAction="#ReturnDashboardBtnOnAction" styleClass="link-like" text="← Back to Dashboard" />
                     </children>
                 </HBox>
 
-                <Label text="Pantry Items" styleClass="title"/>
+                <Label styleClass="title" text="Pantry Items" />
 
                 <HBox spacing="4" styleClass="segmented">
                     <children>
-                        <ToggleButton fx:id="allToggle" text="All" selected="true" />
+                        <ToggleButton fx:id="allToggle" selected="true" text="All" />
                         <ToggleButton fx:id="expiringToggle" text="Expiring soon" />
                         <ToggleButton fx:id="lowStockToggle" text="Low stock" />
                     </children>
@@ -32,29 +33,29 @@
 
                 <HBox spacing="8">
                     <children>
-                        <TextField fx:id="searchField" promptText="Search items…" onAction="#handleSearch" HBox.hgrow="ALWAYS"/>
-                        <ComboBox fx:id="locationFilter" prefWidth="160" onAction="#onFilterChanged"/>
-                        <Button text="Export" onAction="#handleExport"/>
+                        <TextField fx:id="searchField" onAction="#handleSearch" promptText="Search items…" HBox.hgrow="ALWAYS" />
+                        <ComboBox fx:id="locationFilter" onAction="#onFilterChanged" prefWidth="160" />
+                        <Button onAction="#handleExport" text="Export" />
                     </children>
                 </HBox>
 
                 <TableView fx:id="table" VBox.vgrow="ALWAYS">
                     <columns>
-                        <TableColumn fx:id="selectCol" text="" prefWidth="40"/>
-                        <TableColumn fx:id="nameCol" text="Item"/>
-                        <TableColumn fx:id="qtyCol" text="Qty" prefWidth="60"/>
-                        <TableColumn fx:id="unitCol" text="Unit" prefWidth="80"/>
-                        <TableColumn fx:id="locationCol" text="Location" prefWidth="100"/>
-                        <TableColumn fx:id="expirationCol" text="Expiration" prefWidth="120"/>
-                        <TableColumn fx:id="lowStockCol" text="Low" prefWidth="60"/>
+                        <TableColumn fx:id="selectCol" prefWidth="40" text="" />
+                        <TableColumn fx:id="nameCol" text="Item" />
+                        <TableColumn fx:id="qtyCol" prefWidth="60" text="Qty" />
+                        <TableColumn fx:id="unitCol" prefWidth="80" text="Unit" />
+                        <TableColumn fx:id="locationCol" prefWidth="100" text="Location" />
+                        <TableColumn fx:id="expirationCol" prefWidth="120" text="Expiration" />
+                        <TableColumn fx:id="lowStockCol" prefWidth="60" text="Low" />
                     </columns>
                 </TableView>
 
                 <HBox spacing="8">
                     <children>
-                        <Button fx:id="addBtn" text="+ Add Item" onAction="#handleAdd"/>
-                        <Button fx:id="consumeBtn" text="Consume (–1)" onAction="#handleConsume"/>
-                        <Button fx:id="deleteBtn" text="Delete" onAction="#handleDelete"/>
+                        <Button fx:id="addBtn" onAction="#handleAdd" text="+ Add Item" />
+                        <Button fx:id="consumeBtn" onAction="#handleConsume" text="Consume (–1)" />
+                        <Button fx:id="deleteBtn" onAction="#handleDelete" text="Delete" />
                     </children>
                 </HBox>
             </children>
