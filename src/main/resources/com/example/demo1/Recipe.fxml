@@ -9,16 +9,16 @@
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
 
-<ScrollPane fitToWidth="true" styleClass="scroll-pane" stylesheets="@/pantry/Recipe.css" xmlns="http://javafx.com/javafx/24.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="Controllers.RecipeTabController">
+<ScrollPane fitToWidth="true" styleClass="scroll-pane" stylesheets="@/com/example/demo1/Recipe.css" xmlns="http://javafx.com/javafx/24.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="Controllers.RecipeTabController">
 
-    <VBox fx:id="vBox" spacing="24" styleClass="header-section" stylesheets="@../../../pantry/Recipe.css">
+    <VBox fx:id="vBox" spacing="24" styleClass="header-section" stylesheets="@Recipe.css">
         <padding>
             <Insets bottom="32" left="48" right="48" top="32" />
         </padding>
 
         <!-- Back Button -->
         <HBox alignment="CENTER_LEFT">
-            <Button fx:id="backButton" onAction="#handleBackToPantry" styleClass="back-button" stylesheets="@../../../pantry/Recipe.css" text="← Back to Pantry" />
+            <Button fx:id="backButton" onAction="#handleBackToPantry" styleClass="back-button" stylesheets="@Recipe.css" text="← Back to Pantry" />
         </HBox>
 
         <!-- Header Section -->
@@ -38,7 +38,7 @@
 
             <TextField fx:id="aiInputField" promptText="Ask AI for a recipe with... (e.g., 'something with chicken and rice')" styleClass="ai-input-field" HBox.hgrow="ALWAYS" />
 
-            <Button fx:id="generateButton" onAction="#handleGenerateRecipe" styleClass="generate-button" stylesheets="@../../../pantry/Recipe.css" text="✨ Generate" />
+            <Button fx:id="generateButton" onAction="#handleGenerateRecipe" styleClass="generate-button" stylesheets="@Recipe.css" text="✨ Generate" />
         </HBox>
 
         <!-- Filter Buttons -->
@@ -59,7 +59,7 @@
                 <Insets bottom="0" left="0" right="0" top="20" />
             </padding>
 
-            <Button fx:id="generateAgainBtn" onAction="#handleGenerateAgain" styleClass="secondary-button" stylesheets="@../../../pantry/Recipe.css" text="🔄 Generate Again" />
+            <Button fx:id="generateAgainBtn" onAction="#handleGenerateAgain" styleClass="secondary-button" stylesheets="@Recipe.css" text="🔄 Generate Again" />
             <Button fx:id="seeMoreBtn" onAction="#handleSeeMore" styleClass="primary-button" text="See More Recipes" />
         </HBox>
     </VBox>
