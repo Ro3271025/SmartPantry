@@ -3,7 +3,7 @@
 // (powered by FernFlower decompiler)
 //
 
-package rodolfo.pantrydashboard;
+package com.example.demo1;
 
 import java.time.LocalDate;
 
