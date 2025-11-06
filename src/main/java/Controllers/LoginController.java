@@ -27,7 +27,7 @@ import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpServer;
 import java.util.Scanner;
 
-public class LoginController extends BaseController {
+public class  LoginController extends BaseController {
     @FXML
     private Pane root;
     @FXML
