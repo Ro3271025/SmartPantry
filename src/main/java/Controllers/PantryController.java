@@ -9,7 +9,7 @@ import javafx.scene.layout.FlowPane;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.event.ActionEvent;
-import rodolfo.pantrydashboard.ItemStatus;
+import com.example.demo1.ItemStatus;
 
 import java.io.IOException;
 import java.time.LocalDate;

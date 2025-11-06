@@ -1,4 +1,4 @@
-package rodolfo.pantrydashboard;
+package com.example.demo1;
 
 /**
  * Enumeration of possible status states for pantry items.
