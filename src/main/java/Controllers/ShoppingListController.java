@@ -13,6 +13,7 @@ import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.stage.FileChooser;
 
 import java.io.File;
+import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.time.LocalDate;
@@ -38,6 +39,12 @@ public class ShoppingListController extends BaseController {
     @FXML private Button addBtn;
     @FXML private Button consumeBtn;
     @FXML private Button deleteBtn;
+    @FXML private Button ReturnDashboardBtn;
+
+    @FXML
+    private void ReturnDashboardBtnOnAction(ActionEvent event) throws IOException {
+        switchScene(event, "PantryDashboard");
+    }
 
     private final ObservableList<PantryItem> items = FXCollections.observableArrayList();
     private final ObjectMapper mapper = new ObjectMapper();
