@@ -34,7 +34,7 @@
                <Button fx:id="loginButton" onAction="#loginButtonOnAction" styleClass="login-button-login" text="Log In" />
 
                <!-- Create Account -->
-               <Button fx:id="signUpButton" onAction="#signUpButtonOnAction" styleClass="signup-button-login" text="Create account" />
+               <Button fx:id="signUpButton" onAction="#signUpButtonOnAction" prefWidth="126.0" styleClass="signup-button-login" text="Create Account" />
 
                <!-- Social Logins -->
                <Button fx:id="googleLoginButton" onAction="#googleLoginButtonOnAction" styleClass="social-button-google" text="Log in with Google" />
