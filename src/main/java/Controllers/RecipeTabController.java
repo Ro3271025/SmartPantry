@@ -1,5 +1,12 @@
 package Controllers;
 
+import com.example.demo1.FirebaseConfiguration;
+import com.example.demo1.UserSession;
+import com.google.api.core.ApiFuture;
+import com.google.cloud.firestore.CollectionReference;
+import com.google.cloud.firestore.Firestore;
+import com.google.cloud.firestore.QueryDocumentSnapshot;
+import com.google.cloud.firestore.QuerySnapshot;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.geometry.Insets;
@@ -13,6 +20,9 @@ import javafx.stage.Stage;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
+import java.util.concurrent.ExecutionException;
+
 public class RecipeTabController extends BaseController{
     @FXML private Button backButton;
     @FXML private TextField aiInputField;
@@ -24,23 +34,47 @@ public class RecipeTabController extends BaseController{
     @FXML private Button generateAgainBtn;
     @FXML private Button seeMoreBtn;
 
+
     private String currentFilter = "all";
     private List<Recipe> allRecipes;
+    private String currentUserId; // Dynamic user ID (set from PantryController)
 
-    // 🔑 Dynamic user ID (set from PantryController)
-    private String currentUserId;
-
-    public void setCurrentUserId(String uid) {
-        this.currentUserId = uid;
-    }
+   // public void setCurrentUserId(String uid) {
+        //this.currentUserId = uid;
+    //}
 
     @FXML
     public void initialize() {
+        FirebaseConfiguration.initialize();
+        currentUserId = UserSession.getCurrentUserId();
         // Initialize recipe data
         allRecipes = createSampleRecipes();
 
-        // Load initial recipes
-        loadRecipes();
+        if (currentUserId != null && !currentUserId.isEmpty()) {
+            loadPantryItemsFromFirebase();
+        } else {
+            loadRecipes();
+        }
+    }
+    private void loadPantryItemsFromFirebase() {
+        Firestore db = FirebaseConfiguration.getDatabase();
+        CollectionReference recipesRef = db.collection("users")
+                .document(currentUserId).collection("pantryItems");
+        ApiFuture<QuerySnapshot> future = recipesRef.get();
+        try {
+            List<QueryDocumentSnapshot> documents = future.get().getDocuments();
+            List<String> pantryItems = new ArrayList<>();
+            for (QueryDocumentSnapshot document : documents) {
+                String name = document.getString("name");
+                if (name != null) {
+                    pantryItems.add(name.trim().toLowerCase());
+                }
+            }
+            suggestRecipesBasedOnPantry();
+        } catch (InterruptedException | ExecutionException e){
+            e.printStackTrace();
+            showError("Failed to load pantry items: " + e.getMessage());
+        }
     }
 
     /**
