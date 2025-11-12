@@ -8,6 +8,7 @@
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
 
+<?import javafx.scene.layout.Region?>
 <ScrollPane fitToWidth="true" stylesheets="@Recipe.css" xmlns="http://javafx.com/javafx/24.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="Controllers.RecipeTabController">
 
     <content>
@@ -38,6 +39,11 @@
                 <Button fx:id="allRecipesBtn" onAction="#handleFilterAll" styleClass="filter-button" text="All Recipes" />
                 <Button fx:id="byPantryBtn" onAction="#handleFilterByPantry" styleClass="filter-button" text="By Pantry Items" />
                 <Button fx:id="missingIngrBtn" onAction="#handleFilterMissing" styleClass="filter-button" text="Missing Ingredients" />
+                <Region HBox.hgrow="ALWAYS"/> <!-- pushes button to the right -->
+                <Button fx:id="addRecipeBtn"
+                        text="+ Add Recipe"
+                        onAction="#handleAddRecipe"
+                        style="-fx-background-color: #4CAF50; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 6;" />
             </HBox>
 
             <!-- RECIPE CARDS AREA -->
