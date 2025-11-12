@@ -25,7 +25,7 @@ public class MainApplication extends Application {
         stage.show();
     }
     public static void main(String[] args) {
-        FirebaseConfiguration.initialize();
+        fStore = FirebaseConfiguration.initialize(); // ← Firebase is initialized HERE
         launch();
     }
 }
