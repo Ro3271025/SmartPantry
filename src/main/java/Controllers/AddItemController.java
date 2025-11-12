@@ -7,6 +7,7 @@ import javafx.scene.control.*;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 
+import com.example.demo1.UserSession;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.Date;
@@ -30,11 +31,19 @@ public class AddItemController {
     public void initialize() {
         firebaseService = new FirebaseService();
 
-        // Initialize dropdowns
         unitComboBox.getItems().addAll("pcs", "kg", "L", "oz", "box", "bottles", "cans");
         locationComboBox.getItems().addAll("Pantry", "Fridge", "Freezer");
         categoryComboBox.getItems().addAll("Dairy", "Vegetables", "Fruits", "Meat",
                 "Grains", "Beverages", "Snacks", "Other");
+
+        // Fallback to session if PantryController didn't inject UID
+        if (currentUserId == null || currentUserId.isBlank()) {
+            currentUserId =  UserSession.getCurrentUserId();
+        }
+
+        if (currentUserId == null || currentUserId.isBlank()) {
+            showError("No user ID set. Please log in first.");
+        }
     }
 
     /**
@@ -68,13 +77,15 @@ public class AddItemController {
     @FXML
     private void handleSaveItem() {
         try {
-            // Validate user ID
-            if (currentUserId == null || currentUserId.isEmpty()) {
+            // Try session fallback before failing
+            if (currentUserId == null || currentUserId.isBlank()) {
+                currentUserId = UserSession.getCurrentUserId();
+            }
+            if (currentUserId == null || currentUserId.isBlank()) {
                 showError("No user ID set. Please log in first.");
                 return;
             }
 
-            // Get form values
             String name = itemNameField.getText();
             String quantityText = quantityField.getText();
             String unit = unitComboBox.getValue();
@@ -82,44 +93,24 @@ public class AddItemController {
             String category = categoryComboBox.getValue();
             LocalDate expiryDate = expiryDatePicker.getValue();
 
-            // Validate inputs
-            if (name == null || name.trim().isEmpty()) {
-                showError("Please enter an item name.");
-                return;
-            }
-
-            if (quantityText == null || quantityText.trim().isEmpty()) {
-                showError("Please enter a quantity.");
-                return;
-            }
+            if (name == null || name.trim().isEmpty()) { showError("Please enter an item name."); return; }
+            if (quantityText == null || quantityText.trim().isEmpty()) { showError("Please enter a quantity."); return; }
 
             int quantity;
             try {
                 quantity = Integer.parseInt(quantityText);
-                if (quantity <= 0) {
-                    showError("Quantity must be greater than 0.");
-                    return;
-                }
+                if (quantity <= 0) { showError("Quantity must be greater than 0."); return; }
             } catch (NumberFormatException e) {
-                showError("Please enter a valid number for quantity.");
-                return;
+                showError("Please enter a valid number for quantity."); return;
             }
 
-            if (unit == null) {
-                showError("Please select a unit.");
-                return;
-            }
+            if (unit == null) { showError("Please select a unit."); return; }
+            if (expiryDate == null) { showError("Please select an expiration date."); return; }
 
-            if (expiryDate == null) {
-                showError("Please select an expiration date.");
-                return;
-            }
-
-            // Convert LocalDate to Date for Firebase
             Date expirationDate = Date.from(expiryDate.atStartOfDay(ZoneId.systemDefault()).toInstant());
 
             if (isEditMode && itemToEdit != null) {
-                // ✅ UPDATE existing item
+                itemToEdit.setUserId(currentUserId); // ensure correct ownership
                 itemToEdit.setName(name);
                 itemToEdit.setQuantityNumeric(quantity);
                 itemToEdit.setQuantityLabel(quantity + " " + unit);
@@ -127,13 +118,13 @@ public class AddItemController {
                 itemToEdit.setCategory(category != null ? category : "Other");
                 itemToEdit.setExpirationDate(expirationDate);
 
+                // Prefer an overload that accepts userId if your service has it
+                // firebaseService.updatePantryItem(currentUserId, itemToEdit.getId(), itemToEdit);
                 firebaseService.updatePantryItem(itemToEdit.getId(), itemToEdit);
 
                 statusLabel.setText("✓ Item updated successfully!");
                 statusLabel.setTextFill(Color.GREEN);
-
             } else {
-                // ✅ ADD new item
                 PantryItem newItem = new PantryItem();
                 newItem.setName(name);
                 newItem.setQuantityNumeric(quantity);
@@ -150,14 +141,11 @@ public class AddItemController {
                 statusLabel.setTextFill(Color.GREEN);
             }
 
-            // Close window after 1 second
             new Thread(() -> {
                 try {
                     Thread.sleep(1000);
                     javafx.application.Platform.runLater(this::closeWindow);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
+                } catch (InterruptedException e) { e.printStackTrace(); }
             }).start();
 
         } catch (Exception e) {

@@ -5,6 +5,7 @@ import com.example.demo1.PantryItem;
 import com.example.demo1.FirebaseConfiguration;
 import com.example.demo1.FirebaseService;
 import javafx.collections.ObservableList;
+import com.example.demo1.UserSession; // <-- use your session
 
 import java.net.URL;
 import java.time.ZoneId;
@@ -39,22 +40,32 @@ public class PantryController extends BaseController implements Initializable {
     private FirebaseService firebaseService;
     private ObservableList<PantryItem> allItems;
     private ToggleGroup filterGroup;
-    @FXML private TextField searchField;
-    @FXML private Button addItemBtn;
-    @FXML private Button recipesBtn;
-    @FXML private Button shoppingBtn;
-    @FXML private Button styleBtn;
-    @FXML private Button logoutBtn;
-    @FXML private ToggleButton segAll;
-    @FXML private ToggleButton segExpiring;
-    @FXML private ToggleButton segLowStock;
-    @FXML private FlowPane cardFlow;
+    @FXML
+    private TextField searchField;
+    @FXML
+    private Button addItemBtn;
+    @FXML
+    private Button recipesBtn;
+    @FXML
+    private Button shoppingBtn;
+    @FXML
+    private Button styleBtn;
+    @FXML
+    private Button logoutBtn;
+    @FXML
+    private ToggleButton segAll;
+    @FXML
+    private ToggleButton segExpiring;
+    @FXML
+    private ToggleButton segLowStock;
+    @FXML
+    private FlowPane cardFlow;
 
     private final DateTimeFormatter DATE_FMT =
             DateTimeFormatter.ofPattern("MMM d, uuuu", Locale.US);
 
     // 🔑 Dynamic user ID (set after login)
-    private String currentUserId;
+    private String currentUserId = null;
 
     private void renderCards(ObservableList<PantryItem> items) {
         cardFlow.getChildren().clear();
@@ -145,15 +156,17 @@ public class PantryController extends BaseController implements Initializable {
     }
 
 
-
-
-
     /**
      * Load all pantry items from Firebase for the current user
      */
     private void loadPantryItems() {
+        if (currentUserId == null || currentUserId.isBlank()) {
+            showErrorAlert("Not signed in", "Missing user id. Please login.");
+            return;
+        }
         try {
-            allItems = firebaseService.getPantryItems(currentUserId);            renderCards(allItems);
+            allItems = firebaseService.getPantryItems(currentUserId);
+            renderCards(allItems);
             System.out.println("Loaded " + allItems.size() + " items from Firebase");
         } catch (ExecutionException | InterruptedException e) {
             System.err.println("Error loading items from Firebase: " + e.getMessage());
@@ -175,6 +188,20 @@ public class PantryController extends BaseController implements Initializable {
         } catch (Exception e) {
             System.err.println("Failed to initialize FirebaseService: " + e.getMessage());
             e.printStackTrace();
+        }
+
+        setupFilters();
+        setupSearchListener();
+
+        // Why: ensure controller works even if setCurrentUserId wasn't called
+        if (currentUserId == null || currentUserId.isBlank()) {
+            currentUserId = UserSession.getCurrentUserId();
+        }
+
+        if (currentUserId != null && !currentUserId.isBlank()) {
+            loadPantryItems();
+        } else {
+            showErrorAlert("Not signed in", "No current user found. Please login.");
         }
     }
 
@@ -209,7 +236,9 @@ public class PantryController extends BaseController implements Initializable {
     }
 
 
-    /** Opens the Add Item screen in a new popup window */
+    /**
+     * Opens the Add Item screen in a new popup window
+     */
 //    @FXML
 //    private void addItemBtnOnAction(ActionEvent event) {
 //        try {
@@ -234,7 +263,6 @@ public class PantryController extends BaseController implements Initializable {
 //            e.printStackTrace();
 //        }
 //    }
-
     @FXML
     private void addItemBtnOnAction(ActionEvent event) {
         try {
@@ -242,7 +270,10 @@ public class PantryController extends BaseController implements Initializable {
             Scene addItemScene = new Scene(loader.load(), 400, 650);
 
             AddItemController controller = loader.getController();
-            controller.setCurrentUserId(currentUserId); // UNCOMMENTED THIS
+            String uid = (currentUserId != null && !currentUserId.isBlank())
+                    ? currentUserId
+                    : UserSession.getCurrentUserId();
+            controller.setCurrentUserId(uid);
 
             Stage addItemStage = new Stage();
             addItemStage.setTitle("Add New Item");
@@ -250,8 +281,7 @@ public class PantryController extends BaseController implements Initializable {
             addItemStage.initModality(Modality.APPLICATION_MODAL);
             addItemStage.showAndWait();
 
-            loadPantryItems(); // ADDED THIS - Reload items after adding
-
+            loadPantryItems();
         } catch (IOException e) {
             System.err.println("Error opening Add Item window: " + e.getMessage());
             e.printStackTrace();
@@ -259,7 +289,9 @@ public class PantryController extends BaseController implements Initializable {
     }
 
 
-    /** Opens the Recipe Tab screen */
+    /**
+     * Opens the Recipe Tab screen
+     */
     @FXML
     private void recipesBtnOnAction(ActionEvent event) throws IOException {
         switchScene(event, "Recipe");
@@ -331,9 +363,9 @@ public class PantryController extends BaseController implements Initializable {
 
     private String statusToLabel(ItemStatus status) {
         return switch (status) {
-            case OK        -> "✓ OK";           // ADDED EMOJI
-            case EXPIRING  -> "⚠️ Expiring Soon"; // ADDED EMOJI + "Soon"
-            case EXPIRED   -> "❌ Expired";      // ADDED EMOJI
+            case OK -> "✓ OK";           // ADDED EMOJI
+            case EXPIRING -> "⚠️ Expiring Soon"; // ADDED EMOJI + "Soon"
+            case EXPIRED -> "❌ Expired";      // ADDED EMOJI
             case LOW_STOCK -> "⬇️ Low Stock";    // ADDED EMOJI
         };
     }
@@ -348,14 +380,16 @@ public class PantryController extends BaseController implements Initializable {
         alert.setContentText(message);
         alert.showAndWait();
     }
+
     private String statusToChipClass(ItemStatus status) {
         return switch (status) {
-            case OK        -> "chip-ok";
-            case EXPIRING  -> "chip-expiring";
-            case EXPIRED   -> "chip-danger";
+            case OK -> "chip-ok";
+            case EXPIRING -> "chip-expiring";
+            case EXPIRED -> "chip-danger";
             case LOW_STOCK -> "chip-warn";
         };
     }
+
     @FXML
     private void goToShoppingList(Event event) throws IOException {
         switchScene(event, "PantryItemsView");
@@ -371,8 +405,9 @@ public class PantryController extends BaseController implements Initializable {
             Scene editItemScene = new Scene(loader.load(), 400, 650);
 
             AddItemController controller = loader.getController();
+            // ensure the dialog is in EDIT mode for this item
             controller.setCurrentUserId(currentUserId);
-            // controller.setEditMode(item); // Uncomment when you add this method to AddItemController
+            controller.setEditMode(item); // ✅ THIS WAS MISSING
 
             Stage editItemStage = new Stage();
             editItemStage.setTitle("Edit Item");
@@ -380,9 +415,7 @@ public class PantryController extends BaseController implements Initializable {
             editItemStage.initModality(Modality.APPLICATION_MODAL);
             editItemStage.showAndWait();
 
-            // Reload items after editing
-            loadPantryItems();
-
+            loadPantryItems(); // refresh after edit
         } catch (IOException e) {
             System.err.println("Error opening Edit Item window: " + e.getMessage());
             e.printStackTrace();
@@ -401,7 +434,10 @@ public class PantryController extends BaseController implements Initializable {
         confirmDialog.showAndWait().ifPresent(response -> {
             if (response == ButtonType.OK) {
                 try {
-                    firebaseService.deletePantryItem(item.getId());
+                    String uid = (currentUserId != null && !currentUserId.isBlank())
+                            ? currentUserId
+                            : UserSession.getCurrentUserId();
+                    firebaseService.deletePantryItem(item.getId(), uid);
                     allItems.remove(item);
                     renderCards(allItems);
                     System.out.println("Deleted item: " + item.getName());
