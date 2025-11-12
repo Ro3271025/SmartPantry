@@ -182,15 +182,17 @@ public class FirebaseService {
      * @param currentUserId
      */
     public void deletePantryItem(String itemId, String currentUserId) throws ExecutionException, InterruptedException {
-        // Delete from nested collection
+        if (currentUserId == null || currentUserId.isBlank()) throw new IllegalArgumentException("currentUserId is required");
+        if (itemId == null || itemId.isBlank()) throw new IllegalArgumentException("itemId is required");
+
         ApiFuture<WriteResult> future = db.collection("users")
-                .document(userId)
-                .collection("pantryItems")
+                .document(currentUserId)            // <- use the parameter, not an undefined variable
+                .collection("pantryItems")          // <- make sure this matches where you add/update
                 .document(itemId)
                 .delete();
 
         future.get();
-        System.out.println("✓ Deleted item: " + itemId);
+        System.out.println("✓ Deleted item: " + itemId + " for user: " + currentUserId);
     }
 
     /**

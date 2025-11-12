@@ -351,14 +351,7 @@ public class PantryController extends BaseController implements Initializable {
     }
 
 
-//    private String statusToLabel(ItemStatus status) {
-//        return switch (status) {
-//            case OK        -> "OK";
-//            case EXPIRING  -> "Expiring";
-//            case EXPIRED   -> "Expired";
-//            case LOW_STOCK -> "Low Stock";
-//        };
-//    }
+
 
 
     private String statusToLabel(ItemStatus status) {
@@ -434,15 +427,25 @@ public class PantryController extends BaseController implements Initializable {
         confirmDialog.showAndWait().ifPresent(response -> {
             if (response == ButtonType.OK) {
                 try {
+                    // ✅ Ensure we have both uid and item id
                     String uid = (currentUserId != null && !currentUserId.isBlank())
                             ? currentUserId
-                            : UserSession.getCurrentUserId();
+                            : com.example.demo1.UserSession.getCurrentUserId();
+                    if (uid == null || uid.isBlank()) {
+                        showErrorAlert("Delete Error", "No user is signed in.");
+                        return;
+                    }
+                    if (item.getId() == null || item.getId().isBlank()) {
+                        showErrorAlert("Delete Error", "Item has no id (cannot delete).");
+                        return;
+                    }
+
+
                     firebaseService.deletePantryItem(item.getId(), uid);
+
                     allItems.remove(item);
                     renderCards(allItems);
-                    System.out.println("Deleted item: " + item.getName());
                 } catch (ExecutionException | InterruptedException e) {
-                    System.err.println("Error deleting item: " + e.getMessage());
                     e.printStackTrace();
                     showErrorAlert("Delete Error", "Failed to delete item: " + e.getMessage());
                 }
