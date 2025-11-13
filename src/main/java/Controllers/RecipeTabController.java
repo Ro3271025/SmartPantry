@@ -133,23 +133,8 @@ public class RecipeTabController extends BaseController{
     }
     @FXML
     private void handleAddRecipe() {
-        try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/example/demo1/AddRecipe.fxml"));
-            Parent popupContent = loader.load();
-
-            Stage popupStage = new Stage();
-            popupStage.setTitle("Add Recipe");
-            popupStage.setScene(new Scene(popupContent));
-            popupStage.initModality(javafx.stage.Modality.APPLICATION_MODAL);
-            popupStage.setResizable(false);
-            popupStage.showAndWait();
-
-            // Optional: refresh recipe list after closing popup
-            loadPantryItemsFromFirebase();
-        } catch (Exception e) {
-            e.printStackTrace();
-            showError("Failed to open Add Recipe pop-up: " + e.getMessage());
-        }
+        openPopup("/com/example/demo1/AddRecipe.fxml", "Add Recipe");
+        loadPantryItemsFromFirebase(); // optional refresh afterward
     }
 
     // Filter handlers
