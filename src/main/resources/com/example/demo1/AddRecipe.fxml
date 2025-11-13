@@ -4,11 +4,27 @@
 <?import java.util.*?>
 <?import javafx.scene.*?>
 <?import javafx.scene.control.*?>
+<?import javafx.geometry.Insets?>
 <?import javafx.scene.layout.*?>
 
-<AnchorPane xmlns="http://javafx.com/javafx"
-            xmlns:fx="http://javafx.com/fxml"
-            fx:controller="Controllers.AddRecipeController"
-            prefHeight="400.0" prefWidth="600.0">
+<VBox xmlns:fx="http://javafx.com/fxml"
+      fx:controller="Controllers.AddRecipeController"
+      styleClass="add-recipe-root"
+      stylesheets="@Recipe.css"
+      spacing="12"
+      alignment="CENTER">
 
-</AnchorPane>
+    <Label text="Add New Recipe" styleClass="add-recipe-title" />
+
+    <TextField fx:id="recipeNameField" promptText="Recipe Name" styleClass="add-recipe-field" />
+    <TextField fx:id="availableField" promptText="Available Ingredients (comma-separated)" styleClass="add-recipe-field" />
+    <TextField fx:id="missingField" promptText="Missing Ingredients (comma-separated)" styleClass="add-recipe-field" />
+    <TextField fx:id="aiTipField" promptText="Tip or Note" styleClass="add-recipe-field" />
+
+    <HBox alignment="CENTER" spacing="10">
+        <Button text="Cancel" onAction="#handleCancel" styleClass="add-recipe-cancel" />
+        <Button text="Save" onAction="#saveRecipe" styleClass="add-recipe-save" />
+    </HBox>
+
+    <Label fx:id="statusLabel" wrapText="true" styleClass="add-recipe-status" />
+</VBox>

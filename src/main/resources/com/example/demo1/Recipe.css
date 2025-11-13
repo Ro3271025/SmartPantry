@@ -274,3 +274,90 @@
     -fx-background-color: #BDBDBD;
     -fx-background-radius: 4;
 }
+/* =========================================================
+   --- ADD RECIPE BUTTON + POP-UP STYLES ---
+========================================================= */
+
+/* --- Add Recipe button on Recipe Tab --- */
+.add-recipe-button {
+    -fx-background-color: #2E7D32;      /* Green */
+    -fx-text-fill: white;
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+    -fx-background-radius: 8;
+    -fx-padding: 8 20 8 20;
+    -fx-cursor: hand;
+    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.15), 4, 0, 0, 1);
+}
+.add-recipe-button:hover {
+    -fx-background-color: #388E3C;
+}
+
+/* --- Add Recipe pop-up root layout --- */
+.add-recipe-root {
+    -fx-background-color: #ffffff;
+    -fx-font-family: "Poppins", "Arial", sans-serif;
+    -fx-padding: 25;
+    -fx-spacing: 12;
+    -fx-alignment: CENTER;
+    -fx-border-radius: 10;
+    -fx-background-radius: 10;
+}
+
+/* --- Title label --- */
+.add-recipe-title {
+    -fx-font-size: 20px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #2f7a64;
+}
+
+/* --- Input fields --- */
+.add-recipe-field {
+    -fx-background-color: #fafafa;
+    -fx-border-color: #dcdfe3;
+    -fx-border-radius: 6;
+    -fx-background-radius: 6;
+    -fx-font-size: 13px;
+    -fx-pref-width: 280;
+    -fx-pref-height: 32;
+    -fx-prompt-text-fill: #999999;
+}
+.add-recipe-field:focused {
+    -fx-border-color: #4a90e2;
+    -fx-effect: dropshadow(three-pass-box, rgba(74,144,226,0.2), 6, 0, 0, 0);
+}
+
+/* --- Buttons inside pop-up --- */
+.add-recipe-cancel {
+    -fx-background-color: #e0e0e0;
+    -fx-text-fill: #333333;
+    -fx-font-weight: bold;
+    -fx-font-size: 13px;
+    -fx-background-radius: 6;
+    -fx-pref-width: 100;
+    -fx-pref-height: 36;
+    -fx-cursor: hand;
+}
+.add-recipe-cancel:hover {
+    -fx-background-color: #C7C7C7;
+}
+
+.add-recipe-save {
+    -fx-background-color: #2f7a64;
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+    -fx-font-size: 13px;
+    -fx-background-radius: 6;
+    -fx-pref-width: 100;
+    -fx-pref-height: 36;
+    -fx-cursor: hand;
+}
+.add-recipe-save:hover {
+    -fx-background-color: #388E3C;
+}
+
+/* --- Status label --- */
+.add-recipe-status {
+    -fx-text-fill: #444444;
+    -fx-font-size: 12px;
+}

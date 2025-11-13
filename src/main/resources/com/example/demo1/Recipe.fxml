@@ -40,10 +40,7 @@
                 <Button fx:id="byPantryBtn" onAction="#handleFilterByPantry" styleClass="filter-button" text="By Pantry Items" />
                 <Button fx:id="missingIngrBtn" onAction="#handleFilterMissing" styleClass="filter-button" text="Missing Ingredients" />
                 <Region HBox.hgrow="ALWAYS"/> <!-- pushes button to the right -->
-                <Button fx:id="addRecipeBtn"
-                        text="+ Add Recipe"
-                        onAction="#handleAddRecipe"
-                        style="-fx-background-color: #4CAF50; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 6;" />
+                <Button fx:id="addRecipeBtn" onAction="#handleAddRecipe" styleClass="add-recipe-button" text="+ Add Recipe"/>
             </HBox>
 
             <!-- RECIPE CARDS AREA -->
