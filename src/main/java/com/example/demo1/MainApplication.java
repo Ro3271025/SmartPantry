@@ -17,14 +17,15 @@ public class MainApplication extends Application {
     @Override
     public void start(Stage stage) throws IOException {
         FXMLLoader fxmlLoader = new FXMLLoader(MainApplication.class.getResource("mainScreen.fxml"));
-        Scene scene = new Scene(fxmlLoader.load(), 800, 800);
+        Scene scene = new Scene(fxmlLoader.load(), 1200, 700);
         //scene.getStylesheets().add(getClass().getResource("style.css").toExternalForm());
-        //stage.setResizable(false);
+        stage.setResizable(true);
         stage.setScene(scene);
+        stage.setTitle("SmartPantry");
         stage.show();
     }
     public static void main(String[] args) {
-        FirebaseConfiguration.initialize();
+        fStore = FirebaseConfiguration.initialize(); // ← Firebase is initialized HERE
         launch();
     }
 }
