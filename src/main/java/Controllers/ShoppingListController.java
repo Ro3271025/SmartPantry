@@ -48,9 +48,36 @@ public class ShoppingListController extends BaseController {
 
     private final ObservableList<PantryItem> items = FXCollections.observableArrayList();
     private final ObjectMapper mapper = new ObjectMapper();
+    private void applyHeaderClass(String cls) {
+        table.getStyleClass().removeAll("thead-green", "thead-warn", "thead-danger");
+        table.getStyleClass().add(cls);
+    }
 
     @FXML
     public void initialize() {
+        // Make pills behave like radio buttons
+        ToggleGroup pills = new ToggleGroup();
+        allToggle.setToggleGroup(pills);
+        expiringToggle.setToggleGroup(pills);
+        lowStockToggle.setToggleGroup(pills);
+
+// Ensure one is selected at startup
+        if (!(allToggle.isSelected() || expiringToggle.isSelected() || lowStockToggle.isSelected())) {
+            allToggle.setSelected(true);
+        }
+
+// Drive header color from the group (single click)
+        pills.selectedToggleProperty().addListener((obs, oldT, newT) -> {
+            if (newT == allToggle)            applyHeaderClass("thead-green");
+            else if (newT == expiringToggle)  applyHeaderClass("thead-warn");
+            else if (newT == lowStockToggle)  applyHeaderClass("thead-danger");
+        });
+
+// Set initial header once (matches current selection)
+        if (lowStockToggle.isSelected())       applyHeaderClass("thead-danger");
+        else if (expiringToggle.isSelected())  applyHeaderClass("thead-warn");
+        else                                   applyHeaderClass("thead-green");
+
         selectCol.setCellValueFactory(cellData -> cellData.getValue().selectedProperty());
         selectCol.setCellFactory(tc -> new CheckBoxTableCell<>());
         nameCol.setCellValueFactory(new PropertyValueFactory<>("name"));
