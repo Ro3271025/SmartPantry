@@ -228,7 +228,7 @@ public class FirebaseService {
             System.out.println("✓ Firebase connection test: SUCCESS");
             return true;
         } catch (Exception e) {
-            System.err.println("❌ Firebase connection test: FAILED - " + e.getMessage());
+            System.err.println("Firebase connection test: FAILED - " + e.getMessage());
             return false;
         }
     }
