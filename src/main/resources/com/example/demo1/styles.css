@@ -1,30 +1,177 @@
-ot { -fx-font-family: "Inter", "Segoe UI", system-ui; -fx-background-color: white; }
-.title { -fx-font-size: 22px; -fx-font-weight: 600; }
+.root {
+  -fx-font-family: "Inter", "Segoe UI", system-ui;
+  -fx-background-color: white;
 
-.link-like { -fx-background-color: transparent; -fx-text-fill: #6b7280; }
+  /* Palette */
+  -sp-green:      #2E7D32;   -sp-green-700:   #256C2D;
+  -sp-orange:     #F59E0B;   -sp-orange-700:  #D97706;
+  -sp-red:        #DC2626;   -sp-red-700:     #B91C1C;
+  -sp-blue:       #1E40AF;   -sp-blue-700:    #1B3A99;
 
-.segmented > .toggle-button {
-  -fx-background-color: #eef2f7;
+  -sp-gray-50:  #F9FAFB;  -sp-gray-100: #F3F4F6;  -sp-gray-200: #E5E7EB;  -sp-gray-300: #D1D5DB;
+
+  -sp-text:     #0F172A;
+  -sp-white:    #FFFFFF;
+}
+
+/* Title */
+.title { -fx-font-size: 28px; -fx-font-weight: 800; -fx-text-fill: -sp-text; }
+
+/* ---------- Buttons (pill) ---------- */
+.button, .btn {
   -fx-background-radius: 999;
-  -fx-padding: 6 12;
+  -fx-font-weight: 800;
+  -fx-background-insets: 0,1;
+  -fx-cursor: hand;
 }
-.segmented > .toggle-button:selected {
-  -fx-background-color: white;
-  -fx-effect: dropshadow(gaussian, rgba(0,0,0,.08), 5,0,0,1);
-}
-.segmented { -fx-padding: 4; -fx-background-color: #eef2f7; -fx-background-radius: 999; }
+.button:disabled { -fx-opacity: .55; -fx-cursor: default; }
+/* (Optional helpers; keep if you use them anywhere) */
+/* .btn-sm { -fx-padding: 8 16; -fx-font-size: 14px; }
+   .btn-lg { -fx-padding: 14 26; -fx-font-size: 18px; } */
 
-.table-view {
-  -fx-background-color: white;
+/* Specific buttons by fx:id (what your UI uses now) */
+#ReturnDashboardBtn { -fx-background-color: -sp-blue;   -fx-text-fill: -sp-white; -fx-border-color: transparent; }
+#ReturnDashboardBtn:hover { -fx-background-color: -sp-blue-700; }
+
+#addBtn           { -fx-background-color: -sp-green;  -fx-text-fill: -sp-white; -fx-border-color: transparent; }
+#addBtn:hover     { -fx-background-color: -sp-green-700; }
+
+#consumeBtn       { -fx-background-color: -sp-orange; -fx-text-fill: -sp-white; -fx-border-color: transparent; }
+#consumeBtn:hover { -fx-background-color: -sp-orange-700; }
+
+#deleteBtn        { -fx-background-color: -sp-red;    -fx-text-fill: -sp-white; -fx-border-color: transparent; }
+#deleteBtn:hover  { -fx-background-color: -sp-red-700; }
+
+/* ---------- Top filter toggles (pill look + colors) ---------- */
+#allToggle, #expiringToggle, #lowStockToggle {
+  -fx-background-radius: 999; -fx-border-radius: 999;
+  -fx-font-weight: 800; -fx-text-fill: -sp-text;
+  -fx-background-color: -sp-gray-100; -fx-border-color: -sp-gray-200;
+}
+#allToggle:hover, #expiringToggle:hover, #lowStockToggle:hover { -fx-background-color: -sp-gray-200; }
+#allToggle:armed, #expiringToggle:armed, #lowStockToggle:armed { -fx-background-color: -sp-gray-300; }
+
+/* Colored states (what you asked for) */
+#allToggle        { -fx-background-color: -sp-green;  -fx-text-fill: -sp-white; -fx-border-color: transparent; }
+#allToggle:hover,
+#allToggle:selected,
+#allToggle:selected:hover { -fx-background-color: -sp-green-700; -fx-text-fill: -sp-white; }
+
+#expiringToggle   { -fx-background-color: -sp-orange; -fx-text-fill: -sp-white; -fx-border-color: transparent; }
+#expiringToggle:hover,
+#expiringToggle:selected,
+#expiringToggle:selected:hover { -fx-background-color: -sp-orange-700; -fx-text-fill: -sp-white; }
+
+#lowStockToggle   { -fx-background-color: -sp-red;    -fx-text-fill: -sp-white; -fx-border-color: transparent; }
+#lowStockToggle:hover,
+#lowStockToggle:selected,
+#lowStockToggle:selected:hover { -fx-background-color: -sp-red-700; -fx-text-fill: -sp-white; }
+
+/* ---------- Inputs (pill search + combo) ---------- */
+.text-field, .combo-box-base {
+  -fx-background-radius: 999; -fx-border-radius: 999;
+  -fx-background-color: -sp-white; -fx-border-color: -sp-gray-200;
+}
+.text-field:focused, .combo-box-base:focused { -fx-border-color: -sp-green; }
+
+/* ---------- Dynamic table header color (driven by controller) ---------- */
+#table.thead-green  .column-header-background { -fx-background-color: -sp-green;  }
+#table.thead-warn   .column-header-background { -fx-background-color: -sp-orange; }
+#table.thead-danger .column-header-background { -fx-background-color: -sp-red;    }
+
+#table.thead-green  .column-header .label,
+#table.thead-warn   .column-header .label,
+#table.thead-danger .column-header .label {
+  -fx-text-fill: -sp-white; -fx-font-weight: 800;
+}
+/* --- Base header look for #table (restores solid bar & white labels) --- */
+#table .column-header-background { -fx-background-color: -sp-green; }
+#table .column-header, #table .filler { -fx-background-color: transparent; }
+#table .column-header .label { -fx-text-fill: -sp-white; -fx-font-weight: 800; }
+
+/* --- Dynamic overrides (win when class is present) --- */
+#table.thead-green  .column-header-background { -fx-background-color: -sp-green;  }
+#table.thead-warn   .column-header-background { -fx-background-color: -sp-orange; }
+#table.thead-danger .column-header-background { -fx-background-color: -sp-red;    }
+
+#table.thead-green  .column-header .label,
+#table.thead-warn   .column-header .label,
+#table.thead-danger .column-header .label {
+  -fx-text-fill: -sp-white; -fx-font-weight: 800;
+}
+/* --- List pill (green) moved from #allToggle -> #listToggle --- */
+#listToggle {
+  -fx-background-color: -sp-green;
+  -fx-text-fill: -sp-white;
+  -fx-border-color: transparent;
+}
+#listToggle:hover,
+#listToggle:selected,
+#listToggle:selected:hover {
+  -fx-background-color: -sp-green-700;
+  -fx-text-fill: -sp-white;
+}
+/* ===== Pills in the top filter row ===== */
+.topbar > .toggle-button {
+  -fx-background-radius: 999;
+  -fx-border-radius: 999;
+  -fx-background-insets: 0;
+  -fx-padding: 8 16;            /* visual pill without changing your layout */
+  -fx-font-weight: 800;
+  -fx-background-color: -sp-gray-100;
+  -fx-border-color: -sp-gray-200;
+  -fx-text-fill: -sp-text;
+}
+.topbar > .toggle-button:hover    { -fx-background-color: -sp-gray-200; }
+.topbar > .toggle-button:armed    { -fx-background-color: -sp-gray-300; }
+
+/* Colored states per button id (same tokens you already use) */
+#listToggle {
+  -fx-background-color: -sp-green;
+  -fx-text-fill: -sp-white;
+  -fx-border-color: transparent;
+}
+#listToggle:hover,
+#listToggle:selected,
+#listToggle:selected:hover        { -fx-background-color: -sp-green-700; -fx-text-fill: -sp-white; }
+
+#expiringToggle {
+  -fx-background-color: -sp-orange;
+  -fx-text-fill: -sp-white;
+  -fx-border-color: transparent;
+}
+#expiringToggle:hover,
+#expiringToggle:selected,
+#expiringToggle:selected:hover     { -fx-background-color: -sp-orange-700; -fx-text-fill: -sp-white; }
+
+#lowStockToggle {
+  -fx-background-color: -sp-red;
+  -fx-text-fill: -sp-white;
+  -fx-border-color: transparent;
+}
+#lowStockToggle:hover,
+#lowStockToggle:selected,
+#lowStockToggle:selected:hover     { -fx-background-color: -sp-red-700; -fx-text-fill: -sp-white; }
+
+/* ===== Table header cleanup (keeps your green bar) ===== */
+#table {
   -fx-background-radius: 12;
-  -fx-border-color: #e5e7eb;
+  -fx-border-color: -sp-gray-200;
   -fx-border-radius: 12;
 }
-.table-view .column-header-background { -fx-background-color: #f8fafc; }
-
-.button {
-  -fx-background-radius: 12;
-  -fx-padding: 8 14;
+#table .column-header-background {
+  -fx-background-color: -sp-green;
+  -fx-background-insets: 0;
+  -fx-background-radius: 8 8 0 0;   /* rounded top corners */
+  -fx-padding: 6 8;                  /* compact, no weird height */
 }
-/* Styles to echo the Figma look */
-.ro
+#table .column-header,
+#table .filler {
+  -fx-background-color: transparent;
+  -fx-border-color: transparent;     /* remove gray lines that “mess up” the bar */
+}
+#table .column-header .label {
+  -fx-text-fill: -sp-white;
+  -fx-font-weight: 800;
+  -fx-padding: 0 8;
+}
