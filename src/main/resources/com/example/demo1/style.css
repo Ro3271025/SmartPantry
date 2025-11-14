@@ -150,8 +150,8 @@
     -fx-text-fill: #111111;
     -fx-font-size: 13px;
     -fx-background-radius: 6;
-    -fx-pref-width: 220;
-    -fx-pref-height: 36;
+    -fx-pref-width: 240;
+    -fx-pref-height: 45;
     -fx-cursor: hand;
 }
 
@@ -315,7 +315,7 @@
     -fx-font-size: 14px;
     -fx-font-weight: bold;
     -fx-background-radius: 6;
-    -fx-pref-width: 80;
+    -fx-pref-width: 120;
     -fx-pref-height: 34;
     -fx-cursor: hand;
 }

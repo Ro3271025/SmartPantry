@@ -230,8 +230,62 @@ public class FirebaseService {
             System.out.println("✓ Firebase connection test: SUCCESS");
             return true;
         } catch (Exception e) {
-            System.err.println("❌ Firebase connection test: FAILED - " + e.getMessage());
+            System.err.println("Firebase connection test: FAILED - " + e.getMessage());
             return false;
         }
+    }
+    // Recipe Methods
+    public String addRecipe(RecipeItem recipe, String userId)
+            throws ExecutionException, InterruptedException {
+
+        Map<String,Object> data = new HashMap<>();
+        data.put("name", recipe.getName());
+        data.put("availableIngredients", recipe.getAvailableIngredients());
+        data.put("missingIngredients", recipe.getMissingIngredients());
+        data.put("aiTip", recipe.getAiTip());
+        data.put("dateAdded", com.google.cloud.Timestamp.now());
+
+        ApiFuture<DocumentReference> future = db.collection("users")
+                .document(userId)
+                .collection("recipes")
+                .add(data);
+
+        DocumentReference ref = future.get();
+        System.out.println("✓ Added recipe: " + recipe.getName());
+        return ref.getId();
+    }
+
+    public static ObservableList<RecipeItem> getRecipes(String userId)
+            throws ExecutionException, InterruptedException {
+
+        ObservableList<RecipeItem> list = FXCollections.observableArrayList();
+        ApiFuture<QuerySnapshot> future = db.collection("users")
+                .document(userId)
+                .collection("recipes").get();
+
+        for (QueryDocumentSnapshot doc : future.get().getDocuments()) {
+            RecipeItem r = new RecipeItem();
+            r.setId(doc.getId());
+            r.setName(doc.getString("name"));
+            r.setAvailableIngredients(doc.getString("availableIngredients"));
+            r.setMissingIngredients(doc.getString("missingIngredients"));
+            r.setAiTip(doc.getString("aiTip"));
+            r.setUserId(userId);
+            list.add(r);
+        }
+        System.out.println("✓ Loaded " + list.size() + " recipes");
+        return list;
+    }
+
+    public void deleteRecipe(String recipeId, String userId)
+            throws ExecutionException, InterruptedException {
+
+        ApiFuture<WriteResult> res = db.collection("users")
+                .document(userId)
+                .collection("recipes")
+                .document(recipeId)
+                .delete();
+        res.get();
+        System.out.println("✓ Deleted recipe " + recipeId);
     }
 }
