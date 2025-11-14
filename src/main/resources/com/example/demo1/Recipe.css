@@ -361,3 +361,8 @@
     -fx-text-fill: #444444;
     -fx-font-size: 12px;
 }
+.delete-button {
+    -fx-background-color: #d32f2f;
+    -fx-text-fill: white;
+    -fx-background-radius: 6;
+}
