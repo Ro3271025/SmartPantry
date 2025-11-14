@@ -366,3 +366,10 @@
     -fx-text-fill: white;
     -fx-background-radius: 6;
 }
+.match-badge {
+    -fx-background-color: #e0f7e9;
+    -fx-text-fill: #2e7d32;
+    -fx-font-weight: bold;
+    -fx-padding: 4 8;
+    -fx-background-radius: 8;
+}

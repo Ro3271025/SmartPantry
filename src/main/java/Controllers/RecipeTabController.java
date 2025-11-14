@@ -51,45 +51,89 @@ public class RecipeTabController extends BaseController{
             showError("User session not found");
             return;
         }
-
-        loadRecipesFromFirebase();
+        // Load pantry items and recipes dynamically
+        List<String> pantryItems = getPantryItemNames();
+        loadRecipesFromFirebase(pantryItems);
     }
 
     // Loads recipes stored in Firestore for this user
-    private void loadRecipesFromFirebase() {
+    private void loadRecipesFromFirebase(List<String> pantryItems) {
         Firestore db = FirebaseConfiguration.getDatabase();
         CollectionReference recipesRef = db.collection("users")
                 .document(currentUserId)
                 .collection("recipes");
 
-        ApiFuture<QuerySnapshot> future = recipesRef.get();
         try {
-            List<QueryDocumentSnapshot> docs = future.get().getDocuments();
+            List<QueryDocumentSnapshot> docs = recipesRef.get().get().getDocuments();
             allRecipes.clear();
+
             for (QueryDocumentSnapshot doc : docs) {
+                String name = doc.getString("name");
+                String available = doc.getString("available");
+                String missing = doc.getString("missing");
+                String aiTip = doc.getString("aiTip");
+
+                // Combine all ingredients into one normalized list
+                String combined = ((available != null ? available : "") + "," + (missing != null ? missing : ""))
+                        .replaceAll("\\s+", " ")
+                        .toLowerCase()
+                        .trim();
+
+                List<String> allIngredients = Arrays.stream(combined.split(","))
+                        .map(String::trim)
+                        .filter(s -> !s.isEmpty())
+                        .toList();
+
+                if (allIngredients.isEmpty()) continue;
+
+                // Recalculate what’s actually available/missing based on the pantry
+                List<String> actualAvailable = new ArrayList<>();
+                List<String> actualMissing = new ArrayList<>();
+
+                for (String ing : allIngredients) {
+                    boolean match = pantryItems.stream().anyMatch(p ->
+                            p.equals(ing) ||
+                                    p.equals(ing.replaceAll("s$", "")) ||
+                                    p.replaceAll("s$", "").equals(ing) ||
+                                    p.contains(ing) || ing.contains(p)
+                    );
+
+                    if (match) actualAvailable.add(ing);
+                    else actualMissing.add(ing);
+                }
+
+                // Compute true match percentage
+                int matchPercent = (int) Math.round((double) actualAvailable.size() / allIngredients.size() * 100);
+
+                // Create recipe with updated fields
                 Recipe r = new Recipe(
-                        doc.getString("name"),
-                        "Match pending",
-                        doc.getString("available"),
-                        doc.getString("missing"),
-                        doc.getString("aiTip")
+                        name,
+                        matchPercent + "% match",
+                        String.join(", ", actualAvailable),
+                        String.join(", ", actualMissing),
+                        aiTip
                 );
                 r.id = doc.getId();
                 allRecipes.add(r);
             }
+
+            // Display recipes in the UI
             loadRecipes();
-            showSuccess("Loaded " + allRecipes.size() + " recipes from Firebase");
-        } catch (InterruptedException | ExecutionException e) {
+            System.out.println(" Loaded " + allRecipes.size() + " recipes from Firebase (with live pantry matching)");
+
+        } catch (Exception e) {
             e.printStackTrace();
             showError("Failed to load recipes: " + e.getMessage());
         }
     }
 
+
     // Reloads recipes after adding one
     @FXML
     private void handleAddRecipe() {
         openPopup("/com/example/demo1/AddRecipe.fxml", "Add Recipe");
-        loadRecipesFromFirebase(); // refresh
+        List<String> pantryItems = getPantryItemNames();
+        loadRecipesFromFirebase(pantryItems);
     }
 
     // Navigate back to pantry *
@@ -139,7 +183,10 @@ public class RecipeTabController extends BaseController{
         aiInputField.clear();
     }
 
-    @FXML private void handleGenerateAgain() { loadRecipesFromFirebase(); }
+    @FXML private void handleGenerateAgain() {
+        List<String> pantryItems = getPantryItemNames();
+        loadRecipesFromFirebase(pantryItems);
+    }
     @FXML private void handleSeeMore() { showSuccess("Feature coming soon!"); }
 
     /** 🍳 Create and display recipe cards */
@@ -195,12 +242,19 @@ public class RecipeTabController extends BaseController{
                     .document(currentUserId)
                     .collection("recipes")
                     .document(recipe.id)
-                    .delete();
-            loadRecipesFromFirebase();
+                    .delete()
+                    .get(); // ✅ Wait for deletion to complete before refreshing
+
+            // ✅ Refresh recipes with updated pantry data
+            List<String> pantryItems = getPantryItemNames();
+            loadRecipesFromFirebase(pantryItems);
+
+            showSuccess("Recipe deleted successfully!");
         } catch (Exception e) {
             showError("Failed to delete recipe: " + e.getMessage());
         }
     }
+
 
     /** Helper for icons */
     private HBox createIngredientRow(String icon, String iconStyle, String label, String items) {
@@ -212,6 +266,56 @@ public class RecipeTabController extends BaseController{
         itemsText.getStyleClass().add("ingredient-text");
         return new HBox(8, iconLabel, labelText, itemsText);
     }
+    // Load the user's pantry items (names only)
+    private List<String> getPantryItemNames() {
+        List<String> pantryNames = new ArrayList<>();
+        try {
+            Firestore db = FirebaseConfiguration.getDatabase();
+            CollectionReference pantryRef = db.collection("users")
+                    .document(currentUserId)
+                    .collection("pantryItems");
+
+            List<QueryDocumentSnapshot> docs = pantryRef.get().get().getDocuments();
+            for (QueryDocumentSnapshot doc : docs) {
+                String name = doc.getString("name");
+                if (name != null && !name.isBlank()) {
+                    pantryNames.add(name.trim().toLowerCase());
+                }
+            }
+        } catch (Exception e) {
+            System.err.println("Error loading pantry items: " + e.getMessage());
+        }
+        return pantryNames;
+    }
+    // Compute true match % using flexible word comparison
+    private int computeMatchPercentage(String available, String missing, List<String> pantryItems) {
+        String combined = ((available != null ? available : "") + "," + (missing != null ? missing : ""))
+                .replaceAll("\\s+", " ")  // clean spacing
+                .trim()
+                .toLowerCase();
+
+        if (combined.isBlank()) return 0;
+
+        List<String> allIngredients = Arrays.stream(combined.split(","))
+                .map(String::trim)
+                .filter(s -> !s.isEmpty())
+                .toList();
+
+        if (allIngredients.isEmpty()) return 0;
+
+        long matches = allIngredients.stream()
+                .filter(ingredient -> pantryItems.stream().anyMatch(pantry ->
+                        // ✅ flexible comparison:
+                        pantry.equals(ingredient) ||
+                                pantry.equals(ingredient.replaceAll("s$", "")) ||       // plural → singular
+                                pantry.replaceAll("s$", "").equals(ingredient) ||       // singular → plural
+                                ingredient.contains(pantry) || pantry.contains(ingredient)
+                ))
+                .count();
+
+        return (int) Math.round((double) matches / allIngredients.size() * 100);
+    }
+
 
     // Alerts
     private void showError(String msg) {
