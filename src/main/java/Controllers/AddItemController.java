@@ -2,10 +2,13 @@ package Controllers;
 
 import com.example.demo1.FirebaseService;
 import com.example.demo1.PantryItem;
+import com.example.demo1.OpenFoodFactsService;
+import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
+import com.example.demo1.CameraBarcodeScanner;
 
 import com.example.demo1.UserSession;
 import java.time.LocalDate;
@@ -23,13 +26,16 @@ public class AddItemController {
     @FXML private Label statusLabel;
 
     private FirebaseService firebaseService;
+    private OpenFoodFactsService foodFactsService;
+    private CameraBarcodeScanner cameraScanner;
     private String currentUserId;
-    private PantryItem itemToEdit; // For edit mode
+    private PantryItem itemToEdit;
     private boolean isEditMode = false;
 
     @FXML
     public void initialize() {
         firebaseService = new FirebaseService();
+        foodFactsService = new OpenFoodFactsService();
 
         unitComboBox.getItems().addAll("pcs", "kg", "L", "oz", "box", "bottles", "cans");
         locationComboBox.getItems().addAll("Pantry", "Fridge", "Freezer");
@@ -38,7 +44,7 @@ public class AddItemController {
 
         // Fallback to session if PantryController didn't inject UID
         if (currentUserId == null || currentUserId.isBlank()) {
-            currentUserId =  UserSession.getCurrentUserId();
+            currentUserId = UserSession.getCurrentUserId();
         }
 
         if (currentUserId == null || currentUserId.isBlank()) {
@@ -46,16 +52,10 @@ public class AddItemController {
         }
     }
 
-    /**
-     * ✅ ADDED: Set the current user ID (called from PantryController)
-     */
     public void setCurrentUserId(String userId) {
         this.currentUserId = userId;
     }
 
-    /**
-     * ✅ ADDED: Set edit mode with existing item
-     */
     public void setEditMode(PantryItem item) {
         this.itemToEdit = item;
         this.isEditMode = true;
@@ -72,6 +72,134 @@ public class AddItemController {
 
         statusLabel.setText("Editing: " + item.getName());
         statusLabel.setTextFill(Color.BLUE);
+    }
+
+    @FXML
+    private void handleScanBarcode() {
+        // Initialize camera scanner if not already done
+        if (cameraScanner == null) {
+            cameraScanner = new CameraBarcodeScanner();
+        }
+
+        // Start camera scanning with callback
+        cameraScanner.startScanning(barcode -> {
+            if (barcode.trim().isEmpty()) {
+                showError("Please enter a valid barcode");
+                return;
+            }
+
+            // Show loading status
+            Platform.runLater(() -> {
+                statusLabel.setText("🔍 Searching Open Food Facts database...");
+                statusLabel.setTextFill(Color.BLUE);
+            });
+
+            // Fetch product data in background thread
+            new Thread(() -> {
+                try {
+                    OpenFoodFactsService.ProductData product = foodFactsService.getProductByBarcode(barcode.trim());
+
+                    // Update UI on JavaFX thread
+                    Platform.runLater(() -> {
+                        if (product.isFound()) {
+                            populateFormWithProductData(product);
+                            statusLabel.setText("✓ Product found! Please verify and adjust the details as needed.");
+                            statusLabel.setTextFill(Color.GREEN);
+                        } else {
+                            // Show user-friendly error with option to enter manually
+                            String message = "Product not found in database.\n\n" +
+                                    "This could mean:\n" +
+                                    "• The barcode is not yet in Open Food Facts\n" +
+                                    "• The barcode was scanned incorrectly\n\n" +
+                                    "You can still add this item manually below.";
+
+                            Alert alert = new Alert(Alert.AlertType.INFORMATION);
+                            alert.setTitle("Product Not Found");
+                            alert.setHeaderText("Barcode: " + barcode);
+                            alert.setContentText(message);
+                            alert.showAndWait();
+
+                            statusLabel.setText("Product not found. Please enter details manually.");
+                            statusLabel.setTextFill(Color.ORANGE);
+                        }
+                    });
+
+                } catch (Exception e) {
+                    Platform.runLater(() -> {
+                        showError("Error connecting to database: " + e.getMessage());
+                        Alert alert = new Alert(Alert.AlertType.ERROR);
+                        alert.setTitle("Connection Error");
+                        alert.setHeaderText("Could not reach Open Food Facts");
+                        alert.setContentText("Please check your internet connection and try again.");
+                        alert.showAndWait();
+                    });
+                    e.printStackTrace();
+                }
+            }).start();
+        });
+    }
+
+    /**
+     * Populate form fields with data from Open Food Facts
+     */
+    private void populateFormWithProductData(OpenFoodFactsService.ProductData product) {
+        // Set product name
+        if (product.getName() != null && !product.getName().isEmpty()) {
+            itemNameField.setText(product.getName());
+        }
+
+        // Parse and set quantity
+        if (product.getQuantity() != null && !product.getQuantity().isEmpty()) {
+            OpenFoodFactsService.ParsedQuantity parsedQty =
+                    new OpenFoodFactsService.ParsedQuantity(product.getQuantity());
+
+            quantityField.setText(String.valueOf(parsedQty.numeric));
+
+            // Set unit if it matches one of our options
+            if (unitComboBox.getItems().contains(parsedQty.unit)) {
+                unitComboBox.setValue(parsedQty.unit);
+            } else {
+                unitComboBox.setValue("pcs"); // default
+            }
+        } else {
+            quantityField.setText("1");
+            unitComboBox.setValue("pcs");
+        }
+
+        // Set category
+        if (product.getCategory() != null) {
+            categoryComboBox.setValue(product.getCategory());
+        }
+
+        // Set estimated expiration date
+        if (product.getEstimatedExpirationDate() != null) {
+            expiryDatePicker.setValue(product.getEstimatedExpirationDate());
+        }
+
+        // Set default location based on category
+        String defaultLocation = getDefaultLocationForCategory(product.getCategory());
+        locationComboBox.setValue(defaultLocation);
+    }
+
+    /**
+     * Get default storage location based on category
+     */
+    private String getDefaultLocationForCategory(String category) {
+        if (category == null) return "Pantry";
+
+        switch (category) {
+            case "Dairy":
+            case "Meat":
+            case "Vegetables":
+            case "Fruits":
+                return "Fridge";
+            case "Grains":
+            case "Snacks":
+            case "Beverages":
+                return "Pantry";
+            default:
+                return "Pantry";
+        }
     }
 
     @FXML
@@ -93,24 +221,40 @@ public class AddItemController {
             String category = categoryComboBox.getValue();
             LocalDate expiryDate = expiryDatePicker.getValue();
 
-            if (name == null || name.trim().isEmpty()) { showError("Please enter an item name."); return; }
-            if (quantityText == null || quantityText.trim().isEmpty()) { showError("Please enter a quantity."); return; }
+            if (name == null || name.trim().isEmpty()) {
+                showError("Please enter an item name.");
+                return;
+            }
+            if (quantityText == null || quantityText.trim().isEmpty()) {
+                showError("Please enter a quantity.");
+                return;
+            }
 
             int quantity;
             try {
                 quantity = Integer.parseInt(quantityText);
-                if (quantity <= 0) { showError("Quantity must be greater than 0."); return; }
+                if (quantity <= 0) {
+                    showError("Quantity must be greater than 0.");
+                    return;
+                }
             } catch (NumberFormatException e) {
-                showError("Please enter a valid number for quantity."); return;
+                showError("Please enter a valid number for quantity.");
+                return;
             }
 
-            if (unit == null) { showError("Please select a unit."); return; }
-            if (expiryDate == null) { showError("Please select an expiration date."); return; }
+            if (unit == null) {
+                showError("Please select a unit.");
+                return;
+            }
+            if (expiryDate == null) {
+                showError("Please select an expiration date.");
+                return;
+            }
 
             Date expirationDate = Date.from(expiryDate.atStartOfDay(ZoneId.systemDefault()).toInstant());
 
             if (isEditMode && itemToEdit != null) {
-                itemToEdit.setUserId(currentUserId); // ensure correct ownership
+                itemToEdit.setUserId(currentUserId);
                 itemToEdit.setName(name);
                 itemToEdit.setQuantityNumeric(quantity);
                 itemToEdit.setQuantityLabel(quantity + " " + unit);
@@ -118,8 +262,6 @@ public class AddItemController {
                 itemToEdit.setCategory(category != null ? category : "Other");
                 itemToEdit.setExpirationDate(expirationDate);
 
-                // Prefer an overload that accepts userId if your service has it
-                // firebaseService.updatePantryItem(currentUserId, itemToEdit.getId(), itemToEdit);
                 firebaseService.updatePantryItem(itemToEdit.getId(), itemToEdit);
 
                 statusLabel.setText("✓ Item updated successfully!");
@@ -144,8 +286,10 @@ public class AddItemController {
             new Thread(() -> {
                 try {
                     Thread.sleep(1000);
-                    javafx.application.Platform.runLater(this::closeWindow);
-                } catch (InterruptedException e) { e.printStackTrace(); }
+                    Platform.runLater(this::closeWindow);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
             }).start();
 
         } catch (Exception e) {
@@ -172,12 +316,6 @@ public class AddItemController {
     private void closeWindow() {
         Stage stage = (Stage) itemNameField.getScene().getWindow();
         stage.close();
-    }
-
-    @FXML
-    private void handleScanBarcode() {
-        statusLabel.setText("📷 Barcode scanning feature coming soon!");
-        statusLabel.setTextFill(Color.BLUE);
     }
 
     @FXML
