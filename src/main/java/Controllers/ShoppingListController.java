@@ -9,27 +9,23 @@ import com.google.cloud.firestore.CollectionReference;
 import com.example.demo1.FirebaseConfiguration;
 import java.util.Map;
 import java.util.HashMap;
-
+import com.example.demo1.UserSession;
 import javafx.application.Platform;
 import java.time.ZoneId;
 import java.util.concurrent.CompletableFuture;
-
 import com.example.demo1.Dialogs;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-
 import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
-
 import javafx.print.PrinterJob;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.CheckBoxTableCell;
 import javafx.scene.control.cell.PropertyValueFactory;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
@@ -37,8 +33,10 @@ import java.io.File;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.stream.Collectors;
-
 import javafx.scene.control.ToggleGroup;
+import java.util.HashSet;
+import java.util.stream.Stream;
+import javafx.collections.ListChangeListener;
 
 // ---- Firebase / Firestore (add firebase-admin to pom.xml) ----
 import com.google.api.core.ApiFuture;
@@ -95,6 +93,10 @@ public class ShoppingListController extends BaseController {
     // Where we persist the local "List" view
     private final Path LOCAL_DIR  = Paths.get(System.getProperty("user.home"), ".smartpantry");
     private final Path LOCAL_JSON = LOCAL_DIR.resolve("shopping-list.json");
+    // Keep user's ad-hoc “Recommended” items visible across tab switches
+    private final ObservableList<PantryItem> pinnedRecommended = FXCollections.observableArrayList();
+    // Fetched-from-Firebase (expiringSoonFirebase) + pinnedRecommended merged for display
+    private final ObservableList<PantryItem> recommendedCombined = FXCollections.observableArrayList();
 
     // for JSON seeding if desired
     private final ObjectMapper mapper = new ObjectMapper();
@@ -119,6 +121,14 @@ public class ShoppingListController extends BaseController {
             ex.printStackTrace();
         }
     }
+    /** Merge fetched (expiringSoonFirebase) + pinnedRecommended into recommendedCombined with de-dupe. */
+    private void recomputeRecommended() {
+        var seen = new HashSet<String>();
+        var merged = Stream.concat(expiringSoonFirebase.stream(), pinnedRecommended.stream())
+                .filter(p -> seen.add(p.getName() + "|" + p.getUnit() + "|" + p.getLocation() + "|" + p.getExpiration()))
+                .toList();
+        recommendedCombined.setAll(merged);
+    }
 
     /** Save local "List" items to ~/.smartpantry/shopping-list.json. */
     private void saveLocalList() {
@@ -133,11 +143,22 @@ public class ShoppingListController extends BaseController {
             ex.printStackTrace();
         }
     }
+    private void refreshRecommended() {
+        // your existing method that fills the Recommended list
+        fetchExpiringFromFirebase(true);   // or fetchRecommendedFromFirebase(true) if you renamed it
+    }
 
     // header color helper
     private void applyHeaderClass(String cls) {
         table.getStyleClass().removeAll("thead-green", "thead-warn", "thead-danger");
         table.getStyleClass().add(cls);
+    }
+    /** Show/hide columns depending on the active pill. */
+    private void applyModeColumns(Toggle selected) {
+        // Recommended = expiringToggle
+        boolean showRecommendedCols = (selected == expiringToggle);
+        expirationCol.setVisible(showRecommendedCols);
+        lowStockCol.setVisible(showRecommendedCols);
     }
 
     @FXML
@@ -273,20 +294,25 @@ public class ShoppingListController extends BaseController {
             if (newT == listToggle) {
                 table.setItems(shoppingList);
                 applyHeaderClass("thead-green");
-            } else if (newT == expiringToggle) {
-                fetchExpiringFromFirebase(true);
-                table.setItems(expiringSoonFirebase);
+            } else if (newT == expiringToggle) { // "Recommended"
+                fetchExpiringFromFirebase(false);   // don’t force if you don’t need to
+                table.setItems(recommendedCombined);
                 applyHeaderClass("thead-warn");
-            } else if (newT == lowStockToggle) {
-                fetchLowStockFromFirebase(true);
-                table.setItems(lowStockFirebase);
-                applyHeaderClass("thead-danger");
             }
+            applyModeColumns(newT);
             table.refresh();
         });
 
+// Keep the combined Recommended list in sync automatically
+        expiringSoonFirebase.addListener((ListChangeListener<PantryItem>) c -> recomputeRecommended());
+        pinnedRecommended.addListener((ListChangeListener<PantryItem>) c -> recomputeRecommended());
+        recomputeRecommended(); // initial compute
+
+
         // Initial header
         applyHeaderClass("thead-green");
+        applyModeColumns(pills.getSelectedToggle());
+
 
         // Table policies
         table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN);
@@ -299,19 +325,25 @@ public class ShoppingListController extends BaseController {
     public void handleAdd(ActionEvent e){
         Dialog<PantryItem> dialog = Dialogs.addItemDialog();
         dialog.showAndWait().ifPresent(item -> {
-            // always keep local list
+            // 1) Always add to local "List" and persist
             shoppingList.add(item);
             saveLocalList();
 
-            // OPTION A: write EVERYTHING to Firebase
-            // upsertToFirestore(item);
+            // 2) Also pin into Recommended so it stays visible there across tab switches
+            pinnedRecommended.add(item);   // <-- NEW
+            // combined list will auto-refresh via the listener, but we can recompute explicitly:
+            recomputeRecommended();
 
-            // OPTION B (current): only write items that belong in the Firebase pills
-            if (item.isLowStock() || isExpiringSoon(item.getExpiration())) {
-                upsertToFirestore(item);
+            // 3) If the Recommended pill is active, ensure the table shows the combined list
+            if (expiringToggle.isSelected()) {
+                table.setItems(recommendedCombined);
+                table.refresh();
             }
         });
     }
+
+
+
 
 
 
@@ -324,19 +356,54 @@ public class ShoppingListController extends BaseController {
                 table.getSelectionModel().getSelectedItems()
         );
         var checkboxRows = current.filtered(PantryItem::isSelected);
-
         if (selectedRows.isEmpty() && checkboxRows.isEmpty()) return;
 
-        current.removeAll(selectedRows);
-        current.removeAll(checkboxRows);
+        var toRemove = FXCollections.observableArrayList(selectedRows);
+        for (PantryItem p : checkboxRows) if (!toRemove.contains(p)) toRemove.add(p);
+
+        boolean onListTab = (current == shoppingList);
+
+        // remove from UI immediately
+        current.removeAll(toRemove);
+
+        // NEW: also unpin from Recommended, then recompute the combined view
+        pinnedRecommended.removeAll(toRemove);    // <-- NEW
+        recomputeRecommended();                   // <-- NEW
+
         table.getSelectionModel().clearSelection();
         table.refresh();
 
-        // If we're on the local List, persist it
-        if (current == shoppingList) {
+        if (onListTab) {
             saveLocalList();
+            // (keep your Firebase deletion block as-is)
+            String uid = UserSession.getCurrentUserId();
+            if (uid != null && !uid.isBlank()) {
+                var db = FirebaseConfiguration.getDatabase();
+                var coll = db.collection("users").document(uid).collection("shoppingList");
+                java.util.concurrent.CompletableFuture.runAsync(() -> {
+                    for (PantryItem p : toRemove) {
+                        String id = p.getShoppingDocId();
+                        try {
+                            if (id != null && !id.isBlank()) {
+                                coll.document(id).delete().get();
+                            } else {
+                                var q = coll.whereEqualTo("item", p.getName())
+                                        .whereEqualTo("quantity", p.getQty())
+                                        .whereEqualTo("unit", p.getUnit())
+                                        .whereEqualTo("location", p.getLocation());
+                                var snap = q.get().get();
+                                for (var d : snap.getDocuments()) d.getReference().delete().get();
+                            }
+                        } catch (Exception ex) {
+                            System.err.println("⚠ Delete failed: " + ex.getMessage());
+                        }
+                    }
+                });
+            }
         }
     }
+
+
 
 
 
@@ -553,7 +620,13 @@ public class ShoppingListController extends BaseController {
                 try { items.addAll(runQueryToItems(qTs));  } catch (Exception ignore) {}
                 try { items.addAll(runQueryToItems(qStr)); } catch (Exception ignore) {}
 
-                Platform.runLater(() -> mergeInto(expiringSoonFirebase, items));
+                Platform.runLater(() -> {
+                    // replace the fetched list with fresh results
+                    expiringSoonFirebase.setAll(items);
+                    // rebuild the combined "Recommended" view so pinned items persist
+                    recomputeRecommended();
+                });
+
             } catch (Exception ex) {
                 ex.printStackTrace();
             }
