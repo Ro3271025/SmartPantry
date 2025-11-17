@@ -7,6 +7,7 @@ import com.google.cloud.firestore.CollectionReference;
 import com.google.cloud.firestore.Firestore;
 import com.google.cloud.firestore.QueryDocumentSnapshot;
 import com.google.cloud.firestore.QuerySnapshot;
+import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.geometry.Insets;
@@ -37,6 +38,7 @@ public class RecipeTabController extends BaseController{
     @FXML private VBox vBox;
     @FXML private Button generateAgainBtn;
     @FXML private Button seeMoreBtn;
+    @FXML private TextField searchField;
 
     private String currentFilter = "all";
     private List<Recipe> allRecipes = new ArrayList<>();
@@ -223,14 +225,21 @@ public class RecipeTabController extends BaseController{
         HBox available = createIngredientRow("✓", "available-icon", "Available:", recipe.available);
         HBox missing = createIngredientRow("✗", "missing-icon", "Missing:", recipe.missing);
 
+        Button editBtn = new Button("Edit");
+        editBtn.getStyleClass().add("edit-button");
+        editBtn.setOnAction(e -> handleEditRecipe(recipe));
+
         Button deleteBtn = new Button("🗑 Delete Recipe");
         deleteBtn.getStyleClass().add("delete-button");
         deleteBtn.setOnAction(e -> handleDeleteRecipe(recipe));
 
+        HBox buttons = new HBox(10, editBtn, deleteBtn);
+        buttons.setAlignment(Pos.CENTER_LEFT);
+
         VBox aiTip = new VBox(new Label("✨ AI Tip: " + recipe.aiTip));
         aiTip.getStyleClass().add("ai-tip");
 
-        card.getChildren().addAll(header, available, missing, deleteBtn, aiTip);
+        card.getChildren().addAll(header, available, missing, buttons, aiTip);
         return card;
     }
 
@@ -254,6 +263,102 @@ public class RecipeTabController extends BaseController{
             showError("Failed to delete recipe: " + e.getMessage());
         }
     }
+    private void handleEditRecipe(Recipe recipe) {
+        Dialog<Recipe> dialog = new Dialog<>();
+        dialog.setTitle("Edit Recipe");
+        dialog.getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
+
+        // Input fields
+        TextField nameField = new TextField(recipe.name);
+        TextField availableField = new TextField(recipe.available);
+        TextField missingField = new TextField(recipe.missing);
+        TextArea aiTipField = new TextArea(recipe.aiTip);
+        aiTipField.setPrefRowCount(3);
+
+        // Layout
+        GridPane grid = new GridPane();
+        grid.setHgap(10);
+        grid.setVgap(10);
+        grid.setPadding(new Insets(10));
+        grid.addRow(0, new Label("Name:"), nameField);
+        grid.addRow(1, new Label("Available:"), availableField);
+        grid.addRow(2, new Label("Missing:"), missingField);
+        grid.addRow(3, new Label("AI Tip:"), aiTipField);
+
+        dialog.getDialogPane().setContent(grid);
+
+        dialog.setResultConverter(bt -> {
+            if (bt == ButtonType.OK) {
+                recipe.name = nameField.getText().trim();
+                recipe.available = availableField.getText().trim();
+                recipe.missing = missingField.getText().trim();
+                recipe.aiTip = aiTipField.getText().trim();
+                return recipe;
+            }
+            return null;
+        });
+
+        dialog.showAndWait().ifPresent(updated -> {
+            // ✅ Recalculate match % immediately
+            List<String> pantryItems = getPantryItemNames();
+            int newMatch = computeMatchPercentage(
+                    updated.available,
+                    updated.missing,
+                    pantryItems
+            );
+            updated.match = newMatch + "% match";
+
+            // Update Firestore in background
+            updateRecipeInFirebase(updated);
+
+            // Refresh only this card visually
+            refreshRecipeCard(updated);
+        });
+    }
+    private void refreshRecipeCard(Recipe updated) {
+        // Find the existing card in VBox and replace it
+        for (int i = 0; i < vBox.getChildren().size(); i++) {
+            if (vBox.getChildren().get(i) instanceof HBox row) {
+                for (int j = 0; j < row.getChildren().size(); j++) {
+                    if (row.getChildren().get(j) instanceof VBox card) {
+                        // Find the card by matching the recipe name and ID
+                        Label nameLabel = (Label) ((HBox) card.getChildren().get(0)).getChildren().get(0);
+                        if (nameLabel.getText().equals(updated.name)) {
+                            // Rebuild and replace the card
+                            VBox newCard = createRecipeCard(updated);
+                            row.getChildren().set(j, newCard);
+                            return;
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private void updateRecipeInFirebase(Recipe recipe) {
+        new Thread(() -> {
+            try {
+                Firestore db = FirebaseConfiguration.getDatabase();
+                db.collection("users")
+                        .document(currentUserId)
+                        .collection("recipes")
+                        .document(recipe.id)
+                        .update(
+                                "name", recipe.name,
+                                "available", recipe.available,
+                                "missing", recipe.missing,
+                                "aiTip", recipe.aiTip
+                        ).get(); // wait for completion
+
+                System.out.println("✅ Updated recipe in Firebase: " + recipe.name);
+                Platform.runLater(() -> showSuccess("Recipe updated successfully!"));
+            } catch (Exception e) {
+                Platform.runLater(() -> showError("Failed to update recipe: " + e.getMessage()));
+                e.printStackTrace();
+            }
+        }).start();
+    }
+
 
 
     /** Helper for icons */
