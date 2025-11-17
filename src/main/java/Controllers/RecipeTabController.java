@@ -392,6 +392,36 @@ public class RecipeTabController extends BaseController{
         }
         return pantryNames;
     }
+    @FXML
+    private void handleSearch() {
+        String query = searchField.getText().toLowerCase().trim();
+        if (query.isEmpty()) {
+            loadRecipes(); // show all if search is cleared
+            return;
+        }
+
+        vBox.getChildren().clear();
+
+        // Filter recipes based on the query (name, available, missing, or aiTip)
+        List<Recipe> filtered = allRecipes.stream()
+                .filter(r -> r.name.toLowerCase().contains(query)
+                        || r.available.toLowerCase().contains(query)
+                        || r.missing.toLowerCase().contains(query)
+                        || r.aiTip.toLowerCase().contains(query))
+                .toList();
+
+        for (int i = 0; i < filtered.size(); i += 2) {
+            HBox row = new HBox(20);
+            row.setAlignment(Pos.TOP_LEFT);
+            VBox card1 = createRecipeCard(filtered.get(i));
+            row.getChildren().add(card1);
+            if (i + 1 < filtered.size()) {
+                VBox card2 = createRecipeCard(filtered.get(i + 1));
+                row.getChildren().add(card2);
+            }
+            vBox.getChildren().add(row);
+        }
+    }
     // Compute true match % using flexible word comparison
     private int computeMatchPercentage(String available, String missing, List<String> pantryItems) {
         String combined = ((available != null ? available : "") + "," + (missing != null ? missing : ""))
