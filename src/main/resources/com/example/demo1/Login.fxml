@@ -27,19 +27,15 @@
                <Label styleClass="form-label" text="Password" />
                <PasswordField fx:id="passwordTextField" promptText="Enter Password" styleClass="input-field" />
 
-               <!-- Forgot Password -->
-               <Button fx:id="ForgotPasswordButton" alignment="CENTER_RIGHT" onAction="#forgotPasswordButtonOnAction" styleClass="link-button" text="Forgot password?" />
-
                <!-- Log In -->
                <Button fx:id="loginButton" onAction="#loginButtonOnAction" styleClass="login-button-login" text="Log In" />
 
                <!-- Create Account -->
-               <Button fx:id="signUpButton" onAction="#signUpButtonOnAction" styleClass="signup-button-login" text="Create account" />
+               <Button fx:id="signUpButton" onAction="#signUpButtonOnAction" prefWidth="126.0" styleClass="signup-button-login" text="Create Account" />
 
                <!-- Social Logins -->
                <Button fx:id="googleLoginButton" onAction="#googleLoginButtonOnAction" styleClass="social-button-google" text="Log in with Google" />
 
-               <Button fx:id="facebookLoginButton" onAction="#facebookLoginButtonOnAction" styleClass="social-button-facebook" text="Log in with Facebook" />
 
                <!-- Help and Cancel Buttons -->
                <Button fx:id="HelpButton" onAction="#HelpButtonOnAction" styleClass="help-button-login" text="Help" />

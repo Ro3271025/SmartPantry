@@ -22,6 +22,9 @@ public class PantryItem {
         this.expiration.set(expiration);
         this.lowStock.set(lowStock);
     }
+    private String shoppingDocId;
+    public String getShoppingDocId() { return shoppingDocId; }
+    public void setShoppingDocId(String shoppingDocId) { this.shoppingDocId = shoppingDocId; }
 
     public String getName() { return name.get(); }
     public void setName(String v) { name.set(v); }

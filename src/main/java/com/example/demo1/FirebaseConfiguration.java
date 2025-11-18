@@ -33,4 +33,6 @@ public class FirebaseConfiguration {
         return FirestoreClient.getFirestore();
     }
 
+    
+
 }
