@@ -90,7 +90,7 @@ public class AddItemController {
 
             // Show loading status
             Platform.runLater(() -> {
-                statusLabel.setText("🔍 Searching Open Food Facts database...");
+                statusLabel.setText("🔍 Searching product databases...");
                 statusLabel.setTextFill(Color.BLUE);
             });
 
@@ -103,13 +103,16 @@ public class AddItemController {
                     Platform.runLater(() -> {
                         if (product.isFound()) {
                             populateFormWithProductData(product);
-                            statusLabel.setText("✓ Product found! Please verify and adjust the details as needed.");
+
+                            // Show which database found the product
+                            String source = product.getSource() != null ? product.getSource() : "Database";
+                            statusLabel.setText("✓ Product found in " + source + "! Please verify and adjust the details as needed.");
                             statusLabel.setTextFill(Color.GREEN);
                         } else {
                             // Show user-friendly error with option to enter manually
-                            String message = "Product not found in database.\n\n" +
+                            String message = "Product not found in any database.\n\n" +
                                     "This could mean:\n" +
-                                    "• The barcode is not yet in Open Food Facts\n" +
+                                    "• The barcode is not in UPCItemDB or Open Food Facts\n" +
                                     "• The barcode was scanned incorrectly\n\n" +
                                     "You can still add this item manually below.";
 
@@ -129,7 +132,7 @@ public class AddItemController {
                         showError("Error connecting to database: " + e.getMessage());
                         Alert alert = new Alert(Alert.AlertType.ERROR);
                         alert.setTitle("Connection Error");
-                        alert.setHeaderText("Could not reach Open Food Facts");
+                        alert.setHeaderText("Could not reach product databases");
                         alert.setContentText("Please check your internet connection and try again.");
                         alert.showAndWait();
                     });
@@ -140,7 +143,7 @@ public class AddItemController {
     }
 
     /**
-     * Populate form fields with data from Open Food Facts
+     * Populate form fields with data from product databases
      */
     private void populateFormWithProductData(OpenFoodFactsService.ProductData product) {
         // Set product name

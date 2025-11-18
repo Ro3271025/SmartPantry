@@ -2,6 +2,7 @@ package com.example.demo1;
 
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import com.google.gson.JsonArray;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
@@ -10,23 +11,25 @@ import java.net.URL;
 import java.time.LocalDate;
 
 /**
- * Service to fetch product data from Open Food Facts API
+ * Service to fetch product data from UPCItemDB (primary) with Open Food Facts fallback
  */
 public class OpenFoodFactsService {
 
-    private static final String API_BASE_URL = "https://world.openfoodfacts.org/api/v2/product/";
+    private static final String UPC_ITEM_DB_URL = "https://api.upcitemdb.com/prod/trial/lookup";
+    private static final String OPEN_FOOD_FACTS_URL = "https://world.openfoodfacts.org/api/v2/product/";
     private static final String USER_AGENT = "SmartPantry - JavaFX App - Version 1.0";
 
     /**
-     * Product data returned from Open Food Facts
+     * Product data returned from APIs
      */
     public static class ProductData {
         private String name;
         private String category;
         private String quantity;
-        private Integer expirationDays; // estimated days until expiration
+        private Integer expirationDays;
         private boolean found;
         private String errorMessage;
+        private String source; // Track which API provided the data
 
         public ProductData() {
             this.found = false;
@@ -51,24 +54,148 @@ public class OpenFoodFactsService {
         public String getErrorMessage() { return errorMessage; }
         public void setErrorMessage(String errorMessage) { this.errorMessage = errorMessage; }
 
+        public String getSource() { return source; }
+        public void setSource(String source) { this.source = source; }
+
         public LocalDate getEstimatedExpirationDate() {
             if (expirationDays != null) {
                 return LocalDate.now().plusDays(expirationDays);
             }
-            return LocalDate.now().plusMonths(6); // default to 6 months
+            return LocalDate.now().plusMonths(6);
         }
     }
 
     /**
-     * Fetch product data by barcode
+     * Fetch product data by barcode - tries UPCItemDB first, then Open Food Facts
      * @param barcode The product barcode (UPC/EAN)
      * @return ProductData object with product information
      */
     public ProductData getProductByBarcode(String barcode) {
+        ProductData product;
+
+        // STEP 1: Try UPCItemDB first (best for US products)
+        System.out.println("🔍 Searching UPCItemDB for barcode: " + barcode);
+        product = searchUPCItemDB(barcode);
+
+        if (product.isFound()) {
+            System.out.println("✓ Found in UPCItemDB!");
+            product.setSource("UPCItemDB (US Database)");
+            return product;
+        }
+
+        // STEP 2: If not found, try Open Food Facts as fallback (best for European products)
+        System.out.println("⚠ Not found in UPCItemDB. Trying Open Food Facts...");
+        product = searchOpenFoodFacts(barcode);
+
+        if (product.isFound()) {
+            System.out.println("✓ Found in Open Food Facts!");
+            product.setSource("Open Food Facts");
+            return product;
+        }
+
+        // STEP 3: Product not found in either database
+        System.out.println("✗ Product not found in any database");
+        product.setErrorMessage("Product not found in UPCItemDB or Open Food Facts databases");
+        return product;
+    }
+
+    /**
+     * Search UPCItemDB database (PRIMARY - US products)
+     * Free tier: 100 requests/day, no API key needed
+     */
+    private ProductData searchUPCItemDB(String barcode) {
         ProductData product = new ProductData();
 
         try {
-            String urlString = API_BASE_URL + barcode + ".json";
+            String urlString = UPC_ITEM_DB_URL + "?upc=" + barcode;
+            URL url = new URL(urlString);
+            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+            conn.setRequestMethod("GET");
+            conn.setRequestProperty("Content-Type", "application/json");
+            conn.setRequestProperty("User-Agent", USER_AGENT);
+            conn.setConnectTimeout(5000);
+            conn.setReadTimeout(5000);
+
+            int responseCode = conn.getResponseCode();
+
+            if (responseCode == 200) {
+                BufferedReader in = new BufferedReader(new InputStreamReader(conn.getInputStream()));
+                StringBuilder response = new StringBuilder();
+                String inputLine;
+
+                while ((inputLine = in.readLine()) != null) {
+                    response.append(inputLine);
+                }
+                in.close();
+
+                JsonObject jsonResponse = JsonParser.parseString(response.toString()).getAsJsonObject();
+
+                // Check if product was found
+                if (jsonResponse.has("code") &&
+                        jsonResponse.get("code").getAsString().equals("OK") &&
+                        jsonResponse.has("items") &&
+                        jsonResponse.get("items").isJsonArray()) {
+
+                    JsonArray items = jsonResponse.getAsJsonArray("items");
+
+                    if (items.size() > 0) {
+                        product.setFound(true);
+                        JsonObject item = items.get(0).getAsJsonObject();
+
+                        // Extract product name (title)
+                        if (item.has("title")) {
+                            product.setName(item.get("title").getAsString());
+                        }
+
+                        // Extract brand (prepend to name if available)
+                        if (item.has("brand") && !item.get("brand").isJsonNull()) {
+                            String brand = item.get("brand").getAsString();
+                            String currentName = product.getName();
+                            if (currentName != null && !currentName.toLowerCase().contains(brand.toLowerCase())) {
+                                product.setName(brand + " " + currentName);
+                            }
+                        }
+
+                        // Extract category
+                        String category = "Other";
+                        if (item.has("category")) {
+                            String upcCategory = item.get("category").getAsString();
+                            category = mapUPCCategory(upcCategory);
+                        }
+                        product.setCategory(category);
+
+                        // Extract quantity/size
+                        if (item.has("size")) {
+                            product.setQuantity(item.get("size").getAsString());
+                        } else {
+                            product.setQuantity("1 pcs"); // default
+                        }
+
+                        product.setExpirationDays(estimateExpirationDays(category, null));
+                    }
+                }
+            } else if (responseCode == 404) {
+                product.setFound(false);
+            }
+
+            conn.disconnect();
+
+        } catch (Exception e) {
+            product.setFound(false);
+            e.printStackTrace();
+        }
+
+        return product;
+    }
+
+    /**
+     * Search Open Food Facts database (FALLBACK - European products)
+     */
+    private ProductData searchOpenFoodFacts(String barcode) {
+        ProductData product = new ProductData();
+
+        try {
+            String urlString = OPEN_FOOD_FACTS_URL + barcode + ".json";
             URL url = new URL(urlString);
             HttpURLConnection conn = (HttpURLConnection) url.openConnection();
             conn.setRequestMethod("GET");
@@ -80,7 +207,6 @@ public class OpenFoodFactsService {
 
             if (responseCode == 404) {
                 product.setFound(false);
-                product.setErrorMessage("Product not found in database. Barcode: " + barcode);
                 conn.disconnect();
                 return product;
             }
@@ -95,7 +221,6 @@ public class OpenFoodFactsService {
                 }
                 in.close();
 
-                // Parse JSON response
                 JsonObject jsonResponse = JsonParser.parseString(response.toString()).getAsJsonObject();
 
                 if (jsonResponse.has("status") && jsonResponse.get("status").getAsInt() == 1) {
@@ -120,28 +245,53 @@ public class OpenFoodFactsService {
                         product.setCategory(mapCategory(categories));
                     }
 
-                    // Estimate expiration based on category
                     product.setExpirationDays(estimateExpirationDays(product.getCategory(), productObj));
-
-                } else {
-                    product.setFound(false);
-                    product.setErrorMessage("Product not found in Open Food Facts database");
                 }
-
-            } else {
-                product.setFound(false);
-                product.setErrorMessage("API request failed with code: " + responseCode);
             }
 
             conn.disconnect();
 
         } catch (Exception e) {
             product.setFound(false);
-            product.setErrorMessage("Error: " + e.getMessage());
             e.printStackTrace();
         }
 
         return product;
+    }
+
+    /**
+     * Map UPCItemDB categories to our app categories
+     */
+    private String mapUPCCategory(String upcCategory) {
+        if (upcCategory == null || upcCategory.isEmpty()) return "Other";
+
+        upcCategory = upcCategory.toLowerCase();
+
+        // UPCItemDB uses categories like "Food > Beverages", "Health & Beauty > Food & Nutrition"
+        if (upcCategory.contains("dairy") || upcCategory.contains("milk") ||
+                upcCategory.contains("cheese") || upcCategory.contains("yogurt")) {
+            return "Dairy";
+        } else if (upcCategory.contains("vegetable") || upcCategory.contains("produce")) {
+            return "Vegetables";
+        } else if (upcCategory.contains("fruit")) {
+            return "Fruits";
+        } else if (upcCategory.contains("meat") || upcCategory.contains("poultry") ||
+                upcCategory.contains("seafood")) {
+            return "Meat";
+        } else if (upcCategory.contains("grain") || upcCategory.contains("bread") ||
+                upcCategory.contains("cereal") || upcCategory.contains("pasta")) {
+            return "Grains";
+        } else if (upcCategory.contains("beverage") || upcCategory.contains("drink") ||
+                upcCategory.contains("soda") || upcCategory.contains("juice")) {
+            return "Beverages";
+        } else if (upcCategory.contains("snack") || upcCategory.contains("candy") ||
+                upcCategory.contains("chip") || upcCategory.contains("cookie")) {
+            return "Snacks";
+        } else if (upcCategory.contains("food")) {
+            return "Other"; // Generic food category
+        }
+
+        return "Other";
     }
 
     /**
@@ -177,15 +327,16 @@ public class OpenFoodFactsService {
     }
 
     /**
-     * Estimate expiration days based on category and product data
+     * Estimate expiration days based on category
      */
     private Integer estimateExpirationDays(String category, JsonObject productObj) {
-        // Check if product has expiration date info
-        if (productObj.has("expiration_date") && !productObj.get("expiration_date").isJsonNull()) {
-            // You could parse this if available
+        if (productObj != null && productObj.has("expiration_date") &&
+                !productObj.get("expiration_date").isJsonNull()) {
+            // Could parse this if available
         }
 
-        // Default estimates based on category
+        if (category == null) return 180;
+
         switch (category) {
             case "Dairy":
                 return 14; // 2 weeks
