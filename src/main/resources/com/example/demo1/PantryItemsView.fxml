@@ -29,13 +29,15 @@
             <Label styleClass="title" text="Shopping List"/>
 
             <!-- Pills row -->
-            <HBox spacing="8" styleClass="topbar">
+            <HBox spacing="4" styleClass="segmented topbar">
                 <children>
                     <ToggleButton fx:id="listToggle" text="List" selected="true"/>
-                    <ToggleButton fx:id="expiringToggle" text="Expiring soon"/>
-                    <ToggleButton fx:id="lowStockToggle" text="Low stock"/>
+                    <ToggleButton fx:id="expiringToggle" text="Recommended"/>
+                    <ToggleButton fx:id="lowStockToggle" text="Low stock"
+                                  visible="false" managed="false"/>
                 </children>
             </HBox>
+
 
 
             <HBox spacing="8">
