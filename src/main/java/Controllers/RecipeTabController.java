@@ -39,6 +39,12 @@ public class RecipeTabController extends BaseController{
     @FXML private Button generateAgainBtn;
     @FXML private Button seeMoreBtn;
     @FXML private TextField searchField;
+    @FXML private Button readyBtn;
+    @FXML private Button favoriteBtn;
+    @FXML private Button notReadyBtn;
+    @FXML private Button aiRecommendedBtn;
+
+
 
     private String currentFilter = "all";
     private List<Recipe> allRecipes = new ArrayList<>();
@@ -156,20 +162,90 @@ public class RecipeTabController extends BaseController{
         }
     }
 
-    // Filter control
-    @FXML private void handleFilterAll() { currentFilter = "all"; updateFilterButtons(); loadRecipes(); }
-    @FXML private void handleFilterByPantry() { currentFilter = "pantry"; updateFilterButtons(); loadRecipes(); }
-    @FXML private void handleFilterMissing() { currentFilter = "missing"; updateFilterButtons(); loadRecipes(); }
+    @FXML
+    private void handleFilterAll() {
+        currentFilter = "all";
+        updateFilterButtons();
+        displayFilteredRecipes();
+    }
+
+    @FXML
+    private void handleFilterReady() {
+        currentFilter = "ready";
+        updateFilterButtons();
+        displayFilteredRecipes();
+    }
+
+    @FXML
+    private void handleFilterFavorites() {
+        currentFilter = "favorites";
+        updateFilterButtons();
+        displayFilteredRecipes();
+    }
+
+    @FXML
+    private void handleFilterNotReady() {
+        currentFilter = "notready";
+        updateFilterButtons();
+        displayFilteredRecipes();
+    }
+
+    @FXML
+    private void handleFilterAIRecommended() {
+        currentFilter = "ai";
+        updateFilterButtons();
+        displayFilteredRecipes();
+    }
 
     private void updateFilterButtons() {
-        allRecipesBtn.getStyleClass().remove("filter-selected");
-        byPantryBtn.getStyleClass().remove("filter-selected");
-        missingIngrBtn.getStyleClass().remove("filter-selected");
+        // remove highlight
+        List<Button> filters = List.of(allRecipesBtn, readyBtn, favoriteBtn, notReadyBtn, aiRecommendedBtn);
+        filters.forEach(btn -> btn.getStyleClass().remove("filter-selected"));
+
+        // highlight active one
+        switch (currentFilter) {
+            case "ready" -> readyBtn.getStyleClass().add("filter-selected");
+            case "favorites" -> favoriteBtn.getStyleClass().add("filter-selected");
+            case "notready" -> notReadyBtn.getStyleClass().add("filter-selected");
+            case "ai" -> aiRecommendedBtn.getStyleClass().add("filter-selected");
+            default -> allRecipesBtn.getStyleClass().add("filter-selected");
+        }
+    }
+
+    /** Apply filter logic */
+    private void displayFilteredRecipes() {
+        List<Recipe> filtered;
 
         switch (currentFilter) {
-            case "all" -> allRecipesBtn.getStyleClass().add("filter-selected");
-            case "pantry" -> byPantryBtn.getStyleClass().add("filter-selected");
-            case "missing" -> missingIngrBtn.getStyleClass().add("filter-selected");
+            case "ready" -> filtered = allRecipes.stream()
+                    .filter(r -> parseMatch(r.match) == 100)
+                    .toList();
+
+            case "favorites" -> filtered = allRecipes.stream()
+                    .filter(r -> r.favorite)
+                    .toList();
+
+            case "notready" -> filtered = allRecipes.stream()
+                    .filter(r -> parseMatch(r.match) < 100)
+                    .toList();
+
+            case "ai" -> filtered = allRecipes.stream()
+                    .filter(r -> r.aiRecommended)
+                    .toList();
+
+            default -> filtered = allRecipes;
+        }
+
+        displayRecipes(filtered);
+    }
+
+
+    /** Helper to safely parse match percentage text like "80% match" */
+    private int parseMatch(String match) {
+        try {
+            return Integer.parseInt(match.replace("% match", "").trim());
+        } catch (Exception e) {
+            return 0;
         }
     }
 
@@ -206,7 +282,25 @@ public class RecipeTabController extends BaseController{
             vBox.getChildren().add(row);
         }
     }
+    /** Displays a provided list of recipes in the VBox */
+    private void displayRecipes(List<Recipe> recipesToShow) {
+        vBox.getChildren().clear();
 
+        for (int i = 0; i < recipesToShow.size(); i += 2) {
+            HBox row = new HBox(20);
+            row.setAlignment(Pos.TOP_LEFT);
+
+            VBox card1 = createRecipeCard(recipesToShow.get(i));
+            row.getChildren().add(card1);
+
+            if (i + 1 < recipesToShow.size()) {
+                VBox card2 = createRecipeCard(recipesToShow.get(i + 1));
+                row.getChildren().add(card2);
+            }
+
+            vBox.getChildren().add(row);
+        }
+    }
     // Build each card UI
     private VBox createRecipeCard(Recipe recipe) {
         VBox card = new VBox(12);
@@ -233,7 +327,16 @@ public class RecipeTabController extends BaseController{
         deleteBtn.getStyleClass().add("delete-button");
         deleteBtn.setOnAction(e -> handleDeleteRecipe(recipe));
 
-        HBox buttons = new HBox(10, editBtn, deleteBtn);
+        Button favButton = new Button(recipe.favorite ? "Favorite" : "Add to Favorites");
+        favButton.getStyleClass().add("favorite-button");
+        favButton.setOnAction(e -> {
+            recipe.favorite = !recipe.favorite;
+            favButton.setText(recipe.favorite ? "Favorite" : "Add to Favorites");
+            updateRecipeInFirebase(recipe);
+        });
+
+
+        HBox buttons = new HBox(10, editBtn, deleteBtn, favButton);
         buttons.setAlignment(Pos.CENTER_LEFT);
 
         VBox aiTip = new VBox(new Label("✨ AI Tip: " + recipe.aiTip));
@@ -470,8 +573,17 @@ public class RecipeTabController extends BaseController{
     /** Inner recipe record */
     private static class Recipe {
         String id, name, match, available, missing, aiTip;
+        boolean favorite;
+        boolean aiRecommended;
+
         Recipe(String n, String m, String a, String miss, String tip) {
-            name = n; match = m; available = a; missing = miss; aiTip = tip;
+            name = n;
+            match = m;
+            available = a;
+            missing = miss;
+            aiTip = tip;
+            favorite = false;
+            aiRecommended = false;
         }
     }
 }

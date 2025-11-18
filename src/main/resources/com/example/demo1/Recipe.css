@@ -384,4 +384,18 @@
 .edit-button:hover {
     -fx-background-color: #1976D2;
 }
+.filter-button {
+    -fx-background-color: #f5f5f5;
+    -fx-text-fill: #333;
+    -fx-font-weight: bold;
+    -fx-padding: 6 16;
+    -fx-border-radius: 6;
+    -fx-background-radius: 6;
+    -fx-cursor: hand;
+}
+
+.filter-selected {
+    -fx-background-color: #4CAF50;
+    -fx-text-fill: white;
+}
 
