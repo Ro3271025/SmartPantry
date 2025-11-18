@@ -396,6 +396,7 @@ public class OpenFoodFactsService {
             } catch (Exception e) {
                 // Keep defaults
             }
+
         }
     }
 }
