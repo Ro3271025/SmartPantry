@@ -43,8 +43,7 @@ Main layout:
                     </graphic>
                 </Button>
                 <!-- Logout (icon) -->
-                <Button fx:id="logoutBtn" styleClass="icon" text="🚪" />
-            </HBox>
+                <Button fx:id="logoutBtn" onAction="#logoutBtnOnAction" styleClass="icon" text="🚪" />            </HBox>
 
             <!-- Row 2: Search + Add Item -->
             <HBox alignment="CENTER_LEFT" spacing="12" styleClass="toolbar">

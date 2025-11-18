@@ -36,7 +36,6 @@ import java.time.temporal.ChronoUnit;
 import java.util.Locale;
 
 public class PantryController extends BaseController implements Initializable {
-    // NEW - Added these three fields
     private FirebaseService firebaseService;
     private ObservableList<PantryItem> allItems;
     private ToggleGroup filterGroup;
@@ -452,4 +451,15 @@ public class PantryController extends BaseController implements Initializable {
             }
         });
     }
+
+    @FXML
+    private void logoutBtnOnAction(ActionEvent event) {
+        try {
+            // UserSession.clearSession();
+            switchScene(event, "MainScreen"); // Loads MainScreen.fxml via BaseController
+        } catch (IOException ex) {
+            showErrorAlert("Navigation Error", "Failed to open main screen: " + ex.getMessage());
+        }
+    }
+
 }
