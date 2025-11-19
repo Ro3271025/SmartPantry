@@ -1,14 +1,14 @@
 package Controllers;
 
-import com.example.demo1.FirebaseService;
-import com.example.demo1.PantryItem;
-import com.example.demo1.OpenFoodFactsService;
+import Firebase.FirebaseService;
+import Pantry.PantryItem;
+import Pantry.OpenFoodFactsService;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
-import com.example.demo1.CameraBarcodeScanner;
+import Pantry.CameraBarcodeScanner;
 
 import com.example.demo1.UserSession;
 import java.time.LocalDate;

@@ -1,6 +1,6 @@
-package ai;
+package AI;
 
-import com.example.demo1.PantryItem;
+import Pantry.PantryItem;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;

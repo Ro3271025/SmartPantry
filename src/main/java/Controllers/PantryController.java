@@ -1,15 +1,12 @@
 package Controllers;
 
 import javafx.fxml.Initializable;
-import com.example.demo1.PantryItem;
-import com.example.demo1.FirebaseConfiguration;
-import com.example.demo1.FirebaseService;
+import Pantry.PantryItem;
+import Firebase.FirebaseService;
 import javafx.collections.ObservableList;
 import com.example.demo1.UserSession; // <-- use your session
 
 import java.net.URL;
-import java.time.ZoneId;
-import java.util.Date;
 import java.util.ResourceBundle;
 import java.util.concurrent.ExecutionException;
 
@@ -27,7 +24,7 @@ import javafx.scene.layout.VBox;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.event.ActionEvent;
-import com.example.demo1.ItemStatus;
+import Pantry.ItemStatus;
 
 import java.io.IOException;
 import java.time.LocalDate;
@@ -265,7 +262,7 @@ public class PantryController extends BaseController implements Initializable {
     @FXML
     private void addItemBtnOnAction(ActionEvent event) {
         try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/example/demo1/addItem.fxml"));
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/XMLFiles/addItem.fxml"));
             Scene addItemScene = new Scene(loader.load(), 400, 650);
 
             AddItemController controller = loader.getController();
@@ -393,7 +390,7 @@ public class PantryController extends BaseController implements Initializable {
      */
     private void handleEditItem(PantryItem item) {
         try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/example/demo1/addItem.fxml"));
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/XMLFiles/addItem.fxml"));
             Scene editItemScene = new Scene(loader.load(), 400, 650);
 
             AddItemController controller = loader.getController();
@@ -429,7 +426,7 @@ public class PantryController extends BaseController implements Initializable {
                     // ✅ Ensure we have both uid and item id
                     String uid = (currentUserId != null && !currentUserId.isBlank())
                             ? currentUserId
-                            : com.example.demo1.UserSession.getCurrentUserId();
+                            : UserSession.getCurrentUserId();
                     if (uid == null || uid.isBlank()) {
                         showErrorAlert("Delete Error", "No user is signed in.");
                         return;

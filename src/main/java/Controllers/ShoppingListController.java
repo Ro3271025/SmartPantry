@@ -1,22 +1,22 @@
 package Controllers;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+
+import ShoppingList.PantryItem;
 import javafx.collections.ListChangeListener;
 import com.google.cloud.firestore.Firestore;
 import com.google.cloud.firestore.QueryDocumentSnapshot;
-import com.google.cloud.Timestamp;
 import com.google.cloud.firestore.CollectionReference;
-import com.example.demo1.FirebaseConfiguration;
+import Firebase.FirebaseConfiguration;
 import java.util.Map;
 import java.util.HashMap;
 import com.example.demo1.UserSession;
 import javafx.application.Platform;
 import java.time.ZoneId;
-import java.util.concurrent.CompletableFuture;
-import com.example.demo1.Dialogs;
+
+import ShoppingList.Dialogs;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -28,18 +28,14 @@ import javafx.scene.control.cell.CheckBoxTableCell;
 import javafx.scene.control.cell.PropertyValueFactory;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.file.Files;
-import java.io.File;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.stream.Collectors;
 import javafx.scene.control.ToggleGroup;
 import java.util.HashSet;
 import java.util.stream.Stream;
-import javafx.collections.ListChangeListener;
 
 // ---- Firebase / Firestore (add firebase-admin to pom.xml) ----
-import com.google.api.core.ApiFuture;
 import com.google.auth.oauth2.GoogleCredentials;
 import com.google.cloud.firestore.*;
 import com.google.firebase.FirebaseApp;

@@ -1,12 +1,10 @@
 package Controllers;
 
-import com.example.demo1.FirebaseConfiguration;
+import Firebase.FirebaseConfiguration;
 import com.example.demo1.UserSession;
-import com.google.api.core.ApiFuture;
 import com.google.cloud.firestore.CollectionReference;
 import com.google.cloud.firestore.Firestore;
 import com.google.cloud.firestore.QueryDocumentSnapshot;
-import com.google.cloud.firestore.QuerySnapshot;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -17,15 +15,11 @@ import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
 import javafx.stage.Stage;
-import javafx.stage.Modality;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Locale;
-import java.util.concurrent.ExecutionException;
-import java.util.stream.Collectors;
 
 public class RecipeTabController extends BaseController{
     @FXML private Button backButton;
@@ -139,7 +133,7 @@ public class RecipeTabController extends BaseController{
     // Reloads recipes after adding one
     @FXML
     private void handleAddRecipe() {
-        openPopup("/com/example/demo1/AddRecipe.fxml", "Add Recipe");
+        openPopup("/XMLFiles/AddRecipe.fxml", "Add Recipe");
         List<String> pantryItems = getPantryItemNames();
         loadRecipesFromFirebase(pantryItems);
     }
@@ -148,7 +142,7 @@ public class RecipeTabController extends BaseController{
     @FXML
     private void handleBackToPantry() {
         try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/example/demo1/PantryDashboard.fxml"));
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/XMLFiles/PantryDashboard.fxml"));
             Parent root = loader.load();
             PantryController controller = loader.getController();
             controller.setCurrentUserId(currentUserId);
@@ -192,7 +186,7 @@ public class RecipeTabController extends BaseController{
 
     @FXML
     private void handleFilterAIRecommended() {
-        currentFilter = "ai";
+        currentFilter = "AI";
         updateFilterButtons();
         displayFilteredRecipes();
     }
@@ -207,7 +201,7 @@ public class RecipeTabController extends BaseController{
             case "ready" -> readyBtn.getStyleClass().add("filter-selected");
             case "favorites" -> favoriteBtn.getStyleClass().add("filter-selected");
             case "notready" -> notReadyBtn.getStyleClass().add("filter-selected");
-            case "ai" -> aiRecommendedBtn.getStyleClass().add("filter-selected");
+            case "AI" -> aiRecommendedBtn.getStyleClass().add("filter-selected");
             default -> allRecipesBtn.getStyleClass().add("filter-selected");
         }
     }
@@ -229,7 +223,7 @@ public class RecipeTabController extends BaseController{
                     .filter(r -> parseMatch(r.match) < 100)
                     .toList();
 
-            case "ai" -> filtered = allRecipes.stream()
+            case "AI" -> filtered = allRecipes.stream()
                     .filter(r -> r.aiRecommended)
                     .toList();
 

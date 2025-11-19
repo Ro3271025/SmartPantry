@@ -1,7 +1,7 @@
 package Controllers;
 
-import com.example.demo1.FireBaseKeys;
-import com.example.demo1.OAuthKeys;
+import Firebase.FireBaseKeys;
+import Firebase.OAuthKeys;
 import com.example.demo1.UserSession;
 import com.google.cloud.firestore.Firestore;
 import com.google.firebase.cloud.FirestoreClient;
@@ -12,7 +12,6 @@ import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.Pane;
 
-import java.io.*;
 import java.util.*;
 
 import javafx.scene.control.Button;

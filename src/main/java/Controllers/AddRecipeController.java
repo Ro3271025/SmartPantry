@@ -1,5 +1,5 @@
 package Controllers;
-import com.example.demo1.FirebaseConfiguration;
+import Firebase.FirebaseConfiguration;
 import com.example.demo1.UserSession;
 import com.google.cloud.firestore.Firestore;
 import com.google.cloud.Timestamp;

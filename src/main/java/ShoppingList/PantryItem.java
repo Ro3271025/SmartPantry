@@ -1,4 +1,4 @@
-package Controllers;
+package ShoppingList;
 
 import javafx.beans.property.*;
 

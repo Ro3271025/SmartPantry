@@ -1,5 +1,6 @@
 package com.example.demo1;
 
+import Firebase.FirebaseConfiguration;
 import com.google.cloud.firestore.Firestore;
 import com.google.firebase.auth.FirebaseAuth;
 import javafx.application.Application;

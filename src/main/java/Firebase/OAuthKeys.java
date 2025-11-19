@@ -1,4 +1,4 @@
-package com.example.demo1;
+package Firebase;
 
 public class OAuthKeys {
     public static final String GOOGLE_CLIENT_ID = "917678736077-dil6tshnnaeecgme6umt0n1el883vcfu.apps.googleusercontent.com";

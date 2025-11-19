@@ -9,7 +9,7 @@
             xmlns:fx="http://javafx.com/fxml/1"
             fx:controller="Controllers.HelpController"
             prefHeight="400" prefWidth="600"
-            stylesheets="@style.css"
+            stylesheets="@../CSSFiles/style.css"
             styleClass="help-root">
 
    <children>
