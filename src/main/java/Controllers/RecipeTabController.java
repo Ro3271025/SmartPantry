@@ -1,12 +1,14 @@
+// File: src/main/java/Controllers/RecipeTabController.java
 package Controllers;
 
+import ai.AiRecipeService;
+import ai.RecipeDTO;
 import com.example.demo1.FirebaseConfiguration;
+import com.example.demo1.FirebaseService;
+import com.example.demo1.PantryItem;
 import com.example.demo1.UserSession;
 import com.google.api.core.ApiFuture;
-import com.google.cloud.firestore.CollectionReference;
-import com.google.cloud.firestore.Firestore;
-import com.google.cloud.firestore.QueryDocumentSnapshot;
-import com.google.cloud.firestore.QuerySnapshot;
+import com.google.cloud.firestore.*;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -15,136 +17,74 @@ import javafx.geometry.Pos;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
-import javafx.scene.layout.*;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
-import javafx.stage.Modality;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Locale;
+import java.time.LocalDate;
+import java.util.*;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 
-public class RecipeTabController extends BaseController{
+public class RecipeTabController extends BaseController {
+
+    // ==== FXML ====
     @FXML private Button backButton;
     @FXML private TextField aiInputField;
     @FXML private Button generateButton;
     @FXML private Button allRecipesBtn;
-    @FXML private Button byPantryBtn;
-    @FXML private Button missingIngrBtn;
+    @FXML private Button readyBtn;
+    @FXML private Button favoriteBtn;
+    @FXML private Button notReadyBtn;
+    @FXML private Button aiRecommendedBtn;
     @FXML private Button addRecipeBtn;
     @FXML private VBox vBox;
     @FXML private Button generateAgainBtn;
     @FXML private Button seeMoreBtn;
     @FXML private TextField searchField;
-    @FXML private Button readyBtn;
-    @FXML private Button favoriteBtn;
-    @FXML private Button notReadyBtn;
-    @FXML private Button aiRecommendedBtn;
 
+    // ==== Services ====
+    private FirebaseService firebase;
+    private AiRecipeService ai;
 
-
-    private String currentFilter = "all";
-    private List<Recipe> allRecipes = new ArrayList<>();
+    // ==== State ====
     private String currentUserId;
+    private String currentFilter = "all";
+    private List<Recipe> allRecipes; // your existing sample data
+    private List<UnifiedRecipe> currentUnified = new ArrayList<>(); // rendered list
 
     @FXML
     public void initialize() {
         FirebaseConfiguration.initialize();
         currentUserId = UserSession.getCurrentUserId();
+        firebase = new FirebaseService();
+        ai = new AiRecipeService();
 
-        if (currentUserId == null || currentUserId.isBlank()) {
-            showError("User session not found");
-            return;
-        }
-        // Load pantry items and recipes dynamically
-        List<String> pantryItems = getPantryItemNames();
-        loadRecipesFromFirebase(pantryItems);
+        allRecipes = createSampleRecipes();
+
+        // Model preflight
+        generateButton.setDisable(true);
+        vBox.getChildren().setAll(new Label("Checking local AI model…"));
+        CompletableFuture.supplyAsync(ai::isModelAvailable)
+                .whenComplete((ok, err) -> Platform.runLater(() -> {
+                    if (Boolean.TRUE.equals(ok)) {
+                        generateButton.setDisable(false);
+                        vBox.getChildren().clear();
+                        // Initial render from static samples
+                        var initial = allRecipes.stream().map(this::fromSample).toList();
+                        currentUnified = new ArrayList<>(initial);
+                        renderUnified(applySearchAndFilters(currentUnified));
+                    } else {
+                        vBox.getChildren().setAll(new Label(
+                                "Local model not found. Start Ollama and pull the model (e.g., phi3:mini)."));
+                        showError("Ollama not running or model missing.\nRun: 1) ollama pull phi3:mini   2) ollama serve");
+                    }
+                }));
     }
 
-    // Loads recipes stored in Firestore for this user
-    private void loadRecipesFromFirebase(List<String> pantryItems) {
-        Firestore db = FirebaseConfiguration.getDatabase();
-        CollectionReference recipesRef = db.collection("users")
-                .document(currentUserId)
-                .collection("recipes");
-
-        try {
-            List<QueryDocumentSnapshot> docs = recipesRef.get().get().getDocuments();
-            allRecipes.clear();
-
-            for (QueryDocumentSnapshot doc : docs) {
-                String name = doc.getString("name");
-                String available = doc.getString("available");
-                String missing = doc.getString("missing");
-                String aiTip = doc.getString("aiTip");
-
-                // Combine all ingredients into one normalized list
-                String combined = ((available != null ? available : "") + "," + (missing != null ? missing : ""))
-                        .replaceAll("\\s+", " ")
-                        .toLowerCase()
-                        .trim();
-
-                List<String> allIngredients = Arrays.stream(combined.split(","))
-                        .map(String::trim)
-                        .filter(s -> !s.isEmpty())
-                        .toList();
-
-                if (allIngredients.isEmpty()) continue;
-
-                // Recalculate what’s actually available/missing based on the pantry
-                List<String> actualAvailable = new ArrayList<>();
-                List<String> actualMissing = new ArrayList<>();
-
-                for (String ing : allIngredients) {
-                    boolean match = pantryItems.stream().anyMatch(p ->
-                            p.equals(ing) ||
-                                    p.equals(ing.replaceAll("s$", "")) ||
-                                    p.replaceAll("s$", "").equals(ing) ||
-                                    p.contains(ing) || ing.contains(p)
-                    );
-
-                    if (match) actualAvailable.add(ing);
-                    else actualMissing.add(ing);
-                }
-
-                // Compute true match percentage
-                int matchPercent = (int) Math.round((double) actualAvailable.size() / allIngredients.size() * 100);
-
-                // Create recipe with updated fields
-                Recipe r = new Recipe(
-                        name,
-                        matchPercent + "% match",
-                        String.join(", ", actualAvailable),
-                        String.join(", ", actualMissing),
-                        aiTip
-                );
-                r.id = doc.getId();
-                allRecipes.add(r);
-            }
-
-            // Display recipes in the UI
-            loadRecipes();
-            System.out.println(" Loaded " + allRecipes.size() + " recipes from Firebase (with live pantry matching)");
-
-        } catch (Exception e) {
-            e.printStackTrace();
-            showError("Failed to load recipes: " + e.getMessage());
-        }
-    }
-
-
-    // Reloads recipes after adding one
-    @FXML
-    private void handleAddRecipe() {
-        openPopup("/com/example/demo1/AddRecipe.fxml", "Add Recipe");
-        List<String> pantryItems = getPantryItemNames();
-        loadRecipesFromFirebase(pantryItems);
-    }
-
-    // Navigate back to pantry *
+    // ==== Back nav ====
     @FXML
     private void handleBackToPantry() {
         try {
@@ -152,6 +92,7 @@ public class RecipeTabController extends BaseController{
             Parent root = loader.load();
             PantryController controller = loader.getController();
             controller.setCurrentUserId(currentUserId);
+
             Stage stage = (Stage) backButton.getScene().getWindow();
             stage.setScene(new Scene(root));
             stage.setTitle("Pantry Dashboard");
@@ -162,428 +103,345 @@ public class RecipeTabController extends BaseController{
         }
     }
 
-    @FXML
-    private void handleFilterAll() {
-        currentFilter = "all";
-        updateFilterButtons();
-        displayFilteredRecipes();
-    }
-
-    @FXML
-    private void handleFilterReady() {
-        currentFilter = "ready";
-        updateFilterButtons();
-        displayFilteredRecipes();
-    }
-
-    @FXML
-    private void handleFilterFavorites() {
-        currentFilter = "favorites";
-        updateFilterButtons();
-        displayFilteredRecipes();
-    }
-
-    @FXML
-    private void handleFilterNotReady() {
-        currentFilter = "notready";
-        updateFilterButtons();
-        displayFilteredRecipes();
-    }
-
-    @FXML
-    private void handleFilterAIRecommended() {
-        currentFilter = "ai";
-        updateFilterButtons();
-        displayFilteredRecipes();
-    }
-
-    private void updateFilterButtons() {
-        // remove highlight
-        List<Button> filters = List.of(allRecipesBtn, readyBtn, favoriteBtn, notReadyBtn, aiRecommendedBtn);
-        filters.forEach(btn -> btn.getStyleClass().remove("filter-selected"));
-
-        // highlight active one
-        switch (currentFilter) {
-            case "ready" -> readyBtn.getStyleClass().add("filter-selected");
-            case "favorites" -> favoriteBtn.getStyleClass().add("filter-selected");
-            case "notready" -> notReadyBtn.getStyleClass().add("filter-selected");
-            case "ai" -> aiRecommendedBtn.getStyleClass().add("filter-selected");
-            default -> allRecipesBtn.getStyleClass().add("filter-selected");
-        }
-    }
-
-    /** Apply filter logic */
-    private void displayFilteredRecipes() {
-        List<Recipe> filtered;
-
-        switch (currentFilter) {
-            case "ready" -> filtered = allRecipes.stream()
-                    .filter(r -> parseMatch(r.match) == 100)
-                    .toList();
-
-            case "favorites" -> filtered = allRecipes.stream()
-                    .filter(r -> r.favorite)
-                    .toList();
-
-            case "notready" -> filtered = allRecipes.stream()
-                    .filter(r -> parseMatch(r.match) < 100)
-                    .toList();
-
-            case "ai" -> filtered = allRecipes.stream()
-                    .filter(r -> r.aiRecommended)
-                    .toList();
-
-            default -> filtered = allRecipes;
-        }
-
-        displayRecipes(filtered);
-    }
-
-
-    /** Helper to safely parse match percentage text like "80% match" */
-    private int parseMatch(String match) {
-        try {
-            return Integer.parseInt(match.replace("% match", "").trim());
-        } catch (Exception e) {
-            return 0;
-        }
-    }
-
-    // Generate mock AI recipe suggestion
+    // ==== AI generate ====
     @FXML
     private void handleGenerateRecipe() {
-        String prompt = aiInputField.getText().trim();
-        if (prompt.isEmpty()) {
-            showError("Please enter a recipe idea first!");
+        if (!ai.isModelAvailable()) {
+            showError("Local AI not ready. Start Ollama and pull the model.\nRun: 1) ollama pull phi3:mini   2) ollama serve");
             return;
         }
-        showSuccess("Generating recipes for: " + prompt);
-        aiInputField.clear();
+        if (currentUserId == null || currentUserId.isBlank()) {
+            showError("Please log in first.");
+            return;
+        }
+
+        String prompt = aiInputField.getText().trim();
+        generateButton.setDisable(true);
+        vBox.getChildren().setAll(new Label("Generating recipes…"));
+
+        CompletableFuture.supplyAsync(() -> {
+            try {
+                var items = firebase.getPantryItems(currentUserId);
+                var filtered = filterPantryItems(items);
+                return ai.generateRecipes(filtered, prompt, 3);
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        }).whenComplete((recipes, err) -> Platform.runLater(() -> {
+            generateButton.setDisable(false);
+            aiInputField.clear();
+            if (err != null) {
+                String msg = err.getCause() != null ? err.getCause().getMessage() : err.getMessage();
+                showError("Failed to generate recipes: " + msg);
+            } else if (recipes == null || recipes.isEmpty()) {
+                vBox.getChildren().setAll(new Label("No recipes returned. Try again."));
+            } else {
+                currentUnified = recipes.stream().map(this::fromAI).toList();
+                renderUnified(applySearchAndFilters(currentUnified));
+                showSuccess("AI recipes generated!");
+            }
+        }));
     }
 
-    @FXML private void handleGenerateAgain() {
-        List<String> pantryItems = getPantryItemNames();
-        loadRecipesFromFirebase(pantryItems);
-    }
-    @FXML private void handleSeeMore() { showSuccess("Feature coming soon!"); }
+    // ==== Search + Filters ====
+    @FXML private void handleSearch() { renderUnified(applySearchAndFilters(currentUnified)); }
+    @FXML private void handleFilterAll()          { currentFilter = "all";          renderUnified(applySearchAndFilters(currentUnified)); }
+    @FXML private void handleFilterReady()        { currentFilter = "ready";        renderUnified(applySearchAndFilters(currentUnified)); }
+    @FXML private void handleFilterFavorites()    { currentFilter = "favorites";    renderUnified(applySearchAndFilters(currentUnified)); }
+    @FXML private void handleFilterNotReady()     { currentFilter = "notready";     renderUnified(applySearchAndFilters(currentUnified)); }
+    @FXML private void handleFilterAIRecommended(){ currentFilter = "airecommended";renderUnified(applySearchAndFilters(currentUnified)); }
+    @FXML private void handleGenerateAgain() { handleGenerateRecipe(); }
+    @FXML private void handleSeeMore()       { showSuccess("Loading more recipes..."); }
+    @FXML private void handleAddRecipe()     { openPopup("/com/example/demo1/AddRecipe.fxml", "Add Recipe"); }
 
-    /** 🍳 Create and display recipe cards */
-    private void loadRecipes() {
+    private List<UnifiedRecipe> applySearchAndFilters(List<UnifiedRecipe> input) {
+        String q = (searchField == null || searchField.getText() == null) ? "" : searchField.getText().trim().toLowerCase();
+        List<UnifiedRecipe> base = new ArrayList<>(input);
+        if (!q.isBlank()) {
+            base = base.stream().filter(r ->
+                    r.title.toLowerCase().contains(q) ||
+                            String.join(", ", r.ingredients).toLowerCase().contains(q) ||
+                            String.join(", ", r.missingIngredients).toLowerCase().contains(q)
+            ).toList();
+        }
+        return switch (currentFilter) {
+            case "ready" -> base.stream()
+                    .filter(r -> r.missingIngredients.isEmpty())
+                    .toList();
+            case "notready" -> base.stream()
+                    .filter(r -> !r.missingIngredients.isEmpty())
+                    .toList();
+            case "favorites" -> {
+                // Pull favorites state for current list from Firestore and enrich before filter
+                var enriched = enrichFavorites(base);
+                yield enriched.stream().filter(r -> r.favorite).toList();
+            }
+            case "airecommended" -> base.stream()
+                    .sorted(Comparator.comparingInt(r -> -safeMatchPercent(((UnifiedRecipe)r).match)))
+                    .toList();
+            default -> base;
+        };
+    }
+
+    // Parses strings like "75% match" → 75; returns 0 if missing/invalid.
+    private int safeMatchPercent(String matchText) {
+        if (matchText == null) return 0;
+        String digits = matchText.replaceAll("[^0-9]", ""); // keep numbers only
+        if (digits.isEmpty()) return 0;
+        try { return Integer.parseInt(digits); } catch (NumberFormatException e) { return 0; }
+    }
+
+
+    // Enrich favorite flags from Firestore to current list (best-effort, non-blocking UX could be added)
+    private List<UnifiedRecipe> enrichFavorites(List<UnifiedRecipe> list) {
+        if (currentUserId == null || currentUserId.isBlank()) return list;
+        try {
+            var snapshots = userRecipesRef().get().get().getDocuments();
+            Set<String> favIds = snapshots.stream()
+                    .filter(d -> Boolean.TRUE.equals(d.getBoolean("favorite")))
+                    .map(DocumentSnapshot::getId)
+                    .collect(Collectors.toSet());
+            return list.stream().map(r -> {
+                r.favorite = favIds.contains(slug(r.title));
+                return r;
+            }).toList();
+        } catch (Exception e) {
+            return list;
+        }
+    }
+
+    // ==== Rendering (Unified) ====
+    private void renderUnified(List<UnifiedRecipe> recipes) {
         vBox.getChildren().clear();
-        for (int i = 0; i < allRecipes.size(); i += 2) {
+        if (recipes == null || recipes.isEmpty()) {
+            vBox.getChildren().add(new Label("No recipes to show."));
+            return;
+        }
+        // ensure favorites state is current
+        var finalList = enrichFavorites(recipes);
+        for (int i = 0; i < finalList.size(); i += 2) {
             HBox row = new HBox(20);
             row.setAlignment(Pos.TOP_LEFT);
-            VBox card1 = createRecipeCard(allRecipes.get(i));
-            row.getChildren().add(card1);
-            if (i + 1 < allRecipes.size()) {
-                VBox card2 = createRecipeCard(allRecipes.get(i + 1));
-                row.getChildren().add(card2);
-            }
+            row.getChildren().add(createUnifiedCard(finalList.get(i)));
+            if (i + 1 < finalList.size()) row.getChildren().add(createUnifiedCard(finalList.get(i + 1)));
             vBox.getChildren().add(row);
         }
     }
-    /** Displays a provided list of recipes in the VBox */
-    private void displayRecipes(List<Recipe> recipesToShow) {
-        vBox.getChildren().clear();
 
-        for (int i = 0; i < recipesToShow.size(); i += 2) {
-            HBox row = new HBox(20);
-            row.setAlignment(Pos.TOP_LEFT);
-
-            VBox card1 = createRecipeCard(recipesToShow.get(i));
-            row.getChildren().add(card1);
-
-            if (i + 1 < recipesToShow.size()) {
-                VBox card2 = createRecipeCard(recipesToShow.get(i + 1));
-                row.getChildren().add(card2);
-            }
-
-            vBox.getChildren().add(row);
-        }
-    }
-    // Build each card UI
-    private VBox createRecipeCard(Recipe recipe) {
+    private VBox createUnifiedCard(UnifiedRecipe r) {
         VBox card = new VBox(12);
         card.getStyleClass().add("recipe-card");
         card.setPadding(new Insets(16));
 
-        Label name = new Label(recipe.name);
+        Label name = new Label(r.title);
         name.getStyleClass().add("recipe-name");
 
-        Label match = new Label(recipe.match);
+        Label match = new Label(r.match == null ? "—" : r.match);
         match.getStyleClass().add("match-badge");
 
-        HBox header = new HBox(12, name, match);
-        header.setAlignment(Pos.CENTER_LEFT);
-
-        HBox available = createIngredientRow("✓", "available-icon", "Available:", recipe.available);
-        HBox missing = createIngredientRow("✗", "missing-icon", "Missing:", recipe.missing);
-
-        Button editBtn = new Button("Edit");
-        editBtn.getStyleClass().add("edit-button");
-        editBtn.setOnAction(e -> handleEditRecipe(recipe));
-
-        Button deleteBtn = new Button("🗑 Delete Recipe");
-        deleteBtn.getStyleClass().add("delete-button");
-        deleteBtn.setOnAction(e -> handleDeleteRecipe(recipe));
-
-        Button favButton = new Button(recipe.favorite ? "Favorite" : "Add to Favorites");
-        favButton.getStyleClass().add("favorite-button");
-        favButton.setOnAction(e -> {
-            recipe.favorite = !recipe.favorite;
-            favButton.setText(recipe.favorite ? "Favorite" : "Add to Favorites");
-            updateRecipeInFirebase(recipe);
+        // ⭐ favorite toggle
+        Button star = new Button(r.favorite ? "★" : "☆");
+        star.setOnAction(e -> {
+            star.setDisable(true);
+            CompletableFuture.runAsync(() -> toggleFavorite(r, !r.favorite))
+                    .whenComplete((v, err) -> Platform.runLater(() -> {
+                        star.setDisable(false);
+                        if (err != null) {
+                            showError("Failed to update favorite: " + err.getMessage());
+                        } else {
+                            r.favorite = !r.favorite;
+                            star.setText(r.favorite ? "★" : "☆");
+                        }
+                    }));
         });
 
+        HBox header = new HBox(12, name, match, star);
+        header.setAlignment(Pos.CENTER_LEFT);
 
-        HBox buttons = new HBox(10, editBtn, deleteBtn, favButton);
-        buttons.setAlignment(Pos.CENTER_LEFT);
+        String availableText = r.ingredients.isEmpty() ? "—" : String.join(", ", r.ingredients);
+        HBox available = createIngredientRow("✓", "available-icon", "Ingredients:", availableText);
 
-        VBox aiTip = new VBox(new Label("✨ AI Tip: " + recipe.aiTip));
-        aiTip.getStyleClass().add("ai-tip");
+        String missingText = r.missingIngredients.isEmpty() ? "None" : String.join(", ", r.missingIngredients);
+        HBox missing = createIngredientRow("✗", "missing-icon", "Missing:", missingText);
 
-        card.getChildren().addAll(header, available, missing, buttons, aiTip);
+        // Save button only for AI-sourced recipes
+        Button saveBtn = new Button("💾 Save to My Recipes");
+        saveBtn.getStyleClass().add("add-to-list-button");
+        saveBtn.setDisable(r.source != Source.AI);
+        saveBtn.setOnAction(e -> {
+            saveBtn.setDisable(true);
+            CompletableFuture.runAsync(() -> saveRecipe(r))
+                    .whenComplete((v, err) -> Platform.runLater(() -> {
+                        if (err != null) {
+                            saveBtn.setDisable(false);
+                            showError("Failed to save: " + err.getMessage());
+                        } else {
+                            showSuccess("Saved to My Recipes!");
+                        }
+                    }));
+        });
+
+        String meta = ((r.estimatedTime != null && !r.estimatedTime.isBlank()) ? "⏱ " + r.estimatedTime + "  " : "")
+                + ((r.calories != null) ? "🔥 " + r.calories + " kcal" : "");
+        VBox metaBox = new VBox(new Label(meta.isEmpty() ? "" : meta));
+        metaBox.getStyleClass().add("ai-tip");
+
+        card.getChildren().addAll(header, available, missing, saveBtn, metaBox);
         return card;
     }
 
-    // Delete recipe from Firebase
-    private void handleDeleteRecipe(Recipe recipe) {
+    // ==== Mapping ====
+    private UnifiedRecipe fromSample(Recipe s) {
+        UnifiedRecipe r = new UnifiedRecipe();
+        r.title = s.name;
+        r.ingredients = splitCSV(s.available);
+        r.missingIngredients = splitCSV(s.missing).stream().filter(x -> !"None".equalsIgnoreCase(x)).toList();
+        r.steps = List.of();
+        r.estimatedTime = "";
+        r.calories = null;
+        r.match = s.match;
+        r.source = Source.STATIC;
+        return r;
+    }
+
+    private UnifiedRecipe fromAI(RecipeDTO d) {
+        UnifiedRecipe r = new UnifiedRecipe();
+        r.title = (d.title == null || d.title.isBlank()) ? "Untitled Recipe" : d.title;
+        r.ingredients = safeList(d.ingredients);
+        r.missingIngredients = safeList(d.missingIngredients);
+        r.steps = safeList(d.steps);
+        r.estimatedTime = d.estimatedTime == null ? "" : d.estimatedTime;
+        r.calories = d.calories;
+        r.match = estimateMatch(r.ingredients, r.missingIngredients);
+        r.source = Source.AI;
+        return r;
+    }
+
+    private String estimateMatch(List<String> have, List<String> miss) {
+        int total = Math.max(1, have.size());
+        int used = Math.max(0, total - (miss == null ? 0 : miss.size()));
+        int pct = Math.max(10, (int) Math.round(100.0 * used / total));
+        return pct + "% match";
+    }
+
+    private List<String> splitCSV(String s) {
+        if (s == null || s.isBlank()) return List.of();
+        return Arrays.stream(s.split(",")).map(String::trim).filter(x -> !x.isBlank()).toList();
+    }
+
+    private List<String> safeList(List<String> in) {
+        return in == null ? List.of() : in.stream().filter(Objects::nonNull).map(String::trim).filter(x -> !x.isBlank()).toList();
+    }
+
+    // ==== Favorites persistence ====
+    private void toggleFavorite(UnifiedRecipe r, boolean newVal) {
+        if (currentUserId == null || currentUserId.isBlank()) throw new IllegalStateException("No user");
+        Map<String, Object> data = mapForFirestore(r);
+        data.put("favorite", newVal);
         try {
-            Firestore db = FirebaseConfiguration.getDatabase();
-            db.collection("users")
-                    .document(currentUserId)
-                    .collection("recipes")
-                    .document(recipe.id)
-                    .delete()
-                    .get(); // ✅ Wait for deletion to complete before refreshing
-
-            // ✅ Refresh recipes with updated pantry data
-            List<String> pantryItems = getPantryItemNames();
-            loadRecipesFromFirebase(pantryItems);
-
-            showSuccess("Recipe deleted successfully!");
+            userRecipesRef().document(slug(r.title)).set(data, SetOptions.merge()).get();
         } catch (Exception e) {
-            showError("Failed to delete recipe: " + e.getMessage());
-        }
-    }
-    private void handleEditRecipe(Recipe recipe) {
-        Dialog<Recipe> dialog = new Dialog<>();
-        dialog.setTitle("Edit Recipe");
-        dialog.getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
-
-        // Input fields
-        TextField nameField = new TextField(recipe.name);
-        TextField availableField = new TextField(recipe.available);
-        TextField missingField = new TextField(recipe.missing);
-        TextArea aiTipField = new TextArea(recipe.aiTip);
-        aiTipField.setPrefRowCount(3);
-
-        // Layout
-        GridPane grid = new GridPane();
-        grid.setHgap(10);
-        grid.setVgap(10);
-        grid.setPadding(new Insets(10));
-        grid.addRow(0, new Label("Name:"), nameField);
-        grid.addRow(1, new Label("Available:"), availableField);
-        grid.addRow(2, new Label("Missing:"), missingField);
-        grid.addRow(3, new Label("AI Tip:"), aiTipField);
-
-        dialog.getDialogPane().setContent(grid);
-
-        dialog.setResultConverter(bt -> {
-            if (bt == ButtonType.OK) {
-                recipe.name = nameField.getText().trim();
-                recipe.available = availableField.getText().trim();
-                recipe.missing = missingField.getText().trim();
-                recipe.aiTip = aiTipField.getText().trim();
-                return recipe;
-            }
-            return null;
-        });
-
-        dialog.showAndWait().ifPresent(updated -> {
-            // ✅ Recalculate match % immediately
-            List<String> pantryItems = getPantryItemNames();
-            int newMatch = computeMatchPercentage(
-                    updated.available,
-                    updated.missing,
-                    pantryItems
-            );
-            updated.match = newMatch + "% match";
-
-            // Update Firestore in background
-            updateRecipeInFirebase(updated);
-
-            // Refresh only this card visually
-            refreshRecipeCard(updated);
-        });
-    }
-    private void refreshRecipeCard(Recipe updated) {
-        // Find the existing card in VBox and replace it
-        for (int i = 0; i < vBox.getChildren().size(); i++) {
-            if (vBox.getChildren().get(i) instanceof HBox row) {
-                for (int j = 0; j < row.getChildren().size(); j++) {
-                    if (row.getChildren().get(j) instanceof VBox card) {
-                        // Find the card by matching the recipe name and ID
-                        Label nameLabel = (Label) ((HBox) card.getChildren().get(0)).getChildren().get(0);
-                        if (nameLabel.getText().equals(updated.name)) {
-                            // Rebuild and replace the card
-                            VBox newCard = createRecipeCard(updated);
-                            row.getChildren().set(j, newCard);
-                            return;
-                        }
-                    }
-                }
-            }
+            throw new RuntimeException(e);
         }
     }
 
-    private void updateRecipeInFirebase(Recipe recipe) {
-        new Thread(() -> {
-            try {
-                Firestore db = FirebaseConfiguration.getDatabase();
-                db.collection("users")
-                        .document(currentUserId)
-                        .collection("recipes")
-                        .document(recipe.id)
-                        .update(
-                                "name", recipe.name,
-                                "available", recipe.available,
-                                "missing", recipe.missing,
-                                "aiTip", recipe.aiTip
-                        ).get(); // wait for completion
-
-                System.out.println("✅ Updated recipe in Firebase: " + recipe.name);
-                Platform.runLater(() -> showSuccess("Recipe updated successfully!"));
-            } catch (Exception e) {
-                Platform.runLater(() -> showError("Failed to update recipe: " + e.getMessage()));
-                e.printStackTrace();
-            }
-        }).start();
+    // Save AI recipe content
+    private void saveRecipe(UnifiedRecipe r) {
+        if (currentUserId == null || currentUserId.isBlank()) throw new IllegalStateException("No user");
+        Map<String, Object> data = mapForFirestore(r);
+        data.put("favorite", r.favorite);
+        try {
+            userRecipesRef().document(slug(r.title)).set(data, SetOptions.merge()).get();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
+    private Map<String, Object> mapForFirestore(UnifiedRecipe r) {
+        Map<String, Object> m = new HashMap<>();
+        m.put("title", r.title);
+        m.put("ingredients", r.ingredients);
+        m.put("steps", r.steps);
+        m.put("missingIngredients", r.missingIngredients);
+        m.put("estimatedTime", r.estimatedTime);
+        m.put("calories", r.calories);
+        m.put("source", r.source.name().toLowerCase());
+        m.put("match", r.match);
+        m.put("updatedAt", FieldValue.serverTimestamp());
+        return m;
+    }
 
+    private CollectionReference userRecipesRef() {
+        Firestore db = FirebaseConfiguration.getDatabase();
+        return db.collection("users").document(currentUserId).collection("recipes");
+    }
 
-    /** Helper for icons */
+    private String slug(String title) {
+        return title.toLowerCase(Locale.ROOT).replaceAll("[^a-z0-9]+", "-").replaceAll("(^-|-$)", "");
+    }
+
+    // ==== Pantry filter (skip expired/empty) ====
+    private List<PantryItem> filterPantryItems(List<PantryItem> items) {
+        LocalDate today = LocalDate.now();
+        return items.stream()
+                .filter(Objects::nonNull)
+                .filter(p -> p.getQuantityNumeric() > 0)
+                .filter(p -> p.getExpires() == null || !p.getExpires().isBefore(today))
+                .toList();
+    }
+
+    // ==== UI helpers (shared) ====
     private HBox createIngredientRow(String icon, String iconStyle, String label, String items) {
-        Label iconLabel = new Label(icon);
-        iconLabel.getStyleClass().add(iconStyle);
-        Label labelText = new Label(label);
-        labelText.getStyleClass().add("ingredient-label");
-        Label itemsText = new Label(items);
-        itemsText.getStyleClass().add("ingredient-text");
+        Label iconLabel = new Label(icon); iconLabel.getStyleClass().add(iconStyle);
+        Label labelText = new Label(label); labelText.getStyleClass().add("ingredient-label");
+        Label itemsText = new Label(items); itemsText.getStyleClass().add("ingredient-text");
         return new HBox(8, iconLabel, labelText, itemsText);
     }
-    // Load the user's pantry items (names only)
-    private List<String> getPantryItemNames() {
-        List<String> pantryNames = new ArrayList<>();
-        try {
-            Firestore db = FirebaseConfiguration.getDatabase();
-            CollectionReference pantryRef = db.collection("users")
-                    .document(currentUserId)
-                    .collection("pantryItems");
 
-            List<QueryDocumentSnapshot> docs = pantryRef.get().get().getDocuments();
-            for (QueryDocumentSnapshot doc : docs) {
-                String name = doc.getString("name");
-                if (name != null && !name.isBlank()) {
-                    pantryNames.add(name.trim().toLowerCase());
-                }
-            }
-        } catch (Exception e) {
-            System.err.println("Error loading pantry items: " + e.getMessage());
-        }
-        return pantryNames;
-    }
-    @FXML
-    private void handleSearch() {
-        String query = searchField.getText().toLowerCase().trim();
-        if (query.isEmpty()) {
-            loadRecipes(); // show all if search is cleared
-            return;
-        }
-
-        vBox.getChildren().clear();
-
-        // Filter recipes based on the query (name, available, missing, or aiTip)
-        List<Recipe> filtered = allRecipes.stream()
-                .filter(r -> r.name.toLowerCase().contains(query)
-                        || r.available.toLowerCase().contains(query)
-                        || r.missing.toLowerCase().contains(query)
-                        || r.aiTip.toLowerCase().contains(query))
-                .toList();
-
-        for (int i = 0; i < filtered.size(); i += 2) {
-            HBox row = new HBox(20);
-            row.setAlignment(Pos.TOP_LEFT);
-            VBox card1 = createRecipeCard(filtered.get(i));
-            row.getChildren().add(card1);
-            if (i + 1 < filtered.size()) {
-                VBox card2 = createRecipeCard(filtered.get(i + 1));
-                row.getChildren().add(card2);
-            }
-            vBox.getChildren().add(row);
-        }
-    }
-    // Compute true match % using flexible word comparison
-    private int computeMatchPercentage(String available, String missing, List<String> pantryItems) {
-        String combined = ((available != null ? available : "") + "," + (missing != null ? missing : ""))
-                .replaceAll("\\s+", " ")  // clean spacing
-                .trim()
-                .toLowerCase();
-
-        if (combined.isBlank()) return 0;
-
-        List<String> allIngredients = Arrays.stream(combined.split(","))
-                .map(String::trim)
-                .filter(s -> !s.isEmpty())
-                .toList();
-
-        if (allIngredients.isEmpty()) return 0;
-
-        long matches = allIngredients.stream()
-                .filter(ingredient -> pantryItems.stream().anyMatch(pantry ->
-                        // ✅ flexible comparison:
-                        pantry.equals(ingredient) ||
-                                pantry.equals(ingredient.replaceAll("s$", "")) ||       // plural → singular
-                                pantry.replaceAll("s$", "").equals(ingredient) ||       // singular → plural
-                                ingredient.contains(pantry) || pantry.contains(ingredient)
-                ))
-                .count();
-
-        return (int) Math.round((double) matches / allIngredients.size() * 100);
+    private void showError(String message) {
+        Alert alert = new Alert(Alert.AlertType.ERROR, message, ButtonType.OK);
+        alert.setHeaderText(null);
+        alert.setTitle("Error");
+        alert.showAndWait();
     }
 
-
-    // Alerts
-    private void showError(String msg) {
-        Alert a = new Alert(Alert.AlertType.ERROR);
-        a.setHeaderText(null);
-        a.setContentText(msg);
-        a.showAndWait();
+    private void showSuccess(String message) {
+        Alert alert = new Alert(Alert.AlertType.INFORMATION, message, ButtonType.OK);
+        alert.setHeaderText(null);
+        alert.setTitle("Success");
+        alert.showAndWait();
     }
 
-    private void showSuccess(String msg) {
-        Alert a = new Alert(Alert.AlertType.INFORMATION);
-        a.setHeaderText(null);
-        a.setContentText(msg);
-        a.showAndWait();
-    }
-
-    /** Inner recipe record */
-    private static class Recipe {
-        String id, name, match, available, missing, aiTip;
-        boolean favorite;
-        boolean aiRecommended;
-
+    // ==== Inner classes ====
+    private static class Recipe { // your static sample model
+        String name, match, available, missing, aiTip;
         Recipe(String n, String m, String a, String miss, String tip) {
-            name = n;
-            match = m;
-            available = a;
-            missing = miss;
-            aiTip = tip;
-            favorite = false;
-            aiRecommended = false;
+            name = n; match = m; available = a; missing = miss; aiTip = tip;
         }
+    }
+    private enum Source { STATIC, AI }
+    private static class UnifiedRecipe {
+        String title;
+        List<String> ingredients = List.of();
+        List<String> steps = List.of();
+        List<String> missingIngredients = List.of();
+        String estimatedTime = "";
+        Integer calories;
+        String match = "—";
+        boolean favorite = false;
+        Source source = Source.STATIC;
+    }
+
+    private List<Recipe> createSampleRecipes() {
+        return List.of(
+                new Recipe("Cheese Omelette", "75% match", "Eggs, Cheese, Milk", "Butter",
+                        "Quick breakfast using your low-stock cheese!"),
+                new Recipe("Banana Pancakes", "60% match", "Bananas, Eggs, Milk", "Flour, Maple Syrup",
+                        "Use expiring bananas for this one."),
+                new Recipe("Chicken Rice Bowl", "50% match", "Chicken Breast, Rice", "Broccoli, Soy Sauce",
+                        "High protein, easy to make."),
+                new Recipe("Grilled Cheese", "33% match", "Cheese", "Bread, Butter",
+                        "Classic comfort food, best fresh bread.")
+        );
     }
 }

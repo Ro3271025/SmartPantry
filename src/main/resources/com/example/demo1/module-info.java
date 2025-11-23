@@ -16,6 +16,10 @@ module com.example.demo1 {
     requires com.dlsc.formsfx;
     requires org.kordamp.bootstrapfx.core;
 
+    requires java.net.http;
+    requires com.fasterxml.jackson.databind;
+    opens Controllers to javafx.fxml;
+    opens ai;
 
     opens com.example.demo1 to javafx.fxml;
     exports com.example.demo1;

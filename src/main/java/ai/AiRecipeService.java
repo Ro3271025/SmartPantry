@@ -13,25 +13,24 @@ import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
- * Calls an LLM to generate recipes based on pantry items.
- * Returns strict JSON parsed into RecipeDTOs.
+ * Local (FREE) AI via Ollama. No OpenAI key required.
+ * Endpoint defaults to http://localhost:11434 (override with OLLAMA_BASE_URL).
+ * Model defaults to "phi3:mini" (override with OLLAMA_MODEL).
+ *
+ * Now robust to code fences and comments in model output.
  */
 public class AiRecipeService {
-    private final HttpClient http = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(15)).build();
+
+    private final String baseUrl = System.getenv().getOrDefault("OLLAMA_BASE_URL", "http://localhost:11434");
+    private final String model   = System.getenv().getOrDefault("OLLAMA_MODEL", "phi3:mini");
+
+    private final HttpClient http = HttpClient.newBuilder()
+            .connectTimeout(Duration.ofSeconds(10))
+            .build();
     private final ObjectMapper mapper = new ObjectMapper();
-
-    private final String apiKey;
-    private final String model;
-
-    public AiRecipeService() {
-        this.apiKey = Objects.requireNonNullElse(System.getenv("OPENAI_API_KEY"), "");
-        if (apiKey.isBlank()) throw new IllegalStateException("OPENAI_API_KEY env var is required");
-        this.model = System.getenv().getOrDefault("OPENAI_MODEL", "gpt-4o-mini");
-    }
 
     public List<RecipeDTO> generateRecipes(List<PantryItem> pantry, String userPrompt, int count) throws Exception {
         String pantryContext = (pantry == null || pantry.isEmpty())
@@ -39,72 +38,66 @@ public class AiRecipeService {
                 : pantry.stream()
                 .map(p -> {
                     String qty = (p.getQuantityLabel() != null && !p.getQuantityLabel().isBlank())
-                            ? p.getQuantityLabel()
-                            : String.valueOf(p.getQuantityNumeric());
+                            ? p.getQuantityLabel() : String.valueOf(p.getQuantityNumeric());
                     String cat = p.getCategory() != null ? p.getCategory() : "Uncategorized";
                     return "- " + p.getName() + " (" + qty + ", " + cat + ")";
                 })
                 .collect(Collectors.joining("\n"));
 
+        // Why: forbid fences/comments so we get clean JSON.
         String sys = """
-            You are a helpful recipe generator. Return strictly JSON in this shape:
+            You are a recipe generator. Output MUST be a single JSON object only, no prose, no code fences, no comments.
+            EXACT schema:
             {
               "recipes":[
                 {
-                  "title": "string",
-                  "ingredients": ["string", "..."],
-                  "steps": ["string", "..."],
-                  "missing_ingredients": ["string", "..."],
-                  "estimated_time": "string",
-                  "calories": 500
+                  "title":"string",
+                  "ingredients":["string"],
+                  "steps":["string"],
+                  "missing_ingredients":["string"],
+                  "estimated_time":"string",
+                  "calories":0
                 }
               ]
             }
-            Use pantry items when possible; list extra needed items in "missing_ingredients".
-            No prose, no markdown—JSON object only.
+            If unsure, leave optional fields as empty strings or empty arrays.
             """;
 
         String user = """
             Pantry items:
             %s
 
-            Request:
             Generate %d recipe(s). %s
             """.formatted(pantryContext, Math.max(1, count), (userPrompt == null ? "" : userPrompt));
 
-        String body = """
-            {
-              "model": %s,
-              "temperature": 0.6,
-              "response_format": { "type": "json_object" },
-              "messages": [
-                {"role":"system","content":%s},
-                {"role":"user","content":%s}
-              ]
-            }
-            """.formatted(
-                mapper.writeValueAsString(model),
-                mapper.writeValueAsString(sys),
-                mapper.writeValueAsString(user)
-        );
+        var payload = mapper.createObjectNode()
+                .put("model", model)
+                .put("stream", false);
+        var messages = mapper.createArrayNode();
+        messages.add(mapper.createObjectNode().put("role","system").put("content", sys));
+        messages.add(mapper.createObjectNode().put("role","user").put("content", user));
+        payload.set("messages", messages);
 
         HttpRequest req = HttpRequest.newBuilder()
-                .uri(URI.create("https://api.openai.com/v1/chat/completions"))
-                .timeout(Duration.ofSeconds(60))
-                .header("Authorization", "Bearer " + apiKey)
+                .uri(URI.create(baseUrl + "/api/chat"))
+                .timeout(Duration.ofSeconds(120))
                 .header("Content-Type", "application/json")
-                .POST(HttpRequest.BodyPublishers.ofString(body, StandardCharsets.UTF_8))
+                .POST(HttpRequest.BodyPublishers.ofString(mapper.writeValueAsString(payload), StandardCharsets.UTF_8))
                 .build();
 
         HttpResponse<String> res = http.send(req, HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
         if (res.statusCode() / 100 != 2) {
-            throw new IllegalStateException("AI API error: " + res.statusCode() + " -> " + res.body());
+            throw new IllegalStateException("Ollama error " + res.statusCode() + ": " + res.body());
         }
 
-        String content = mapper.readTree(res.body())
-                .path("choices").path(0).path("message").path("content").asText("{}");
+        // Ollama: { message: { content: "..." }, ... }
+        String raw = mapper.readTree(res.body())
+                .path("message").path("content").asText("").trim();
 
-        JsonNode json = mapper.readTree(content);
+        // Sanitize before parsing JSON
+        String jsonText = sanitizeToJson(raw);
+
+        JsonNode json = mapper.readTree(jsonText);
         ArrayNode arr = (ArrayNode) json.path("recipes");
 
         List<RecipeDTO> out = new ArrayList<>();
@@ -116,11 +109,77 @@ public class AiRecipeService {
                 r.steps = toList(n.path("steps"));
                 r.missingIngredients = toList(n.path("missing_ingredients"));
                 r.estimatedTime = n.path("estimated_time").asText("");
-                if (n.has("calories") && n.get("calories").isInt()) r.calories = n.get("calories").asInt();
+                if (n.has("calories") && n.get("calories").canConvertToInt()) {
+                    r.calories = n.get("calories").asInt();
+                }
                 out.add(r);
             }
         }
         return out;
+    }
+
+
+    // Checks if Ollama is reachable and the target model is available.
+    public boolean isModelAvailable() {
+        try {
+            HttpRequest req = HttpRequest.newBuilder()
+                    .uri(URI.create(baseUrl + "/api/tags"))
+                    .timeout(Duration.ofSeconds(5))
+                    .GET()
+                    .build();
+
+            HttpResponse<String> res = http.send(req, HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
+            if (res.statusCode() / 100 != 2) return false;
+
+            JsonNode root = mapper.readTree(res.body());
+            String want = model.toLowerCase();
+            for (JsonNode m : root.path("models")) {
+                String name = m.path("name").asText("").toLowerCase();
+                // accept exact tag or same family (e.g., "phi3:mini")
+                if (name.equals(want) || name.startsWith(want) || want.startsWith(name)) {
+                    return true;
+                }
+            }
+            return false;
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+
+    /** Remove fences/comments, trim to outer braces, drop trailing commas. */
+    private String sanitizeToJson(String s) {
+        if (s == null) return "{}";
+
+        String t = s.trim();
+
+        // Strip markdown code fences ``` or ```json
+        if (t.startsWith("```")) {
+            t = t.replaceFirst("^```(?:json|JSON)?\\s*", "");
+            int fence = t.lastIndexOf("```");
+            if (fence >= 0) t = t.substring(0, fence);
+        }
+
+        // Remove // line comments
+        t = t.replaceAll("(?m)^\\s*//.*$", "");
+        // Remove /* block comments */
+        t = t.replaceAll("/\\*.*?\\*/", "");
+
+        // Trim to the first {...} block if there is surrounding text
+        if (!t.startsWith("{")) {
+            int sIdx = t.indexOf('{');
+            int eIdx = t.lastIndexOf('}');
+            if (sIdx >= 0 && eIdx > sIdx) t = t.substring(sIdx, eIdx + 1);
+        }
+
+        // Remove trailing commas before } or ]
+        t = t.replaceAll(",\\s*(\\})", "$1");
+        t = t.replaceAll(",\\s*(\\])", "$1");
+
+        // Fallback: if still not starting with {, return an empty object to avoid parser crash
+        if (!t.startsWith("{")) t = "{}";
+
+        return t.trim();
     }
 
     private List<String> toList(JsonNode node) {
