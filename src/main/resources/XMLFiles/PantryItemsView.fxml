@@ -26,7 +26,7 @@
 
             <!-- Title -->
             <!-- Title -->
-            <Label styleClass="title" text="Shopping List"/>
+            <Label fx:id="shoppingTitle" styleClass="title" text="Shopping List"/>
 
             <!-- Pills row -->
             <HBox spacing="4" styleClass="segmented topbar">

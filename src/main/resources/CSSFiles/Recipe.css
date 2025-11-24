@@ -33,6 +33,15 @@
     -fx-text-fill: #717182;
     -fx-font-size: 14px;
 }
+/* Search field: full-width pill look */
+.search-field {
+    -fx-pref-width: 560;
+    -fx-background-radius: 999;
+    -fx-padding: 8 14 8 14;
+    -fx-background-color: white;
+    -fx-border-color: #e5e7eb;
+    -fx-border-radius: 999;
+}
 
 /* AI Input Container */
 .ai-input-container {

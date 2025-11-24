@@ -59,7 +59,7 @@ public class  LoginController extends BaseController {
 
     @FXML
     public void LCancelButtonOnAction(ActionEvent event) throws IOException {
-        switchScene(event, "MainScreen");
+        switchScene(event, "mainScreen");
     }
 
     @FXML
@@ -84,6 +84,9 @@ public class  LoginController extends BaseController {
         if (userId != null) {
             System.out.println("Login successful!");
             UserSession.setCurrentUserId(userId);
+            String derivedName = userId.split("@")[0];
+            derivedName = derivedName.substring(0,1).toUpperCase() + derivedName.substring(1);
+            UserSession.setCurrentUserName(derivedName);
             switchScene(event, "PantryDashboard");
         } else {
             System.out.println("Login failed. Check your credentials.");
@@ -177,6 +180,17 @@ public class  LoginController extends BaseController {
 
             String email = response.get("email").getAsString();
             String firebaseIdToken = response.get("idToken").getAsString();
+
+            String displayName = null;
+            if (response.has("displayName")) {
+                displayName = response.get("displayName").getAsString();
+            }
+            if (displayName == null || displayName.isEmpty()) {
+                displayName = email.split("@")[0];
+                displayName = displayName.substring(0,1).toUpperCase() + displayName.substring(1);
+            }
+            UserSession.setCurrentUserId(email);
+            UserSession.setCurrentUserName(displayName);
 
             System.out.println("Google Sign-In successful for: " + email);
             System.out.println("Firebase ID Token: " + firebaseIdToken);

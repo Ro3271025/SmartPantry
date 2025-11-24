@@ -29,8 +29,9 @@
             </HBox>
 
             <VBox spacing="8" styleClass="header-section">
-                <Label styleClass="page-title"
-                       text="Recipe Recommendations" />
+                <Label fx:id="recipeTitle"
+                       text="Recipe Recommendations"
+                       styleClass="page-title"/>
                 <Label styleClass="page-subtitle"
                        text="AI-powered recipe suggestions based on your pantry" />
             </VBox>
@@ -38,9 +39,10 @@
             <!-- SEARCH -->
             <HBox spacing="10" alignment="CENTER_LEFT">
                 <TextField fx:id="searchField"
-                           promptText="Search recipes..."
+                           promptText="Search Pantry Recipes…"
                            onKeyReleased="#handleSearch"
-                           prefWidth="300" />
+                           styleClass="search-field"
+                           HBox.hgrow="ALWAYS"/>
                 <Button text="Search" onAction="#handleSearch" />
             </HBox>
 

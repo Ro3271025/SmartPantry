@@ -17,10 +17,11 @@ public class MainApplication extends Application {
 
     @Override
     public void start(Stage stage) throws IOException {
-        FXMLLoader fxmlLoader = new FXMLLoader(MainApplication.class.getResource("mainScreen.fxml"));
+        FXMLLoader fxmlLoader = new FXMLLoader(MainApplication.class.getResource("/XMLFiles/mainScreen.fxml"));
         Scene scene = new Scene(fxmlLoader.load(), 1200, 700);
         //scene.getStylesheets().add(getClass().getResource("style.css").toExternalForm());
         stage.setResizable(true);
+        stage.setMaximized(true);
         stage.setScene(scene);
         stage.setTitle("SmartPantry");
         stage.show();

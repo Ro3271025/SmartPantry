@@ -24,10 +24,9 @@ Main layout:
     <!-- === Header Section === -->
     <top>
         <VBox spacing="10" BorderPane.alignment="CENTER">
-
             <!-- Row 1: Title + header buttons -->
             <HBox alignment="CENTER_LEFT" spacing="12" styleClass="toolbar">
-                <Label styleClass="title" text="Pantry Dashboard" />
+                <Label fx:id="dashboardTitle" text="Pantry Dashboard" styleClass="page-title" />
                 <Region HBox.hgrow="ALWAYS" />
                 <!-- Style guide (icon) -->
                 <Button fx:id="styleBtn" styleClass="icon" text="🎨" />

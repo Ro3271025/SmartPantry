@@ -3,6 +3,8 @@ package Controllers;
 import javafx.scene.Scene;
 
 import java.io.IOException;
+import java.net.URL;
+
 import javafx.event.Event;
 import javafx.fxml.FXMLLoader;
 import com.example.demo1.MainApplication;
@@ -12,15 +14,31 @@ import javafx.stage.Modality;
 import javafx.stage.Stage;
 
 public class BaseController {
-    public void switchScene(Event event, String newScene) throws IOException {
+    public void switchScene(Event event, String fxmlName) throws IOException {
         Node source = (Node) event.getSource();
-        Scene scene = source.getScene();
-        Stage primaryStage = (Stage) scene.getWindow();
+        Scene currentScene = source.getScene();
+        Stage primaryStage = (Stage) currentScene.getWindow();
 
-        FXMLLoader loader = new FXMLLoader(MainApplication.class.getResource(newScene + ".fxml"));
+        String path = "/XMLFiles/" + fxmlName + (fxmlName.endsWith(".fxml") ? "" : ".fxml");
+        URL fxmlUrl = MainApplication.class.getResource(path);
+
+        if (fxmlUrl == null) {
+            throw new IOException("FXML not found at path: " + path);
+        }
+
+        FXMLLoader loader = new FXMLLoader(fxmlUrl);
         Parent root = loader.load();
-        Scene new_scene = new Scene(root);
-        primaryStage.setScene(new_scene);
+
+        Scene newScene = new Scene(root);
+
+        URL css = MainApplication.class.getResource("/CSSFiles/style.css");
+        if (css != null) {
+            newScene.getStylesheets().add(css.toExternalForm());
+        } else {
+            System.err.println("CSS not found at /CSSFiles/style.css");
+        }
+        primaryStage.setScene(newScene);
+        primaryStage.show();
     }
     protected void openPopup(String fxmlPath, String title) {
         try {

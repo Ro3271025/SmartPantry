@@ -49,6 +49,8 @@ public class PantryController extends BaseController implements Initializable {
     @FXML
     private Button logoutBtn;
     @FXML
+    private Label dashboardTitle;
+    @FXML
     private ToggleButton segAll;
     @FXML
     private ToggleButton segExpiring;
@@ -192,6 +194,12 @@ public class PantryController extends BaseController implements Initializable {
         // Why: ensure controller works even if setCurrentUserId wasn't called
         if (currentUserId == null || currentUserId.isBlank()) {
             currentUserId = UserSession.getCurrentUserId();
+        }
+        String userName = UserSession.getCurrentUserName();
+        if (userName != null && !userName.isBlank()) {
+            dashboardTitle.setText(userName + "'s Pantry Dashboard");
+        } else {
+            dashboardTitle.setText("Your Pantry Dashboard");
         }
 
         if (currentUserId != null && !currentUserId.isBlank()) {
@@ -453,7 +461,7 @@ public class PantryController extends BaseController implements Initializable {
     private void logoutBtnOnAction(ActionEvent event) {
         try {
             // UserSession.clearSession();
-            switchScene(event, "MainScreen"); // Loads MainScreen.fxml via BaseController
+            switchScene(event, "mainScreen"); // Loads MainScreen.fxml via BaseController
         } catch (IOException ex) {
             showErrorAlert("Navigation Error", "Failed to open main screen: " + ex.getMessage());
         }

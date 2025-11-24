@@ -81,6 +81,8 @@ public class ShoppingListController extends BaseController {
     private Button deleteBtn;
     @FXML
     private Button ReturnDashboardBtn;
+    @FXML
+    private Label shoppingTitle;
 
     // ====== Data sources ======
     private final ObservableList<PantryItem> shoppingList = FXCollections.observableArrayList(); // local +Add
@@ -313,6 +315,12 @@ public class ShoppingListController extends BaseController {
         // Table policies
         table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN);
         table.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
+        String userName = UserSession.getCurrentUserName();
+        if (userName != null && !userName.isBlank()) {
+            shoppingTitle.setText(userName + "'s Shopping List");
+        } else {
+            shoppingTitle.setText("Your Shopping List");
+        }
     }
 
     // ===== Actions =====

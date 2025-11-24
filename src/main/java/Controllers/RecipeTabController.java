@@ -37,6 +37,8 @@ public class RecipeTabController extends BaseController{
     @FXML private Button favoriteBtn;
     @FXML private Button notReadyBtn;
     @FXML private Button aiRecommendedBtn;
+    @FXML private Label recipeTitle;
+    @FXML private TextField searchbar;
 
 
 
@@ -48,10 +50,16 @@ public class RecipeTabController extends BaseController{
     public void initialize() {
         FirebaseConfiguration.initialize();
         currentUserId = UserSession.getCurrentUserId();
+        String userName = UserSession.getCurrentUserName();
 
         if (currentUserId == null || currentUserId.isBlank()) {
             showError("User session not found");
             return;
+        }
+        if (userName !=  null && !userName.isBlank()) {
+            recipeTitle.setText(userName + "'s Recipes");
+        } else {
+            recipeTitle.setText("Your Recipes");
         }
         // Load pantry items and recipes dynamically
         List<String> pantryItems = getPantryItemNames();
