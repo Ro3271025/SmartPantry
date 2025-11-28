@@ -7,7 +7,6 @@ import com.example.demo1.FirebaseConfiguration;
 import com.example.demo1.FirebaseService;
 import com.example.demo1.PantryItem;
 import com.example.demo1.UserSession;
-import com.google.api.core.ApiFuture;
 import com.google.cloud.firestore.*;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
@@ -25,18 +24,23 @@ import java.io.IOException;
 import java.time.LocalDate;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 
 public class RecipeTabController extends BaseController {
 
-    // ==== FXML ====
+    // ==== Tabs / Saved ====
+    @FXML private TabPane tabs;
+    @FXML private Tab tabDiscover;
+    @FXML private Tab tabSaved;
+    @FXML private VBox savedVBox;
+
+    // ==== Discover UI ====
     @FXML private Button backButton;
     @FXML private TextField aiInputField;
     @FXML private Button generateButton;
     @FXML private Button allRecipesBtn;
     @FXML private Button readyBtn;
-    @FXML private Button favoriteBtn;
+    @FXML private Button favoriteBtn;     // shows ⭐ Favorites (N) and opens sort menu
     @FXML private Button notReadyBtn;
     @FXML private Button aiRecommendedBtn;
     @FXML private Button addRecipeBtn;
@@ -49,12 +53,21 @@ public class RecipeTabController extends BaseController {
     private FirebaseService firebase;
     private AiRecipeService ai;
 
+    // ==== Discover: favorites view state ====
+    private int favoritesCount = 0;
+    private enum FavSort { UPDATED, MATCH }
+    private FavSort favoritesSortMode = FavSort.UPDATED; // persisted per-user
+
+    // Saved tab: show only favorites flag (for Saved tab rendering)
+    private boolean showOnlySavedFavorites = false;
+
     // ==== State ====
     private String currentUserId;
     private String currentFilter = "all";
-    private List<Recipe> allRecipes; // your existing sample data
-    private List<UnifiedRecipe> currentUnified = new ArrayList<>(); // rendered list
+    private List<Recipe> allRecipes = List.of(); // safe default
+    private List<UnifiedRecipe> currentUnified = new ArrayList<>();
 
+    // ==== Lifecycle ====
     @FXML
     public void initialize() {
         FirebaseConfiguration.initialize();
@@ -62,9 +75,15 @@ public class RecipeTabController extends BaseController {
         firebase = new FirebaseService();
         ai = new AiRecipeService();
 
-        allRecipes = createSampleRecipes();
+        // (Optional) seed static samples
+        // allRecipes = createSampleRecipes();
 
-        // Model preflight
+        // Load user prefs (favorites sort), then set menu & badge
+        loadUserPrefs();
+        attachFavoritesSortMenu();
+        updateFavoritesCount();
+
+        // Preflight local model
         generateButton.setDisable(true);
         vBox.getChildren().setAll(new Label("Checking local AI model…"));
         CompletableFuture.supplyAsync(ai::isModelAvailable)
@@ -72,19 +91,31 @@ public class RecipeTabController extends BaseController {
                     if (Boolean.TRUE.equals(ok)) {
                         generateButton.setDisable(false);
                         vBox.getChildren().clear();
-                        // Initial render from static samples
                         var initial = allRecipes.stream().map(this::fromSample).toList();
                         currentUnified = new ArrayList<>(initial);
                         renderUnified(applySearchAndFilters(currentUnified));
                     } else {
                         vBox.getChildren().setAll(new Label(
                                 "Local model not found. Start Ollama and pull the model (e.g., phi3:mini)."));
-                        showError("Ollama not running or model missing.\nRun: 1) ollama pull phi3:mini   2) ollama serve");
                     }
                 }));
+
+        // Saved tab first load
+        loadSavedRecipes(false);
+
+        // Keep Saved tab fresh; reset the Saved-only flag when leaving it
+        if (tabs != null) {
+            tabs.getSelectionModel().selectedItemProperty().addListener((obs, oldTab, newTab) -> {
+                if (newTab == tabSaved) {
+                    loadSavedRecipes(showOnlySavedFavorites);
+                } else {
+                    showOnlySavedFavorites = false;
+                }
+            });
+        }
     }
 
-    // ==== Back nav ====
+    // ==== Navigation ====
     @FXML
     private void handleBackToPantry() {
         try {
@@ -98,16 +129,15 @@ public class RecipeTabController extends BaseController {
             stage.setTitle("Pantry Dashboard");
             stage.show();
         } catch (IOException e) {
-            e.printStackTrace();
             showError("Failed to navigate to Pantry Dashboard");
         }
     }
 
-    // ==== AI generate ====
+    // ==== Generate (Discover) ====
     @FXML
     private void handleGenerateRecipe() {
         if (!ai.isModelAvailable()) {
-            showError("Local AI not ready. Start Ollama and pull the model.\nRun: 1) ollama pull phi3:mini   2) ollama serve");
+            showError("Local AI not ready. Run: 1) ollama pull phi3:mini  2) ollama serve");
             return;
         }
         if (currentUserId == null || currentUserId.isBlank()) {
@@ -131,28 +161,41 @@ public class RecipeTabController extends BaseController {
             generateButton.setDisable(false);
             aiInputField.clear();
             if (err != null) {
-                String msg = err.getCause() != null ? err.getCause().getMessage() : err.getMessage();
+                String msg = (err.getCause() != null) ? err.getCause().getMessage() : err.getMessage();
                 showError("Failed to generate recipes: " + msg);
-            } else if (recipes == null || recipes.isEmpty()) {
-                vBox.getChildren().setAll(new Label("No recipes returned. Try again."));
-            } else {
-                currentUnified = recipes.stream().map(this::fromAI).toList();
-                renderUnified(applySearchAndFilters(currentUnified));
-                showSuccess("AI recipes generated!");
+                return;
             }
+            if (recipes == null || recipes.isEmpty()) {
+                vBox.getChildren().setAll(new Label("No recipes returned. Try again."));
+                return;
+            }
+            currentUnified = recipes.stream().map(this::fromAI).toList();
+            renderUnified(applySearchAndFilters(currentUnified));
+            showSuccess("AI recipes generated!");
         }));
     }
 
-    // ==== Search + Filters ====
-    @FXML private void handleSearch() { renderUnified(applySearchAndFilters(currentUnified)); }
-    @FXML private void handleFilterAll()          { currentFilter = "all";          renderUnified(applySearchAndFilters(currentUnified)); }
-    @FXML private void handleFilterReady()        { currentFilter = "ready";        renderUnified(applySearchAndFilters(currentUnified)); }
-    @FXML private void handleFilterFavorites()    { currentFilter = "favorites";    renderUnified(applySearchAndFilters(currentUnified)); }
-    @FXML private void handleFilterNotReady()     { currentFilter = "notready";     renderUnified(applySearchAndFilters(currentUnified)); }
-    @FXML private void handleFilterAIRecommended(){ currentFilter = "airecommended";renderUnified(applySearchAndFilters(currentUnified)); }
-    @FXML private void handleGenerateAgain() { handleGenerateRecipe(); }
-    @FXML private void handleSeeMore()       { showSuccess("Loading more recipes..."); }
-    @FXML private void handleAddRecipe()     { openPopup("/com/example/demo1/AddRecipe.fxml", "Add Recipe"); }
+    // ==== Search + Filters (Discover) ====
+    @FXML private void handleSearch()                 { renderUnified(applySearchAndFilters(currentUnified)); }
+    @FXML
+    private void handleFilterAll() {
+        // Show everything from saved in the main list
+        loadAllSavedToDiscover();
+    }
+    @FXML private void handleFilterReady()            { currentFilter = "ready";        renderUnified(applySearchAndFilters(currentUnified)); }
+
+    // Favorites button now shows favorites INSIDE Discover (no tab switch)
+    @FXML
+    private void handleFilterFavorites() {
+        currentFilter = "favorites";
+        loadFavoritesToDiscover();    // fetch favorited docs and render into Discover
+    }
+
+    @FXML private void handleFilterNotReady()         { currentFilter = "notready";     renderUnified(applySearchAndFilters(currentUnified)); }
+    @FXML private void handleFilterAIRecommended()    { currentFilter = "airecommended";renderUnified(applySearchAndFilters(currentUnified)); }
+    @FXML private void handleGenerateAgain()          { handleGenerateRecipe(); }
+    @FXML private void handleSeeMore()                { showSuccess("Loading more recipes..."); }
+    @FXML private void handleAddRecipe()              { openPopup("/com/example/demo1/AddRecipe.fxml", "Add Recipe"); }
 
     private List<UnifiedRecipe> applySearchAndFilters(List<UnifiedRecipe> input) {
         String q = (searchField == null || searchField.getText() == null) ? "" : searchField.getText().trim().toLowerCase();
@@ -165,34 +208,22 @@ public class RecipeTabController extends BaseController {
             ).toList();
         }
         return switch (currentFilter) {
-            case "ready" -> base.stream()
-                    .filter(r -> r.missingIngredients.isEmpty())
-                    .toList();
-            case "notready" -> base.stream()
-                    .filter(r -> !r.missingIngredients.isEmpty())
-                    .toList();
-            case "favorites" -> {
-                // Pull favorites state for current list from Firestore and enrich before filter
-                var enriched = enrichFavorites(base);
-                yield enriched.stream().filter(r -> r.favorite).toList();
-            }
-            case "airecommended" -> base.stream()
-                    .sorted(Comparator.comparingInt(r -> -safeMatchPercent(((UnifiedRecipe)r).match)))
-                    .toList();
-            default -> base;
+            case "ready"        -> base.stream().filter(r -> r.missingIngredients.isEmpty()).toList();
+            case "notready"     -> base.stream().filter(r -> !r.missingIngredients.isEmpty()).toList();
+            case "favorites"    -> base.stream().filter(r -> r.favorite).toList(); // already enriched in render path
+            case "airecommended"-> base.stream().sorted(Comparator.comparingInt(r -> -safeMatchPercent(r.match))).toList();
+            default             -> base;
         };
     }
 
-    // Parses strings like "75% match" → 75; returns 0 if missing/invalid.
     private int safeMatchPercent(String matchText) {
         if (matchText == null) return 0;
-        String digits = matchText.replaceAll("[^0-9]", ""); // keep numbers only
+        String digits = matchText.replaceAll("[^0-9]", "");
         if (digits.isEmpty()) return 0;
         try { return Integer.parseInt(digits); } catch (NumberFormatException e) { return 0; }
     }
 
-
-    // Enrich favorite flags from Firestore to current list (best-effort, non-blocking UX could be added)
+    // Pull favorite flags from Firestore and set r.favorite for each
     private List<UnifiedRecipe> enrichFavorites(List<UnifiedRecipe> list) {
         if (currentUserId == null || currentUserId.isBlank()) return list;
         try {
@@ -201,29 +232,162 @@ public class RecipeTabController extends BaseController {
                     .filter(d -> Boolean.TRUE.equals(d.getBoolean("favorite")))
                     .map(DocumentSnapshot::getId)
                     .collect(Collectors.toSet());
-            return list.stream().map(r -> {
-                r.favorite = favIds.contains(slug(r.title));
-                return r;
-            }).toList();
+            return list.stream().map(r -> { r.favorite = favIds.contains(slug(r.title)); return r; }).toList();
         } catch (Exception e) {
             return list;
         }
     }
 
-    // ==== Rendering (Unified) ====
+    // Load favorites from Firestore and render in Discover (respects favoritesSortMode)
+    // Load favorites from Firestore and render in Discover (no server orderBy to avoid composite index)
+    private void loadFavoritesToDiscover() {
+        if (currentUserId == null || currentUserId.isBlank()) {
+            showError("Please log in first.");
+            return;
+        }
+        vBox.getChildren().setAll(new Label("Loading favorite recipes…"));
+
+        CompletableFuture.supplyAsync(() -> {
+            try {
+                // Only filter; don't orderBy — avoids composite index requirement
+                var query = userRecipesRef().whereEqualTo("favorite", true);
+                List<DocumentSnapshot> docs = new ArrayList<>(query.get().get().getDocuments());
+
+                // Sort in-memory based on your chosen mode
+                if (favoritesSortMode == FavSort.MATCH) {
+                    // need match as a number; fall back to 0
+                    docs.sort((a, b) -> {
+                        String ma = Optional.ofNullable(a.getString("match")).orElse("0");
+                        String mb = Optional.ofNullable(b.getString("match")).orElse("0");
+                        int ia = safeMatchPercent(ma);
+                        int ib = safeMatchPercent(mb);
+                        return Integer.compare(ib, ia); // desc
+                    });
+                } else {
+                    // UPDATED sort
+                    docs.sort((a, b) -> {
+                        var ta = a.getTimestamp("updatedAt");
+                        var tb = b.getTimestamp("updatedAt");
+                        if (ta == null && tb == null) return 0;
+                        if (ta == null) return 1;
+                        if (tb == null) return -1;
+                        return tb.compareTo(ta); // desc
+                    });
+                }
+
+                List<UnifiedRecipe> list = new ArrayList<>();
+                for (DocumentSnapshot d : docs) {
+                    UnifiedRecipe r = fromDoc(d);
+                    r.favorite = true; // mark explicitly
+                    list.add(r);
+                }
+                return list;
+
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        }).whenComplete((favs, err) -> Platform.runLater(() -> {
+            if (err != null) {
+                vBox.getChildren().setAll(new Label("Failed to load favorites."));
+                System.err.println("Favorites load error: " + err.getMessage());
+                err.printStackTrace();
+                return;
+            }
+            currentUnified = favs;
+            currentFilter = "favorites";
+            renderUnified(currentUnified);
+            updateFavoritesCount();
+        }));
+    }
+
+
+    // Load ALL saved recipes (favorite or not) into the Discover screen
+    private void loadAllSavedToDiscover() {
+        if (currentUserId == null || currentUserId.isBlank()) {
+            showError("Please log in first.");
+            return;
+        }
+        vBox.getChildren().setAll(new Label("Loading all saved recipes…"));
+
+        CompletableFuture.supplyAsync(() -> {
+            try {
+                // Fetch all saved docs
+                List<DocumentSnapshot> docs = new ArrayList<>(userRecipesRef().get().get().getDocuments());
+
+                // Sort newest first (by updatedAt if present)
+                docs.sort((a, b) -> {
+                    var ta = a.getTimestamp("updatedAt");
+                    var tb = b.getTimestamp("updatedAt");
+                    if (ta == null && tb == null) return 0;
+                    if (ta == null) return 1;
+                    if (tb == null) return -1;
+                    return tb.compareTo(ta);
+                });
+
+                List<UnifiedRecipe> list = new ArrayList<>();
+                for (DocumentSnapshot d : docs) {
+                    list.add(fromDoc(d));
+                }
+                return list;
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        }).whenComplete((all, err) -> Platform.runLater(() -> {
+            if (err != null) {
+                vBox.getChildren().setAll(new Label("Failed to load saved recipes."));
+                return;
+            }
+            currentUnified = all;          // set the current view model
+            currentFilter = "all";         // mark filter
+            renderUnified(currentUnified); // renders and auto-enriches favorites
+            updateFavoritesCount();        // refresh ⭐ count on the button
+        }));
+    }
+
+
+    // ==== Post-add prompt + nav ====
+    private void afterAddMissingNavigate() {
+        Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+        alert.setTitle("Added to Shopping List");
+        alert.setHeaderText("Missing ingredients added to your Shopping List.");
+        alert.setContentText("Do you want to open your Shopping List now?");
+
+        ButtonType openBtn = new ButtonType("Open List");
+        ButtonType stayBtn = new ButtonType("Stay Here", ButtonBar.ButtonData.CANCEL_CLOSE);
+        alert.getButtonTypes().setAll(openBtn, stayBtn);
+
+        alert.showAndWait().ifPresent(bt -> {
+            if (bt == openBtn) openShoppingList();
+        });
+    }
+
+    private void openShoppingList() {
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/example/demo1/PantryItemsView.fxml"));
+            Parent root = loader.load();
+            Stage stage = (Stage) vBox.getScene().getWindow();
+            stage.setScene(new Scene(root));
+            stage.setTitle("Shopping List");
+            stage.show();
+        } catch (IOException e) {
+            showError("Failed to open Shopping List: " + e.getMessage());
+        }
+    }
+
+    // ==== Discover renderer ====
     private void renderUnified(List<UnifiedRecipe> recipes) {
         vBox.getChildren().clear();
         if (recipes == null || recipes.isEmpty()) {
             vBox.getChildren().add(new Label("No recipes to show."));
             return;
         }
-        // ensure favorites state is current
-        var finalList = enrichFavorites(recipes);
-        for (int i = 0; i < finalList.size(); i += 2) {
+        // ensure favorites state is current unless we already set it
+        List<UnifiedRecipe> list = ("favorites".equals(currentFilter)) ? recipes : enrichFavorites(recipes);
+        for (int i = 0; i < list.size(); i += 2) {
             HBox row = new HBox(20);
             row.setAlignment(Pos.TOP_LEFT);
-            row.getChildren().add(createUnifiedCard(finalList.get(i)));
-            if (i + 1 < finalList.size()) row.getChildren().add(createUnifiedCard(finalList.get(i + 1)));
+            row.getChildren().add(createUnifiedCard(list.get(i)));
+            if (i + 1 < list.size()) row.getChildren().add(createUnifiedCard(list.get(i + 1)));
             vBox.getChildren().add(row);
         }
     }
@@ -239,18 +403,39 @@ public class RecipeTabController extends BaseController {
         Label match = new Label(r.match == null ? "—" : r.match);
         match.getStyleClass().add("match-badge");
 
-        // ⭐ favorite toggle
         Button star = new Button(r.favorite ? "★" : "☆");
         star.setOnAction(e -> {
             star.setDisable(true);
-            CompletableFuture.runAsync(() -> toggleFavorite(r, !r.favorite))
+            boolean newVal = !r.favorite;
+            CompletableFuture.runAsync(() -> toggleFavorite(r, newVal))
                     .whenComplete((v, err) -> Platform.runLater(() -> {
                         star.setDisable(false);
                         if (err != null) {
                             showError("Failed to update favorite: " + err.getMessage());
                         } else {
-                            r.favorite = !r.favorite;
+                            r.favorite = newVal;
                             star.setText(r.favorite ? "★" : "☆");
+                            updateFavoritesCount();
+                            if ("favorites".equalsIgnoreCase(currentFilter) && !r.favorite) {
+                                loadFavoritesToDiscover(); // remove from favorites view instantly
+                            }
+                        }
+                    }));
+        });
+
+        Button addMissingBtn = new Button("+ Add Missing to Shopping List");
+        addMissingBtn.getStyleClass().add("add-to-list-button");
+        addMissingBtn.setDisable(r.missingIngredients.isEmpty());
+        addMissingBtn.setOnAction(e -> {
+            addMissingBtn.setDisable(true);
+            CompletableFuture.runAsync(() -> addMissingToShoppingList(r.missingIngredients))
+                    .whenComplete((v, err) -> Platform.runLater(() -> {
+                        if (err != null) {
+                            addMissingBtn.setDisable(false);
+                            showError("Failed to add to shopping list: " + err.getMessage());
+                        } else {
+                            showSuccess("Missing ingredients added!");
+                            afterAddMissingNavigate();
                         }
                     }));
         });
@@ -264,7 +449,6 @@ public class RecipeTabController extends BaseController {
         String missingText = r.missingIngredients.isEmpty() ? "None" : String.join(", ", r.missingIngredients);
         HBox missing = createIngredientRow("✗", "missing-icon", "Missing:", missingText);
 
-        // Save button only for AI-sourced recipes
         Button saveBtn = new Button("💾 Save to My Recipes");
         saveBtn.getStyleClass().add("add-to-list-button");
         saveBtn.setDisable(r.source != Source.AI);
@@ -277,6 +461,11 @@ public class RecipeTabController extends BaseController {
                             showError("Failed to save: " + err.getMessage());
                         } else {
                             showSuccess("Saved to My Recipes!");
+                            if (tabs != null && tabSaved != null) {
+                                loadSavedRecipes(false);
+                                tabs.getSelectionModel().select(tabSaved);
+                            }
+                            updateFavoritesCount();
                         }
                     }));
         });
@@ -286,8 +475,173 @@ public class RecipeTabController extends BaseController {
         VBox metaBox = new VBox(new Label(meta.isEmpty() ? "" : meta));
         metaBox.getStyleClass().add("ai-tip");
 
-        card.getChildren().addAll(header, available, missing, saveBtn, metaBox);
+        card.getChildren().addAll(header, available, missing, addMissingBtn, saveBtn, metaBox);
         return card;
+    }
+
+    // ==== Saved tab ====
+    private void loadSavedRecipes() { loadSavedRecipes(false); }
+
+    private void loadSavedRecipes(boolean favoritesOnly) {
+        if (currentUserId == null || currentUserId.isBlank() || savedVBox == null) return;
+        savedVBox.getChildren().setAll(new Label("Loading saved recipes…"));
+
+        CompletableFuture.supplyAsync(() -> {
+            try {
+                Query base = userRecipesRef();
+                if (favoritesOnly) base = base.whereEqualTo("favorite", true);
+
+                // Convert to List<DocumentSnapshot> explicitly to avoid the type mismatch
+                List<DocumentSnapshot> docs = new ArrayList<>(base.get().get().getDocuments());
+
+                // Safe client-side sort by updatedAt (some docs may not have it)
+                docs.sort((a, b) -> {
+                    var ta = a.getTimestamp("updatedAt");
+                    var tb = b.getTimestamp("updatedAt");
+                    if (ta == null && tb == null) return 0;
+                    if (ta == null) return 1;
+                    if (tb == null) return -1;
+                    return tb.compareTo(ta);
+                });
+
+                List<UnifiedRecipe> list = new ArrayList<>();
+                for (DocumentSnapshot d : docs) list.add(fromDoc(d));
+                return list;
+
+            } catch (Exception first) {
+                first.printStackTrace();
+                throw new RuntimeException("Load failed: " + first.getMessage(), first);
+            }
+        }).whenComplete((list, err) -> Platform.runLater(() -> {
+            if (err != null) {
+                savedVBox.getChildren().setAll(new Label("Failed to load saved recipes:\n" + err.getMessage()));
+            } else {
+                renderSaved(list);
+            }
+        }));
+    }
+
+    private void renderSaved(List<UnifiedRecipe> recipes) {
+        savedVBox.getChildren().clear();
+        if (recipes == null || recipes.isEmpty()) {
+            savedVBox.getChildren().add(new Label("No saved recipes yet."));
+            return;
+        }
+        for (int i = 0; i < recipes.size(); i += 2) {
+            HBox row = new HBox(20);
+            row.setAlignment(Pos.TOP_LEFT);
+            row.getChildren().add(createSavedCard(recipes.get(i)));
+            if (i + 1 < recipes.size()) row.getChildren().add(createSavedCard(recipes.get(i + 1)));
+            savedVBox.getChildren().add(row);
+        }
+    }
+
+    private VBox createSavedCard(UnifiedRecipe r) {
+        VBox card = new VBox(12);
+        card.getStyleClass().add("recipe-card");
+        card.setPadding(new Insets(16));
+
+        Label name = new Label(r.title);
+        name.getStyleClass().add("recipe-name");
+
+        Button star = new Button(r.favorite ? "★" : "☆");
+        star.setOnAction(e -> {
+            star.setDisable(true);
+            boolean newVal = !r.favorite;
+            CompletableFuture.runAsync(() -> toggleFavorite(r, newVal))
+                    .whenComplete((v, err) -> Platform.runLater(() -> {
+                        star.setDisable(false);
+                        if (err != null) {
+                            showError("Failed to update favorite: " + err.getMessage());
+                        } else {
+                            r.favorite = newVal;
+                            star.setText(r.favorite ? "★" : "☆");
+                            updateFavoritesCount();
+                            if (showOnlySavedFavorites && !r.favorite) loadSavedRecipes(true);
+                        }
+                    }));
+        });
+
+        Button del = new Button("🗑 Delete");
+        del.getStyleClass().add("danger");
+        del.setOnAction(e -> {
+            del.setDisable(true);
+            CompletableFuture.runAsync(() -> deleteSaved(r))
+                    .whenComplete((v, err) -> Platform.runLater(() -> {
+                        if (err != null) {
+                            del.setDisable(false);
+                            showError("Failed to delete: " + err.getMessage());
+                        } else {
+                            showSuccess("Deleted.");
+                            loadSavedRecipes(showOnlySavedFavorites);
+                            updateFavoritesCount();
+                        }
+                    }));
+        });
+
+        Button addMissingBtn = new Button("+ Add Missing to Shopping List");
+        addMissingBtn.getStyleClass().add("add-to-list-button");
+        addMissingBtn.setDisable(r.missingIngredients.isEmpty());
+        addMissingBtn.setOnAction(e -> {
+            addMissingBtn.setDisable(true);
+            CompletableFuture.runAsync(() -> addMissingToShoppingList(r.missingIngredients))
+                    .whenComplete((v, err) -> Platform.runLater(() -> {
+                        if (err != null) {
+                            addMissingBtn.setDisable(false);
+                            showError("Failed to add to shopping list: " + err.getMessage());
+                        } else {
+                            showSuccess("Missing ingredients added!");
+                            afterAddMissingNavigate();
+                        }
+                    }));
+        });
+
+        HBox header = new HBox(12, name, star, del);
+        header.setAlignment(Pos.CENTER_LEFT);
+
+        String ingredients = r.ingredients.isEmpty() ? "—" : String.join(", ", r.ingredients);
+        String missing     = r.missingIngredients.isEmpty() ? "None" : String.join(", ", r.missingIngredients);
+        HBox row1 = createIngredientRow("✓", "available-icon", "Ingredients:", ingredients);
+        HBox row2 = createIngredientRow("✗", "missing-icon", "Missing:",     missing);
+
+        String meta = ((r.estimatedTime != null && !r.estimatedTime.isBlank()) ? "⏱ " + r.estimatedTime + "  " : "")
+                + ((r.calories != null) ? "🔥 " + r.calories + " kcal" : "");
+        VBox metaBox = new VBox(new Label(meta.isEmpty() ? "" : meta));
+        metaBox.getStyleClass().add("ai-tip");
+
+        card.getChildren().addAll(header, row1, row2, addMissingBtn, metaBox);
+        return card;
+    }
+
+    private void deleteSaved(UnifiedRecipe r) {
+        try {
+            userRecipesRef().document(slug(r.title)).delete().get();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private UnifiedRecipe fromDoc(DocumentSnapshot d) {
+        UnifiedRecipe r = new UnifiedRecipe();
+        r.title = Optional.ofNullable(d.getString("title")).orElse("Untitled Recipe");
+        r.ingredients = castList(d.get("ingredients"));
+        r.steps = castList(d.get("steps"));
+        r.missingIngredients = castList(d.get("missingIngredients"));
+        r.estimatedTime = Optional.ofNullable((String) d.get("estimatedTime")).orElse("");
+        Object c = d.get("calories");
+        r.calories = (c instanceof Number) ? ((Number)c).intValue() : null;
+        r.source = Source.AI;
+        r.match = Optional.ofNullable((String) d.get("match")).orElse("—");
+        r.favorite = Boolean.TRUE.equals(d.getBoolean("favorite"));
+        return r;
+    }
+
+    @SuppressWarnings("unchecked")
+    private List<String> castList(Object v) {
+        if (v instanceof List<?> list) {
+            return list.stream().filter(Objects::nonNull).map(Object::toString).toList();
+        }
+        return List.of();
     }
 
     // ==== Mapping ====
@@ -297,8 +651,6 @@ public class RecipeTabController extends BaseController {
         r.ingredients = splitCSV(s.available);
         r.missingIngredients = splitCSV(s.missing).stream().filter(x -> !"None".equalsIgnoreCase(x)).toList();
         r.steps = List.of();
-        r.estimatedTime = "";
-        r.calories = null;
         r.match = s.match;
         r.source = Source.STATIC;
         return r;
@@ -333,11 +685,12 @@ public class RecipeTabController extends BaseController {
         return in == null ? List.of() : in.stream().filter(Objects::nonNull).map(String::trim).filter(x -> !x.isBlank()).toList();
     }
 
-    // ==== Favorites persistence ====
+    // ==== Firestore helpers ====
     private void toggleFavorite(UnifiedRecipe r, boolean newVal) {
         if (currentUserId == null || currentUserId.isBlank()) throw new IllegalStateException("No user");
         Map<String, Object> data = mapForFirestore(r);
         data.put("favorite", newVal);
+        data.put("updatedAt", FieldValue.serverTimestamp()); // keep timestamp fresh
         try {
             userRecipesRef().document(slug(r.title)).set(data, SetOptions.merge()).get();
         } catch (Exception e) {
@@ -345,13 +698,43 @@ public class RecipeTabController extends BaseController {
         }
     }
 
-    // Save AI recipe content
     private void saveRecipe(UnifiedRecipe r) {
         if (currentUserId == null || currentUserId.isBlank()) throw new IllegalStateException("No user");
         Map<String, Object> data = mapForFirestore(r);
         data.put("favorite", r.favorite);
         try {
             userRecipesRef().document(slug(r.title)).set(data, SetOptions.merge()).get();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    // Batch upsert missing ingredients into shoppingList
+    private void addMissingToShoppingList(List<String> missing) {
+        if (currentUserId == null || currentUserId.isBlank()) throw new IllegalStateException("No user");
+        if (missing == null || missing.isEmpty()) return;
+
+        Firestore db = FirebaseConfiguration.getDatabase();
+        CollectionReference listRef = db.collection("users").document(currentUserId).collection("shoppingList");
+        WriteBatch batch = db.batch();
+
+        for (String raw : missing) {
+            if (raw == null) continue;
+            String name = raw.trim();
+            if (name.isEmpty()) continue;
+
+            String id = slug(name);
+            Map<String, Object> data = new HashMap<>();
+            data.put("name", name);
+            data.put("quantity", 1);
+            data.put("status", "pending");
+            data.put("updatedAt", FieldValue.serverTimestamp());
+
+            batch.set(listRef.document(id), data, SetOptions.merge());
+        }
+
+        try {
+            batch.commit().get();
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -380,7 +763,73 @@ public class RecipeTabController extends BaseController {
         return title.toLowerCase(Locale.ROOT).replaceAll("[^a-z0-9]+", "-").replaceAll("(^-|-$)", "");
     }
 
-    // ==== Pantry filter (skip expired/empty) ====
+    // ==== User prefs (persist favorites sort) ====
+    private DocumentReference userPrefsRef() {
+        Firestore db = FirebaseConfiguration.getDatabase();
+        return db.collection("users").document(currentUserId).collection("meta").document("preferences");
+    }
+
+    private void loadUserPrefs() {
+        if (currentUserId == null || currentUserId.isBlank()) return;
+        CompletableFuture.supplyAsync(() -> {
+            try { return userPrefsRef().get().get(); } catch (Exception e) { return null; }
+        }).whenComplete((snap, err) -> Platform.runLater(() -> {
+            if (err != null || snap == null || !snap.exists()) return;
+            String mode = snap.getString("favoritesSortMode");
+            if (mode != null) {
+                try { favoritesSortMode = FavSort.valueOf(mode.toUpperCase(Locale.ROOT)); } catch (IllegalArgumentException ignored) {}
+            }
+        }));
+    }
+
+    private void saveFavoritesSortPref(FavSort mode) {
+        if (currentUserId == null || currentUserId.isBlank()) return;
+        Map<String, Object> data = Map.of("favoritesSortMode", mode.name().toLowerCase(Locale.ROOT));
+        CompletableFuture.runAsync(() -> {
+            try { userPrefsRef().set(data, SetOptions.merge()).get(); } catch (Exception ignored) {}
+        });
+    }
+
+    private void attachFavoritesSortMenu() {
+        if (favoriteBtn == null) return;
+
+        var menu = new ContextMenu();
+        var byUpdated = new MenuItem("Sort by Updated");
+        var byMatch   = new MenuItem("Sort by Match %");
+
+        byUpdated.setOnAction(e -> {
+            favoritesSortMode = FavSort.UPDATED;
+            saveFavoritesSortPref(favoritesSortMode);
+            if ("favorites".equalsIgnoreCase(currentFilter)) loadFavoritesToDiscover();
+        });
+        byMatch.setOnAction(e -> {
+            favoritesSortMode = FavSort.MATCH;
+            saveFavoritesSortPref(favoritesSortMode);
+            if ("favorites".equalsIgnoreCase(currentFilter)) loadFavoritesToDiscover();
+        });
+
+        menu.getItems().addAll(byUpdated, byMatch);
+
+        // Left-click opens menu too
+        favoriteBtn.setOnMouseClicked(e -> menu.show(favoriteBtn, e.getScreenX(), e.getScreenY()));
+        favoriteBtn.setContextMenu(menu);
+    }
+
+    private void updateFavoritesCount() {
+        if (favoriteBtn == null || currentUserId == null || currentUserId.isBlank()) return;
+
+        CompletableFuture.supplyAsync(() -> {
+            try { return userRecipesRef().whereEqualTo("favorite", true).get().get().size(); }
+            catch (Exception e) { return -1; }
+        }).whenComplete((n, err) -> Platform.runLater(() -> {
+            if (err != null || n < 0) return;
+            favoritesCount = n;
+            favoriteBtn.setText("⭐ Favorites" + (favoritesCount > 0 ? " (" + favoritesCount + ")" : ""));
+            favoriteBtn.setDisable(favoritesCount == 0);
+        }));
+    }
+
+    // ==== Pantry filter ====
     private List<PantryItem> filterPantryItems(List<PantryItem> items) {
         LocalDate today = LocalDate.now();
         return items.stream()
@@ -390,7 +839,7 @@ public class RecipeTabController extends BaseController {
                 .toList();
     }
 
-    // ==== UI helpers (shared) ====
+    // ==== UI helpers ====
     private HBox createIngredientRow(String icon, String iconStyle, String label, String items) {
         Label iconLabel = new Label(icon); iconLabel.getStyleClass().add(iconStyle);
         Label labelText = new Label(label); labelText.getStyleClass().add("ingredient-label");
@@ -412,8 +861,8 @@ public class RecipeTabController extends BaseController {
         alert.showAndWait();
     }
 
-    // ==== Inner classes ====
-    private static class Recipe { // your static sample model
+    // ==== Sample data & models ====
+    private static class Recipe {
         String name, match, available, missing, aiTip;
         Recipe(String n, String m, String a, String miss, String tip) {
             name = n; match = m; available = a; missing = miss; aiTip = tip;
@@ -432,16 +881,5 @@ public class RecipeTabController extends BaseController {
         Source source = Source.STATIC;
     }
 
-    private List<Recipe> createSampleRecipes() {
-        return List.of(
-                new Recipe("Cheese Omelette", "75% match", "Eggs, Cheese, Milk", "Butter",
-                        "Quick breakfast using your low-stock cheese!"),
-                new Recipe("Banana Pancakes", "60% match", "Bananas, Eggs, Milk", "Flour, Maple Syrup",
-                        "Use expiring bananas for this one."),
-                new Recipe("Chicken Rice Bowl", "50% match", "Chicken Breast, Rice", "Broccoli, Soy Sauce",
-                        "High protein, easy to make."),
-                new Recipe("Grilled Cheese", "33% match", "Cheese", "Bread, Butter",
-                        "Classic comfort food, best fresh bread.")
-        );
-    }
+//    private List<Recipe> createSampleRecipes() { ... }
 }
