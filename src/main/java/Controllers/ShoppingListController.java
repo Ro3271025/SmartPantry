@@ -1,51 +1,44 @@
 package Controllers;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import javafx.collections.ListChangeListener;
-import com.google.cloud.firestore.Firestore;
-import com.google.cloud.firestore.QueryDocumentSnapshot;
-import com.google.cloud.Timestamp;
-import com.google.cloud.firestore.CollectionReference;
-import com.example.demo1.FirebaseConfiguration;
-import java.util.Map;
-import java.util.HashMap;
-import com.example.demo1.UserSession;
-import javafx.application.Platform;
-import java.time.ZoneId;
-import java.util.concurrent.CompletableFuture;
+
 import com.example.demo1.Dialogs;
+import com.example.demo1.FirebaseConfiguration;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import javafx.application.Platform;
-import javafx.beans.binding.Bindings;
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
-import javafx.event.ActionEvent;
-import javafx.fxml.FXML;
-import javafx.print.PrinterJob;
-import javafx.scene.control.*;
-import javafx.scene.control.cell.CheckBoxTableCell;
-import javafx.scene.control.cell.PropertyValueFactory;
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.file.Files;
-import java.io.File;
-import java.time.LocalDate;
-import java.util.List;
-import java.util.stream.Collectors;
-import javafx.scene.control.ToggleGroup;
-import java.util.HashSet;
-import java.util.stream.Stream;
-import javafx.collections.ListChangeListener;
-
-// ---- Firebase / Firestore (add firebase-admin to pom.xml) ----
-import com.google.api.core.ApiFuture;
 import com.google.auth.oauth2.GoogleCredentials;
 import com.google.cloud.firestore.*;
 import com.google.firebase.FirebaseApp;
 import com.google.firebase.FirebaseOptions;
 import com.google.firebase.cloud.FirestoreClient;
-
+import javafx.application.Platform;
+import javafx.beans.binding.Bindings;
+import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.SimpleBooleanProperty;
+import javafx.collections.FXCollections;
+import javafx.collections.ListChangeListener;
+import javafx.collections.ObservableList;
+import javafx.event.ActionEvent;
+import javafx.fxml.FXML;
+import javafx.print.PrinterJob;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
+import javafx.scene.control.*;
+import javafx.scene.control.cell.CheckBoxTableCell;
+import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.scene.text.Font;
+import javafx.stage.Stage;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.time.LocalDate;
+import java.time.ZoneId;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.prefs.Preferences;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 public class ShoppingListController extends BaseController {
 
     // ====== Pills ======
@@ -86,6 +79,7 @@ public class ShoppingListController extends BaseController {
     @FXML
     private Button ReturnDashboardBtn;
 
+
     // ====== Data sources ======
     private final ObservableList<PantryItem> shoppingList = FXCollections.observableArrayList(); // local +Add
     private final ObservableList<PantryItem> expiringSoonFirebase = FXCollections.observableArrayList(); // Firestore
@@ -97,8 +91,14 @@ public class ShoppingListController extends BaseController {
     private final ObservableList<PantryItem> pinnedRecommended = FXCollections.observableArrayList();
     // Fetched-from-Firebase (expiringSoonFirebase) + pinnedRecommended merged for display
     private final ObservableList<PantryItem> recommendedCombined = FXCollections.observableArrayList();
+    // Persist the user's ad-hoc Recommended items locally (same folder as shopping-list.json)
+    private final Path RECO_JSON = LOCAL_DIR.resolve("recommended-pinned.json");
+    // Dark mode state
+    private final BooleanProperty darkMode = new SimpleBooleanProperty(true); // start dark; set false if you prefer
+    private final Preferences prefs = Preferences.userNodeForPackage(ShoppingListController.class);
+    private static final String PREF_DARK = "shopping.dark";
 
-    // for JSON seeding if desired
+    // for JSON seeding
     private final ObjectMapper mapper = new ObjectMapper();
     /** Load local "List" items from ~/.smartpantry/shopping-list.json (if present). */
     private void loadLocalList() {
@@ -143,8 +143,58 @@ public class ShoppingListController extends BaseController {
             ex.printStackTrace();
         }
     }
+
+    /** Load pinned Recommended rows from ~/.smartpantry/recommended-pinned.json */
+    private void loadPinnedRecommended() {
+        try {
+            if (java.nio.file.Files.exists(RECO_JSON)) {
+                String json = java.nio.file.Files.readString(RECO_JSON);
+                List<PantryItemDTO> raw = mapper.readValue(json, new TypeReference<>(){});
+                pinnedRecommended.setAll(
+                        raw.stream().map(r -> new PantryItem(
+                                r.name,
+                                r.qty,
+                                r.unit,
+                                r.location,
+                                r.expiration == null ? null : LocalDate.parse(r.expiration),
+                                r.lowStock
+                        )).toList()
+                );
+            }
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+    }
+
+    /** Save pinned Recommended rows to ~/.smartpantry/recommended-pinned.json */
+    private void savePinnedRecommended() {
+        try {
+            if (!java.nio.file.Files.exists(LOCAL_DIR)) {
+                java.nio.file.Files.createDirectories(LOCAL_DIR);
+            }
+            var out = pinnedRecommended.stream().map(PantryItemDTO::from).collect(Collectors.toList());
+            String json = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(out);
+            java.nio.file.Files.writeString(RECO_JSON, json);
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+    }
+    private Button findExportButton(Parent root) {
+        if (root instanceof Button b && "Export".equalsIgnoreCase(b.getText())) return b;
+        if (root instanceof javafx.scene.Parent p) {
+            for (javafx.scene.Node n : p.getChildrenUnmodifiable()) {
+                if (n instanceof Button b && "Export".equalsIgnoreCase(b.getText())) return b;
+                if (n instanceof Parent child) {
+                    Button found = findExportButton(child);
+                    if (found != null) return found;
+                }
+            }
+        }
+        return null;
+    }
+
     private void refreshRecommended() {
-        // your existing method that fills the Recommended list
+        // existing method that fills the Recommended list
         fetchExpiringFromFirebase(true);   // or fetchRecommendedFromFirebase(true) if you renamed it
     }
 
@@ -183,7 +233,6 @@ public class ShoppingListController extends BaseController {
         LocalDate now = LocalDate.now();
         return !d.isBefore(now) && !d.isAfter(now.plusDays(7));
     }
-    // Write a new (or edited) item to Firestore so it shows up in the pills
     private void upsertToFirestore(PantryItem it) {
         try {
             Map<String, Object> data = new HashMap<>();
@@ -215,10 +264,12 @@ public class ShoppingListController extends BaseController {
 // Bind the table to the local list by default
         table.setItems(shoppingList);
 
-// Load what we had last time
         loadLocalList();
+        // Load the user's pinned items for Recommended and merge them
+        loadPinnedRecommended();
+        recomputeRecommended();
 
-// If nothing was saved yet, you can keep your optional demo seed here (or remove it)
+
         if (shoppingList.isEmpty()) {
             shoppingList.addAll(
                     new PantryItem("Milk", 1, "gallon", "Fridge",  LocalDate.now().plusDays(3),  false)
@@ -257,7 +308,6 @@ public class ShoppingListController extends BaseController {
         deleteBtn.disableProperty().bind(anyCheckboxChecked.or(anyRowSelected).not());
 
 
-        // Optional: seed local list from bundled JSON or fallback demo data
         try (InputStream in = getClass().getResourceAsStream("sample-data.json")) {
             if (in != null) {
                 List<PantryItemDTO> raw = mapper.readValue(in, new TypeReference<>() {
@@ -307,7 +357,7 @@ public class ShoppingListController extends BaseController {
         expiringSoonFirebase.addListener((ListChangeListener<PantryItem>) c -> recomputeRecommended());
         pinnedRecommended.addListener((ListChangeListener<PantryItem>) c -> recomputeRecommended());
         recomputeRecommended(); // initial compute
-
+        savePinnedRecommended();
 
         // Initial header
         applyHeaderClass("thead-green");
@@ -317,6 +367,88 @@ public class ShoppingListController extends BaseController {
         // Table policies
         table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN);
         table.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
+        Platform.runLater(() -> {
+            Stage stage = (Stage) table.getScene().getWindow();
+            stage.setWidth(1200);
+            stage.setHeight(800);
+            stage.setMinWidth(300);
+            stage.setMinHeight(400);
+            stage.centerOnScreen();
+        });
+        // ----- Dark-mode toggle button (no new FXML ids) -----
+        // ----- Theme toggle (dark class only; light = default) -----
+        Platform.runLater(() -> {
+            if (table.getScene() == null) return;
+
+            final String DARK = "shopping-dark";
+
+            Scene  scene = table.getScene();
+            Parent root  = scene.getRoot();
+
+            // Tiny round button near Export (or pinned to top-right if needed)
+            Button themeBtn = new Button();
+            themeBtn.getStyleClass().add("theme-toggle");
+            themeBtn.setFocusTraversable(false);
+            themeBtn.setTooltip(new Tooltip("Toggle theme"));
+
+            // Try to place next to Export; else absolute top-right
+            Button export = findExportButton(root);
+            boolean placed = false;
+            if (export != null && export.getParent() instanceof javafx.scene.layout.Pane p) {
+                int idx = Math.max(0, p.getChildren().indexOf(export) + 1);
+                p.getChildren().add(Math.min(idx, p.getChildren().size()), themeBtn);
+                var m = new javafx.geometry.Insets(0, 0, 0, 6);
+                try { javafx.scene.layout.HBox.setMargin(themeBtn, m); } catch (Throwable ignore) {}
+                try { javafx.scene.layout.FlowPane.setMargin(themeBtn, m); } catch (Throwable ignore) {}
+                placed = true;
+            }
+            if (!placed && root instanceof javafx.scene.layout.Pane rp) {
+                themeBtn.setManaged(false);
+                rp.getChildren().add(themeBtn);
+                double pad = 10;
+                Runnable place = () -> themeBtn.relocate(
+                        rp.getWidth() - themeBtn.getWidth() - pad,
+                        pad
+                );
+                rp.widthProperty().addListener((o, ov, nv) -> place.run());
+                themeBtn.widthProperty().addListener((o, ov, nv) -> place.run());
+                place.run();
+            }
+
+            // Remember user choice (default = LIGHT / no class)
+            var prefs = java.util.prefs.Preferences.userNodeForPackage(ShoppingListController.class);
+            final String PREF_DARK = "shopping.dark";
+            var darkMode = new javafx.beans.property.SimpleBooleanProperty(
+                    prefs.getBoolean(PREF_DARK, false) // false => light (default styling)
+            );
+
+            // Apply: add/remove ONLY the dark class
+            Runnable applyTheme = () -> {
+                var classes = root.getStyleClass();
+                if (darkMode.get()) {
+                    if (!classes.contains(DARK)) classes.add(DARK);
+                    themeBtn.setText("☀"); // shows sun when you’re in dark mode (click to go light)
+                    themeBtn.setTooltip(new Tooltip("Switch to light mode"));
+                } else {
+                    classes.remove(DARK);  // light = default styles
+                    themeBtn.setText("🌙");
+                    themeBtn.setTooltip(new Tooltip("Switch to dark mode"));
+                }
+            };
+
+            applyTheme.run();
+
+            themeBtn.setOnAction(e -> darkMode.set(!darkMode.get()));
+            darkMode.addListener((obs, o, n) -> {
+                prefs.putBoolean(PREF_DARK, n);
+                applyTheme.run();
+            });
+        });
+
+
+
+
+
     }
 
     // ===== Actions =====
@@ -333,7 +465,7 @@ public class ShoppingListController extends BaseController {
             pinnedRecommended.add(item);   // <-- NEW
             // combined list will auto-refresh via the listener, but we can recompute explicitly:
             recomputeRecommended();
-
+            savePinnedRecommended();
             // 3) If the Recommended pill is active, ensure the table shows the combined list
             if (expiringToggle.isSelected()) {
                 table.setItems(recommendedCombined);
@@ -342,70 +474,71 @@ public class ShoppingListController extends BaseController {
         });
     }
 
-
-
-
-
-
     @FXML
-    public void handleDelete(ActionEvent e){
-        ObservableList<PantryItem> current = table.getItems();
-        if (current == null) return;
+    public void handleDelete(ActionEvent e) {
+        ObservableList<PantryItem> view = table.getItems();
+        if (view == null) return;
 
-        var selectedRows = FXCollections.observableArrayList(
-                table.getSelectionModel().getSelectedItems()
-        );
-        var checkboxRows = current.filtered(PantryItem::isSelected);
+        // Collect rows to remove (selected rows + checkbox rows)
+        var selectedRows = FXCollections.observableArrayList(table.getSelectionModel().getSelectedItems());
+        var checkboxRows = view.filtered(PantryItem::isSelected);
         if (selectedRows.isEmpty() && checkboxRows.isEmpty()) return;
 
         var toRemove = FXCollections.observableArrayList(selectedRows);
         for (PantryItem p : checkboxRows) if (!toRemove.contains(p)) toRemove.add(p);
 
-        boolean onListTab = (current == shoppingList);
+        boolean onListTab        = (view == shoppingList);
+        boolean onRecommendedTab = (view == recommendedCombined) || expiringToggle.isSelected();
 
-        // remove from UI immediately
-        current.removeAll(toRemove);
+        // Remove from the current view immediately
+        view.removeAll(toRemove);
 
-        // NEW: also unpin from Recommended, then recompute the combined view
-        pinnedRecommended.removeAll(toRemove);    // <-- NEW
-        recomputeRecommended();                   // <-- NEW
+        // Keep both backing stores consistent
+        shoppingList.removeAll(toRemove);
+        pinnedRecommended.removeAll(toRemove);   // things you manually added to Recommended
+        expiringSoonFirebase.removeAll(toRemove); // fetched-from-Firebase list
+        recomputeRecommended();                  // rebuild combined Recommended
+        savePinnedRecommended();
 
         table.getSelectionModel().clearSelection();
         table.refresh();
 
         if (onListTab) {
             saveLocalList();
-            // (keep your Firebase deletion block as-is)
-            String uid = UserSession.getCurrentUserId();
-            if (uid != null && !uid.isBlank()) {
-                var db = FirebaseConfiguration.getDatabase();
-                var coll = db.collection("users").document(uid).collection("shoppingList");
-                java.util.concurrent.CompletableFuture.runAsync(() -> {
+        }
+
+        // ----- Firestore deletion (async) -----
+        String uid = currentUserDocId(); // same helper your fetchers use
+        if (uid == null || uid.isBlank()) return;
+
+        java.util.concurrent.CompletableFuture.runAsync(() -> {
+            try {
+                Firestore db = FirebaseConfiguration.getDatabase();
+
+                if (onListTab) {
+                    var coll = db.collection("users").document(uid).collection("shoppingList");
                     for (PantryItem p : toRemove) {
-                        String id = p.getShoppingDocId();
-                        try {
-                            if (id != null && !id.isBlank()) {
-                                coll.document(id).delete().get();
-                            } else {
-                                var q = coll.whereEqualTo("item", p.getName())
-                                        .whereEqualTo("quantity", p.getQty())
-                                        .whereEqualTo("unit", p.getUnit())
-                                        .whereEqualTo("location", p.getLocation());
-                                var snap = q.get().get();
-                                for (var d : snap.getDocuments()) d.getReference().delete().get();
-                            }
-                        } catch (Exception ex) {
-                            System.err.println("⚠ Delete failed: " + ex.getMessage());
+                        try { deleteFromShoppingList(coll, p); }
+                        catch (Exception ex) {
+                            System.err.println("⚠ shoppingList delete failed for " + p.getName() + ": " + ex.getMessage());
                         }
                     }
-                });
+                }
+
+                if (onRecommendedTab) {
+                    var coll = db.collection("users").document(uid).collection("pantryItems");
+                    for (PantryItem p : toRemove) {
+                        try { deleteFromPantryItems(coll, p); }
+                        catch (Exception ex) {
+                            System.err.println("⚠ pantryItems delete failed for " + p.getName() + ": " + ex.getMessage());
+                        }
+                    }
+                }
+            } catch (Exception outer) {
+                System.err.println("⚠ Delete task error: " + outer.getMessage());
             }
-        }
+        });
     }
-
-
-
-
 
     @FXML
     public void handleExport(ActionEvent e) {
@@ -508,8 +641,7 @@ public class ShoppingListController extends BaseController {
         int qty = qtyL == null ? 0 : qtyL.intValue();
 
         String unit = d.getString("unit");
-
-        String loc = d.getString("location");
+        String loc  = d.getString("location");
         if (loc == null) loc = d.getString("category");
 
         boolean low = Boolean.TRUE.equals(d.getBoolean("lowStock"));
@@ -517,17 +649,19 @@ public class ShoppingListController extends BaseController {
         LocalDate expDate = null;
         Object expRaw = d.get("expirationDate");
         if (expRaw == null) expRaw = d.get("expiration");
-
         if (expRaw instanceof com.google.cloud.Timestamp ts) {
             expDate = ts.toDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
         } else if (expRaw instanceof java.util.Date dt) {
             expDate = dt.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
         } else if (expRaw instanceof String s) {
-            try { expDate = LocalDate.parse(s); } catch (Exception ignored) { }
+            try { expDate = LocalDate.parse(s); } catch (Exception ignored) {}
         }
 
-        return new PantryItem(name, qty, unit, loc, expDate, low);
+        PantryItem it = new PantryItem(name, qty, unit, loc, expDate, low);
+        it.setShoppingDocId(d.getId());          // ✅ keep Firestore id for precise delete
+        return it;
     }
+
 
 // ---- Helpers to work with Firestore docs flexibly ----
 
@@ -548,8 +682,6 @@ public class ShoppingListController extends BaseController {
     /** Convert a Firestore doc to your UI PantryItem, handling alternate field names. */
     private PantryItem fromDoc(DocumentSnapshot d) {
         String name = d.getString("name");
-
-        // quantity can be "quantity", "qty", or "quantityNumeric"
         Long q = d.getLong("quantity");
         if (q == null) q = d.getLong("qty");
         if (q == null) q = d.getLong("quantityNumeric");
@@ -559,17 +691,18 @@ public class ShoppingListController extends BaseController {
         String loc  = d.getString("location");
         if (loc == null) loc = d.getString("category");
 
-        // expiration may be "expiryDate" (String), "expiration" (String),
-        // or "expirationDate" (Timestamp/Date)
         Object expRaw = d.get("expiryDate");
         if (expRaw == null) expRaw = d.get("expiration");
         if (expRaw == null) expRaw = d.get("expirationDate");
         LocalDate exp = toLocalDate(expRaw);
 
-        boolean low = Boolean.TRUE.equals(d.getBoolean("lowStock")); // may be absent
+        boolean low = Boolean.TRUE.equals(d.getBoolean("lowStock"));
 
-        return new PantryItem(name, qty, unit, loc, exp, low);
+        PantryItem it = new PantryItem(name, qty, unit, loc, exp, low);
+        it.setShoppingDocId(d.getId());          // ✅ keep Firestore id for precise delete
+        return it;
     }
+
 
 
     /** Run a query and map to PantryItem list. */
@@ -645,10 +778,8 @@ public class ShoppingListController extends BaseController {
             try {
                 var coll = pantryColl();
 
-                // Prefer a boolean if present
                 Query qFlag = coll.whereEqualTo("lowStock", true);
 
-                // Or compute by quantity number (supports multiple field names)
                 Query qQty1 = coll.whereLessThanOrEqualTo("quantity", LOW_STOCK_THRESHOLD);
                 Query qQty2 = coll.whereLessThanOrEqualTo("qty", LOW_STOCK_THRESHOLD);
                 Query qQty3 = coll.whereLessThanOrEqualTo("quantityNumeric", LOW_STOCK_THRESHOLD);
@@ -665,10 +796,52 @@ public class ShoppingListController extends BaseController {
             }
         }).start();
     }
+    private void deleteFromShoppingList(CollectionReference coll, PantryItem p) throws Exception {
+        Query q = coll.whereEqualTo("item", p.getName())
+                .whereEqualTo("quantity", p.getQty());
 
+        if (p.getUnit() != null && !p.getUnit().isBlank())
+            q = q.whereEqualTo("unit", p.getUnit());
+        if (p.getLocation() != null && !p.getLocation().isBlank())
+            q = q.whereEqualTo("location", p.getLocation());
 
+        var snap = q.get().get();
+        for (DocumentSnapshot d : snap.getDocuments()) {
+            d.getReference().delete().get();
+        }
+    }
 
+    private void deleteFromPantryItems(CollectionReference coll, PantryItem p) throws Exception {
+        // Start with stable fields to get a small candidate set
+        Query q = coll.whereEqualTo("name", p.getName());
+        if (p.getUnit() != null && !p.getUnit().isBlank())
+            q = q.whereEqualTo("unit", p.getUnit());
+        if (p.getLocation() != null && !p.getLocation().isBlank())
+            q = q.whereEqualTo("location", p.getLocation());
 
+        var snap = q.get().get();
+        for (DocumentSnapshot d : snap.getDocuments()) {
+            // Try to match quantity in any common numeric field
+            Integer dq = null;
+            Long L = d.getLong("qty");
+            if (L == null) L = d.getLong("quantity");
+            if (L == null) L = d.getLong("quantityNumeric");
+            if (L != null) dq = L.intValue();
+
+            // Try to match expiration regardless of schema
+            LocalDate dexp = toLocalDate(d.get("expiryDate"));
+            if (dexp == null) dexp = toLocalDate(d.get("expiration"));
+            if (dexp == null) dexp = toLocalDate(d.get("expirationDate"));
+
+            boolean qtyOk = (dq == null) || (dq == p.getQty());
+            boolean expOk = (p.getExpiration() == null && dexp == null)
+                    || (p.getExpiration() != null && p.getExpiration().equals(dexp));
+
+            if (qtyOk && expOk) {
+                d.getReference().delete().get();
+            }
+        }
+    }
     // ===== DTO used for optional JSON seed =====
     public static class PantryItemDTO {
         public String name;

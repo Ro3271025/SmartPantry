@@ -25,11 +25,8 @@
   -fx-cursor: hand;
 }
 .button:disabled { -fx-opacity: .55; -fx-cursor: default; }
-/* (Optional helpers; keep if you use them anywhere) */
-/* .btn-sm { -fx-padding: 8 16; -fx-font-size: 14px; }
-   .btn-lg { -fx-padding: 14 26; -fx-font-size: 18px; } */
 
-/* Specific buttons by fx:id (what your UI uses now) */
+/* Specific buttons by fx:id */
 #ReturnDashboardBtn { -fx-background-color: -sp-blue;   -fx-text-fill: -sp-white; -fx-border-color: transparent; }
 #ReturnDashboardBtn:hover { -fx-background-color: -sp-blue-700; }
 
@@ -51,7 +48,6 @@
 #allToggle:hover, #expiringToggle:hover, #lowStockToggle:hover { -fx-background-color: -sp-gray-200; }
 #allToggle:armed, #expiringToggle:armed, #lowStockToggle:armed { -fx-background-color: -sp-gray-300; }
 
-/* Colored states (what you asked for) */
 #allToggle        { -fx-background-color: -sp-green;  -fx-text-fill: -sp-white; -fx-border-color: transparent; }
 #allToggle:hover,
 #allToggle:selected,
@@ -125,7 +121,7 @@
 .topbar > .toggle-button:hover    { -fx-background-color: -sp-gray-200; }
 .topbar > .toggle-button:armed    { -fx-background-color: -sp-gray-300; }
 
-/* Colored states per button id (same tokens you already use) */
+/* Colored states per button id */
 #listToggle {
   -fx-background-color: -sp-green;
   -fx-text-fill: -sp-white;
@@ -153,7 +149,7 @@
 #lowStockToggle:selected,
 #lowStockToggle:selected:hover     { -fx-background-color: -sp-red-700; -fx-text-fill: -sp-white; }
 
-/* ===== Table header cleanup (keeps your green bar) ===== */
+/* ===== Table header cleanup ===== */
 #table {
   -fx-background-radius: 12;
   -fx-border-color: -sp-gray-200;
@@ -193,4 +189,73 @@
 #listToggle:selected:hover {
   -fx-background-color: -sp-green-700;
   -fx-text-fill: -sp-white;
+}
+/************* DARK MODE *************/
+
+/* Page background + default text */
+.shopping-dark {
+  -fx-background-color: #0f172a;
+  -fx-base:              #0f172a;
+  -fx-text-fill:         #e5e7eb;
+}
+
+/* --- TableView: make body match page background exactly --- */
+.shopping-dark .table-view,
+.shopping-dark .table-view .virtual-flow,
+.shopping-dark .table-view .virtual-flow .clipped-container,
+.shopping-dark .table-view .virtual-flow .sheet,
+.shopping-dark .table-row-cell,
+.shopping-dark .table-cell {
+  -fx-background-color: #0f172a;          /* same as page */
+  -fx-background-insets: 0;
+  -fx-background-radius: 0;
+}
+
+/* Cell text */
+.shopping-dark .table-cell {
+  -fx-text-fill: #e5e7eb;
+}
+
+/* Optional: very subtle grid lines so rows don’t “disappear” */
+.shopping-dark .table-row-cell,
+.shopping-dark .table-cell {
+  -fx-border-color: rgba(255,255,255,0.06);
+  -fx-border-width: 0 0 1 0;
+}
+
+/* Row hover & selection (slightly lighter, still dark) */
+.shopping-dark .table-row-cell:hover {
+  -fx-background-color: #111827;
+}
+.shopping-dark .table-row-cell:filled:selected,
+.shopping-dark .table-row-cell:filled:selected .table-cell {
+  -fx-background-color: #1f2937;
+  -fx-text-fill: #f9fafb;
+}
+
+/* Header: */
+.shopping-dark .column-header,
+.shopping-dark .column-header .label {
+  -fx-text-fill: #e5e7eb;
+}
+
+/* Controls that sit on the page (search field, combo) */
+.shopping-dark .text-field,
+.shopping-dark .combo-box-base,
+.shopping-dark .button {
+  -fx-background-color: #111827;
+  -fx-text-fill: #e5e7eb;
+  -fx-border-color: rgba(255,255,255,0.10);
+}
+
+/* Pills keep their existing colors; no change needed */
+/* Dark mode: make page title and other labels white */
+.shopping-dark .label {
+  -fx-text-fill: #e5e7eb;
+}
+
+/* Dark mode: search field text + placeholder both white */
+.shopping-dark .text-field {
+  -fx-text-fill: #e5e7eb;
+  -fx-prompt-text-fill: #e5e7eb;   /* "Search items..." */
 }
