@@ -5,6 +5,12 @@ import com.example.demo1.UserSession;
 import com.google.cloud.firestore.CollectionReference;
 import com.google.cloud.firestore.Firestore;
 import com.google.cloud.firestore.QueryDocumentSnapshot;
+import Recipe.RecipeAPIService;
+import com.google.firebase.cloud.FirestoreClient;
+import com.google.cloud.firestore.DocumentSnapshot;
+import java.util.Map;
+import java.util.HashMap;
+
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -16,6 +22,7 @@ import javafx.scene.control.*;
 import javafx.scene.layout.*;
 import javafx.stage.Stage;
 
+import javafx.scene.image.ImageView;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -345,6 +352,15 @@ public class RecipeTabController extends BaseController{
         aiTip.getStyleClass().add("ai-tip");
 
         card.getChildren().addAll(header, available, missing, buttons, aiTip);
+        card.setOnMouseClicked(e -> {
+            List<Map<String, String>> apiResults = RecipeAPIService.getRecipesFromIngredients(recipe.available);
+            if (!apiResults.isEmpty()) {
+                showRecipeListPopup(apiResults); // ✅ Pass the whole list, not just one recipe
+            } else {
+                showError("No recipes found for these ingredients.");
+            }
+        });
+
         return card;
     }
 
@@ -357,9 +373,9 @@ public class RecipeTabController extends BaseController{
                     .collection("recipes")
                     .document(recipe.id)
                     .delete()
-                    .get(); // ✅ Wait for deletion to complete before refreshing
+                    .get(); // Wait for deletion to complete before refreshing
 
-            // ✅ Refresh recipes with updated pantry data
+            // Refresh recipes with updated pantry data
             List<String> pantryItems = getPantryItemNames();
             loadRecipesFromFirebase(pantryItems);
 
@@ -404,7 +420,7 @@ public class RecipeTabController extends BaseController{
         });
 
         dialog.showAndWait().ifPresent(updated -> {
-            // ✅ Recalculate match % immediately
+            // Recalculate match % immediately
             List<String> pantryItems = getPantryItemNames();
             int newMatch = computeMatchPercentage(
                     updated.available,
@@ -570,6 +586,120 @@ public class RecipeTabController extends BaseController{
         a.setHeaderText(null);
         a.setContentText(msg);
         a.showAndWait();
+    }
+
+    /**
+     * Fetches a real recipe from Spoonacular that matches Firebase ingredients.
+     */
+    private void fetchAndOpenRealRecipe(Recipe recipe) {
+        try {
+            Firestore db = FirebaseConfiguration.getDatabase();
+            // Get this recipe's Firestore document
+            DocumentSnapshot snapshot = db.collection("users")
+                    .document(currentUserId)
+                    .collection("recipes")
+                    .document(recipe.id)
+                    .get()
+                    .get();
+
+            List<String> ingredients = new ArrayList<>();
+
+            // Pull from Firebase fields (available + missing)
+            if (snapshot.exists()) {
+                String available = snapshot.getString("available");
+                String missing = snapshot.getString("missing");
+
+                if (available != null) ingredients.addAll(Arrays.asList(available.split(",")));
+                if (missing != null) ingredients.addAll(Arrays.asList(missing.split(",")));
+            }
+
+            if (ingredients.isEmpty()) {
+                showError("No ingredients found for this recipe.");
+                return;
+            }
+
+            // Call Spoonacular API
+            String ingredientString = String.join(",", ingredients);
+            List<Map<String, String>> results = RecipeAPIService.getRecipesFromIngredients(ingredientString);
+
+            if (results.isEmpty()) {
+                showError("No matching online recipes found.");
+                return;
+            }
+
+            // Take the top match and open its real recipe page
+            Map<String, String> bestMatch = results.get(0);
+            String realUrl = RecipeAPIService.getFullRecipeUrl(bestMatch.get("id"));
+            if (realUrl != null && !realUrl.isBlank()) {
+                System.out.println("🌐 Opening real recipe: " + realUrl);
+                java.awt.Desktop.getDesktop().browse(new java.net.URI(realUrl));
+            } else {
+                showError("Could not retrieve recipe link.");
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            showError("Error fetching online recipe: " + e.getMessage());
+        }
+    }
+    private void showRecipeListPopup(List<Map<String, String>> recipeList) {
+        Dialog<Void> dialog = new Dialog<>();
+        dialog.setTitle("Matching Recipes");
+        dialog.getDialogPane().getButtonTypes().add(ButtonType.CLOSE);
+
+        VBox container = new VBox(15);
+        container.setPadding(new Insets(10));
+
+        for (Map<String, String> recipe : recipeList) {
+            VBox card = new VBox(8);
+            card.setPadding(new Insets(10));
+            card.setStyle("-fx-border-color: #ccc; -fx-background-color: #fafafa; -fx-border-radius: 6; -fx-background-radius: 6;");
+
+            Label title = new Label(recipe.get("title"));
+            title.setStyle("-fx-font-size: 16px; -fx-font-weight: bold;");
+
+            ImageView imageView = new ImageView(recipe.get("image"));
+            imageView.setFitWidth(250);
+            imageView.setPreserveRatio(true);
+
+            // Load full recipe info on click
+            card.setOnMouseClicked(e -> {
+                Map<String, String> details = RecipeAPIService.getRecipeDetails(recipe.get("id"));
+                showRecipeDetailPopup(details);
+            });
+
+            card.getChildren().addAll(imageView, title);
+            container.getChildren().add(card);
+        }
+
+        ScrollPane scrollPane = new ScrollPane(container);
+        scrollPane.setFitToWidth(true);
+
+        dialog.getDialogPane().setContent(scrollPane);
+        dialog.showAndWait();
+    }
+    private void showRecipeDetailPopup(Map<String, String> recipeDetails) {
+        Dialog<Void> dialog = new Dialog<>();
+        dialog.setTitle(recipeDetails.get("title"));
+        dialog.getDialogPane().getButtonTypes().add(ButtonType.CLOSE);
+
+        ImageView imageView = new ImageView(recipeDetails.get("image"));
+        imageView.setFitWidth(350);
+        imageView.setPreserveRatio(true);
+
+        Label title = new Label(recipeDetails.get("title"));
+        title.setStyle("-fx-font-size: 18px; -fx-font-weight: bold;");
+
+        TextArea instructions = new TextArea(recipeDetails.get("instructions"));
+        instructions.setWrapText(true);
+        instructions.setEditable(false);
+        instructions.setPrefHeight(300);
+
+        VBox content = new VBox(10, imageView, title, instructions);
+        content.setPadding(new Insets(10));
+
+        dialog.getDialogPane().setContent(content);
+        dialog.showAndWait();
     }
 
     /** Inner recipe record */

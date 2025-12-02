@@ -8,43 +8,28 @@
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Text?>
 
-<AnchorPane prefHeight="500" prefWidth="800" styleClass="root-pane" stylesheets="@../CSSFiles/style.css" xmlns="http://javafx.com/javafx/24.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="Controllers.LoginController">
+<AnchorPane prefHeight="600" prefWidth="900" styleClass="root-pane" stylesheets="@../CSSFiles/style.css" xmlns="http://javafx.com/javafx/24.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="Controllers.LoginController">
 
    <children>
-      <!-- Centered Card -->
-      <AnchorPane layoutX="225.0" prefHeight="500.0" prefWidth="350" styleClass="login-card">
-         <children>
-            <VBox alignment="CENTER" layoutX="65.0" layoutY="14.0" spacing="10">
+      <!-- Login Card -->
+      <VBox fx:id="loginCard" alignment="CENTER" layoutY="-3.0" prefHeight="616.0" prefWidth="900.0" spacing="12" styleClass="login-card" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="-3.0"> <!-- Moves it slightly higher -->
 
-               <!-- Title -->
-               <Text styleClass="form-title" text="Login" />
+         <Text styleClass="form-title" text="Login" />
 
-               <!-- Email -->
-               <Label styleClass="form-label" text="Email" />
-               <TextField fx:id="usernameTextField" promptText="Enter Email" styleClass="input-field" />
+         <!-- Email -->
+         <Label styleClass="form-label" text="Email" />
+         <TextField fx:id="usernameTextField" maxWidth="220" promptText="Enter Email" styleClass="input-field" />
 
-               <!-- Password -->
-               <Label styleClass="form-label" text="Password" />
-               <PasswordField fx:id="passwordTextField" promptText="Enter Password" styleClass="input-field" />
+         <!-- Password -->
+         <Label styleClass="form-label" text="Password" />
+         <PasswordField fx:id="passwordTextField" maxWidth="220" promptText="Enter Password" styleClass="input-field" />
 
-               <!-- Log In -->
-               <Button fx:id="loginButton" onAction="#loginButtonOnAction" styleClass="login-button-login" text="Log In" />
+         <!-- Buttons -->
+         <Button fx:id="loginButton" maxWidth="180" onAction="#loginButtonOnAction" styleClass="login-button-login" text="Log In" />
 
-               <!-- Create Account -->
-               <Button fx:id="signUpButton" onAction="#signUpButtonOnAction" prefWidth="126.0" styleClass="signup-button-login" text="Create Account" />
+         <Button fx:id="googleLoginButton" maxWidth="180" onAction="#googleLoginButtonOnAction" styleClass="social-button-google" text="Log in with Google" />
 
-               <!-- Social Logins -->
-               <Button fx:id="googleLoginButton" onAction="#googleLoginButtonOnAction" styleClass="social-button-google" text="Log in with Google" />
-
-
-               <!-- Help and Cancel Buttons -->
-               <Button fx:id="HelpButton" onAction="#HelpButtonOnAction" styleClass="help-button-login" text="Help" />
-
-               <Button fx:id="LCancelButton" onAction="#LCancelButtonOnAction" styleClass="cancel-button-login" text="Cancel" />
-
-
-            </VBox>
-         </children>
-      </AnchorPane>
+         <Button fx:id="LCancelButton" maxWidth="180" onAction="#LCancelButtonOnAction" styleClass="signup-button-login" text="Go Back" />
+      </VBox>
    </children>
 </AnchorPane>
