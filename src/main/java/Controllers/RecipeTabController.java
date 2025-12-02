@@ -1,6 +1,6 @@
 package Controllers;
 
-import com.example.demo1.FirebaseConfiguration;
+import Firebase.FirebaseConfiguration;
 import com.example.demo1.UserSession;
 import com.google.api.core.ApiFuture;
 import com.google.cloud.firestore.CollectionReference;
@@ -8,6 +8,7 @@ import com.google.cloud.firestore.Firestore;
 import com.google.cloud.firestore.QueryDocumentSnapshot;
 import com.google.cloud.firestore.QuerySnapshot;
 import javafx.application.Platform;
+import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.geometry.Insets;
@@ -146,20 +147,8 @@ public class RecipeTabController extends BaseController{
 
     // Navigate back to pantry *
     @FXML
-    private void handleBackToPantry() {
-        try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/example/demo1/PantryDashboard.fxml"));
-            Parent root = loader.load();
-            PantryController controller = loader.getController();
-            controller.setCurrentUserId(currentUserId);
-            Stage stage = (Stage) backButton.getScene().getWindow();
-            stage.setScene(new Scene(root));
-            stage.setTitle("Pantry Dashboard");
-            stage.show();
-        } catch (IOException e) {
-            e.printStackTrace();
-            showError("Failed to navigate to Pantry Dashboard");
-        }
+    public void handleBackToPantry(ActionEvent event) throws IOException{
+        switchScene(event, "PantryDashboard");
     }
 
     @FXML

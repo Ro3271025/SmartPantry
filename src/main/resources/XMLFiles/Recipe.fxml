@@ -5,7 +5,7 @@
 <?import javafx.scene.layout.*?>
 
 <TabPane fx:id="tabs"
-         stylesheets="@Recipe.css"
+         stylesheets="@../CSSFiles/Recipe.css"
          xmlns="http://javafx.com/javafx/24.0.1"
          xmlns:fx="http://javafx.com/fxml/1"
          fx:controller="Controllers.RecipeTabController">
