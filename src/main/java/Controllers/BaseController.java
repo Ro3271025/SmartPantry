@@ -40,22 +40,26 @@ public class BaseController {
         primaryStage.setScene(newScene);
         primaryStage.show();
     }
-    protected void openPopup(String fxmlPath, String title) {
+    public void openPopup(String fxmlPath, String title) {
         try {
-            FXMLLoader loader = new FXMLLoader(MainApplication.class.getResource(fxmlPath));
-            Parent popupContent = loader.load();
+            URL fxmlUrl = getClass().getResource(fxmlPath);
+            if (fxmlUrl == null) {
+                System.err.println("❌ FXML not found: " + fxmlPath);
+                return;
+            }
+
+            FXMLLoader loader = new FXMLLoader(fxmlUrl);
+            Parent root = loader.load();
 
             Stage popupStage = new Stage();
             popupStage.setTitle(title);
-            popupStage.setScene(new Scene(popupContent));
-            popupStage.initModality(Modality.APPLICATION_MODAL);
-            popupStage.setResizable(false);
-            popupStage.showAndWait();
-
+            popupStage.setScene(new Scene(root));
+            popupStage.show();
         } catch (Exception e) {
             e.printStackTrace();
             System.err.println("Failed to open popup: " + e.getMessage());
         }
     }
+
 
 }

@@ -10,6 +10,7 @@ import com.example.demo1.UserSession;
 import com.google.cloud.Timestamp;
 import com.google.cloud.firestore.*;
 import javafx.application.Platform;
+import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.geometry.Insets;
@@ -155,25 +156,10 @@ public class RecipeTabController extends BaseController {
     }
 
     // NAVIGATION
-
     @FXML
-    private void handleBackToPantry() {
-        try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/example/demo1/PantryDashboard.fxml"));
-            Parent root = loader.load();
-            PantryController controller = loader.getController();
-            controller.setCurrentUserId(currentUserId);
-
-            Stage stage = (Stage) backButton.getScene().getWindow();
-            stage.setScene(new Scene(root));
-            stage.setTitle("Pantry Dashboard");
-            stage.show();
-        } catch (IOException e) {
-            showError("Failed to navigate to Pantry Dashboard");
-        }
-
+    public void handleBackToPantry(ActionEvent event) throws IOException {
+        switchScene(event, "PantryDashboard");
     }
-
     // AI GENERATION
 
     @FXML
@@ -238,7 +224,7 @@ public class RecipeTabController extends BaseController {
     }
 
     @FXML private void handleAddRecipe() {
-        openPopup("/com/example/demo1/AddRecipe.fxml", "Add Recipe");
+        openPopup("../XMLFiles/AddRecipe.fxml", "Add Recipe");
     }
 
     // FILTERS + SEARCH
