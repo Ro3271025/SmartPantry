@@ -143,17 +143,12 @@ public class RecipeTabController extends BaseController {
         CompletableFuture
                 .supplyAsync(ai::isModelAvailable)
                 .whenComplete((ok, err) -> Platform.runLater(() -> {
-                    if (Boolean.TRUE.equals(ok)) {
-                        generateButton.setDisable(false);
-                        vBox.getChildren().clear();
-                        loadAllSavedToDiscover();
-                    } else {
-                        vBox.getChildren().setAll(new Label(
-                                "Local model not found. Start Ollama and pull phi3:mini."
-                        ));
-                    }
+                    generateButton.setDisable(!Boolean.TRUE.equals(ok));
+                    vBox.getChildren().clear();
+                    loadAllSavedToDiscover();  // always load saved recipes
                 }));
     }
+
 
     // NAVIGATION
     @FXML
@@ -919,10 +914,18 @@ public class RecipeTabController extends BaseController {
     private UnifiedRecipe fromDoc(DocumentSnapshot d) {
         UnifiedRecipe r = new UnifiedRecipe();
 
-        r.title = Optional.ofNullable(d.getString("title")).orElse("Untitled Recipe");
-        r.ingredients = castList(d.get("ingredients"));
+        // Handle both old and new schema fields
+        r.title = Optional.ofNullable(d.getString("title"))
+                .orElse(Optional.ofNullable(d.getString("name"))
+                        .orElse("Untitled Recipe"));
+
+        Object ingObj = d.contains("ingredients") ? d.get("ingredients") : d.get("available");
+        r.ingredients = castList(ingObj);
+
+        Object missObj = d.contains("missingIngredients") ? d.get("missingIngredients") : d.get("missing");
+        r.missingIngredients = castList(missObj);
+
         r.steps = castList(d.get("steps"));
-        r.missingIngredients = castList(d.get("missingIngredients"));
 
         r.estimatedTime = Optional.ofNullable(d.getString("estimatedTime")).orElse("");
         Object c = d.get("calories");
@@ -930,10 +933,11 @@ public class RecipeTabController extends BaseController {
 
         r.match = Optional.ofNullable(d.getString("match")).orElse("—");
         r.favorite = Boolean.TRUE.equals(d.getBoolean("favorite"));
-        r.source = Source.AI; // saved recipes are AI or added manually
+        r.source = Source.AI;
 
         return r;
     }
+
 
     @SuppressWarnings("unchecked")
     private List<String> castList(Object v) {
