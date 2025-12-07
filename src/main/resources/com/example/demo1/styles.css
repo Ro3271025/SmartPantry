@@ -112,7 +112,7 @@
   -fx-background-radius: 999;
   -fx-border-radius: 999;
   -fx-background-insets: 0;
-  -fx-padding: 8 16;            /* visual pill without changing your layout */
+  -fx-padding: 8 16;
   -fx-font-weight: 800;
   -fx-background-color: -sp-gray-100;
   -fx-border-color: -sp-gray-200;
@@ -158,13 +158,13 @@
 #table .column-header-background {
   -fx-background-color: -sp-green;
   -fx-background-insets: 0;
-  -fx-background-radius: 8 8 0 0;   /* rounded top corners */
-  -fx-padding: 6 8;                  /* compact, no weird height */
+  -fx-background-radius: 8 8 0 0;
+  -fx-padding: 6 8;
 }
 #table .column-header,
 #table .filler {
   -fx-background-color: transparent;
-  -fx-border-color: transparent;     /* remove gray lines that “mess up” the bar */
+  -fx-border-color: transparent;
 }
 #table .column-header .label {
   -fx-text-fill: -sp-white;
@@ -181,7 +181,7 @@
 }
 /* Make the List pill text bold to match Recommended */
 #listToggle {
-  -fx-font-weight: 800;   /* same weight used elsewhere */
+  -fx-font-weight: 800;
 }
 
 #listToggle:hover,
@@ -192,38 +192,33 @@
 }
 /************* DARK MODE *************/
 
-/* Page background + default text */
 .shopping-dark {
   -fx-background-color: #0f172a;
   -fx-base:              #0f172a;
   -fx-text-fill:         #e5e7eb;
 }
 
-/* --- TableView: make body match page background exactly --- */
 .shopping-dark .table-view,
 .shopping-dark .table-view .virtual-flow,
 .shopping-dark .table-view .virtual-flow .clipped-container,
 .shopping-dark .table-view .virtual-flow .sheet,
 .shopping-dark .table-row-cell,
 .shopping-dark .table-cell {
-  -fx-background-color: #0f172a;          /* same as page */
+  -fx-background-color: #0f172a;
   -fx-background-insets: 0;
   -fx-background-radius: 0;
 }
 
-/* Cell text */
 .shopping-dark .table-cell {
   -fx-text-fill: #e5e7eb;
 }
 
-/* Optional: very subtle grid lines so rows don’t “disappear” */
 .shopping-dark .table-row-cell,
 .shopping-dark .table-cell {
   -fx-border-color: rgba(255,255,255,0.06);
   -fx-border-width: 0 0 1 0;
 }
 
-/* Row hover & selection (slightly lighter, still dark) */
 .shopping-dark .table-row-cell:hover {
   -fx-background-color: #111827;
 }
@@ -233,13 +228,11 @@
   -fx-text-fill: #f9fafb;
 }
 
-/* Header: */
 .shopping-dark .column-header,
 .shopping-dark .column-header .label {
   -fx-text-fill: #e5e7eb;
 }
 
-/* Controls that sit on the page (search field, combo) */
 .shopping-dark .text-field,
 .shopping-dark .combo-box-base,
 .shopping-dark .button {
@@ -248,14 +241,11 @@
   -fx-border-color: rgba(255,255,255,0.10);
 }
 
-/* Pills keep their existing colors; no change needed */
-/* Dark mode: make page title and other labels white */
 .shopping-dark .label {
   -fx-text-fill: #e5e7eb;
 }
 
-/* Dark mode: search field text + placeholder both white */
 .shopping-dark .text-field {
   -fx-text-fill: #e5e7eb;
-  -fx-prompt-text-fill: #e5e7eb;   /* "Search items..." */
+  -fx-prompt-text-fill: #e5e7eb;
 }

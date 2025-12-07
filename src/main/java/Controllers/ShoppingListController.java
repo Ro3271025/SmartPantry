@@ -204,11 +204,15 @@ public class ShoppingListController extends BaseController {
         table.getStyleClass().add(cls);
     }
     /** Show/hide columns depending on the active pill. */
+
+    /** Show/hide columns depending on the active pill. */
     private void applyModeColumns(Toggle selected) {
-        // Recommended = expiringToggle
-        boolean showRecommendedCols = (selected == expiringToggle);
-        expirationCol.setVisible(showRecommendedCols);
-        lowStockCol.setVisible(showRecommendedCols);
+        boolean hideRecommendedCols = (selected == expiringToggle);
+
+        boolean showExpirationAndLowStock = (selected == lowStockToggle);
+
+        expirationCol.setVisible(showExpirationAndLowStock);
+        lowStockCol.setVisible(showExpirationAndLowStock);
     }
 
     @FXML
@@ -508,29 +512,29 @@ public class ShoppingListController extends BaseController {
         }
 
         // ----- Firestore deletion (async) -----
-        String uid = currentUserDocId(); // same helper your fetchers use
+        String uid = currentUserDocId();
         if (uid == null || uid.isBlank()) return;
 
         java.util.concurrent.CompletableFuture.runAsync(() -> {
             try {
                 Firestore db = FirebaseConfiguration.getDatabase();
+                var shoppingColl = db.collection("users").document(uid).collection("shoppingList");
+                var pantryColl = db.collection("users").document(uid).collection("pantryItems");
 
-                if (onListTab) {
-                    var coll = db.collection("users").document(uid).collection("shoppingList");
+                if (onListTab || onRecommendedTab) { // Combine or just use onRecommendedTab delete logic
+
+                    // If the user is deleting from EITHER the List Tab OR the Recommended Tab,
+                    // we will now target the 'shoppingList' collection.
+
+                    var targetColl = shoppingColl; // Target the shoppingList collection
+
                     for (PantryItem p : toRemove) {
-                        try { deleteFromShoppingList(coll, p); }
+                        try {
+                            // Use the delete helper designed for the shoppingList collection
+                            deleteFromShoppingList(targetColl, p);
+                        }
                         catch (Exception ex) {
                             System.err.println("⚠ shoppingList delete failed for " + p.getName() + ": " + ex.getMessage());
-                        }
-                    }
-                }
-
-                if (onRecommendedTab) {
-                    var coll = db.collection("users").document(uid).collection("pantryItems");
-                    for (PantryItem p : toRemove) {
-                        try { deleteFromPantryItems(coll, p); }
-                        catch (Exception ex) {
-                            System.err.println("⚠ pantryItems delete failed for " + p.getName() + ": " + ex.getMessage());
                         }
                     }
                 }
@@ -796,50 +800,30 @@ public class ShoppingListController extends BaseController {
             }
         }).start();
     }
-    private void deleteFromShoppingList(CollectionReference coll, PantryItem p) throws Exception {
-        Query q = coll.whereEqualTo("item", p.getName())
-                .whereEqualTo("quantity", p.getQty());
+    private void deleteFromShoppingList(CollectionReference shoppingColl, PantryItem p) throws Exception {
+        String docId = p.getShoppingDocId();
 
-        if (p.getUnit() != null && !p.getUnit().isBlank())
-            q = q.whereEqualTo("unit", p.getUnit());
-        if (p.getLocation() != null && !p.getLocation().isBlank())
-            q = q.whereEqualTo("location", p.getLocation());
-
-        var snap = q.get().get();
-        for (DocumentSnapshot d : snap.getDocuments()) {
-            d.getReference().delete().get();
+        // Check if the item has a known Firebase document ID
+        if (docId != null && !docId.isEmpty()) {
+            // Use the document ID for direct deletion
+            shoppingColl.document(docId).delete().get();
+            System.out.println("❌ Successfully deleted from shoppingList by ID: " + p.getName() + " (" + docId + ")");
+        } else {
+            // This handles items added locally but never synced/fetched from Firebase.
+            System.out.println("ℹ️ Item " + p.getName() + " (List) skipped Firebase delete: No Document ID found.");
         }
     }
 
-    private void deleteFromPantryItems(CollectionReference coll, PantryItem p) throws Exception {
-        // Start with stable fields to get a small candidate set
-        Query q = coll.whereEqualTo("name", p.getName());
-        if (p.getUnit() != null && !p.getUnit().isBlank())
-            q = q.whereEqualTo("unit", p.getUnit());
-        if (p.getLocation() != null && !p.getLocation().isBlank())
-            q = q.whereEqualTo("location", p.getLocation());
+    private void deleteFromPantryItems(CollectionReference pantryColl, PantryItem p) throws Exception {
+        String docId = p.getShoppingDocId();
 
-        var snap = q.get().get();
-        for (DocumentSnapshot d : snap.getDocuments()) {
-            // Try to match quantity in any common numeric field
-            Integer dq = null;
-            Long L = d.getLong("qty");
-            if (L == null) L = d.getLong("quantity");
-            if (L == null) L = d.getLong("quantityNumeric");
-            if (L != null) dq = L.intValue();
-
-            // Try to match expiration regardless of schema
-            LocalDate dexp = toLocalDate(d.get("expiryDate"));
-            if (dexp == null) dexp = toLocalDate(d.get("expiration"));
-            if (dexp == null) dexp = toLocalDate(d.get("expirationDate"));
-
-            boolean qtyOk = (dq == null) || (dq == p.getQty());
-            boolean expOk = (p.getExpiration() == null && dexp == null)
-                    || (p.getExpiration() != null && p.getExpiration().equals(dexp));
-
-            if (qtyOk && expOk) {
-                d.getReference().delete().get();
-            }
+        if (docId != null && !docId.isEmpty()) {
+            // Use the document ID for direct deletion (it holds the pantryItems ID for Recommended items)
+            pantryColl.document(docId).delete().get();
+            System.out.println("❌ Successfully deleted from pantryItems by ID: " + p.getName() + " (" + docId + ")");
+        } else {
+            // This handles items like 'pinned recommended' that may not have a Firebase ID.
+            System.out.println("ℹ️ Item " + p.getName() + " (Recommended) skipped Firebase delete: No Document ID found.");
         }
     }
     // ===== DTO used for optional JSON seed =====
