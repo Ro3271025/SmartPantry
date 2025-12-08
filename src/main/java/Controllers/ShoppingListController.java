@@ -84,16 +84,11 @@ public class ShoppingListController extends BaseController {
     private final ObservableList<PantryItem> shoppingList = FXCollections.observableArrayList(); // local +Add
     private final ObservableList<PantryItem> expiringSoonFirebase = FXCollections.observableArrayList(); // Firestore
     private final ObservableList<PantryItem> lowStockFirebase = FXCollections.observableArrayList(); // Firestore
-    // Where we persist the local "List" view
     private final Path LOCAL_DIR  = Paths.get(System.getProperty("user.home"), ".smartpantry");
     private final Path LOCAL_JSON = LOCAL_DIR.resolve("shopping-list.json");
-    // Keep user's ad-hoc “Recommended” items visible across tab switches
     private final ObservableList<PantryItem> pinnedRecommended = FXCollections.observableArrayList();
-    // Fetched-from-Firebase (expiringSoonFirebase) + pinnedRecommended merged for display
     private final ObservableList<PantryItem> recommendedCombined = FXCollections.observableArrayList();
-    // Persist the user's ad-hoc Recommended items locally (same folder as shopping-list.json)
     private final Path RECO_JSON = LOCAL_DIR.resolve("recommended-pinned.json");
-    // Dark mode state
     private final BooleanProperty darkMode = new SimpleBooleanProperty(true); // start dark; set false if you prefer
     private final Preferences prefs = Preferences.userNodeForPackage(ShoppingListController.class);
     private static final String PREF_DARK = "shopping.dark";
@@ -194,11 +189,9 @@ public class ShoppingListController extends BaseController {
     }
 
     private void refreshRecommended() {
-        // existing method that fills the Recommended list
-        fetchExpiringFromFirebase(true);   // or fetchRecommendedFromFirebase(true) if you renamed it
+        fetchExpiringFromFirebase(true);
     }
 
-    // header color helper
     private void applyHeaderClass(String cls) {
         table.getStyleClass().removeAll("thead-green", "thead-warn", "thead-danger");
         table.getStyleClass().add(cls);
@@ -231,7 +224,6 @@ public class ShoppingListController extends BaseController {
                 .document(currentUserDocId())
                 .collection("pantryItems");
     }
-    // Decides if an item belongs in the “Expiring soon” pill
     private boolean isExpiringSoon(LocalDate d) {
         if (d == null) return false;
         LocalDate now = LocalDate.now();
@@ -246,7 +238,6 @@ public class ShoppingListController extends BaseController {
             data.put("location", it.getLocation());
             data.put("lowStock", it.isLowStock());
             data.put("expiration", it.getExpiration() == null ? null : it.getExpiration().toString());
-            // simplest: let Firestore assign an ID
             pantryColl().add(data);
         } catch (Exception ex) {
             ex.printStackTrace();
@@ -255,7 +246,7 @@ public class ShoppingListController extends BaseController {
 
     @FXML
     public void initialize() {
-        // ==== Table columns (unchanged) ====
+        // ==== Table columns ====
         selectCol.setCellValueFactory(cd -> cd.getValue().selectedProperty());
         selectCol.setCellFactory(tc -> new CheckBoxTableCell<>());
         nameCol.setCellValueFactory(new PropertyValueFactory<>("name"));
@@ -269,7 +260,6 @@ public class ShoppingListController extends BaseController {
         table.setItems(shoppingList);
 
         loadLocalList();
-        // Load the user's pinned items for Recommended and merge them
         loadPinnedRecommended();
         recomputeRecommended();
 
@@ -277,7 +267,6 @@ public class ShoppingListController extends BaseController {
         if (shoppingList.isEmpty()) {
             shoppingList.addAll(
                     new PantryItem("Milk", 1, "gallon", "Fridge",  LocalDate.now().plusDays(3),  false)
-                    // …(optional more demo rows)
             );
             // Save initial demo once so it persists
             saveLocalList();
@@ -286,7 +275,6 @@ public class ShoppingListController extends BaseController {
 // Auto-save whenever the local list changes (add/edit/delete/checkbox)
         shoppingList.addListener((ListChangeListener<PantryItem>) change -> saveLocalList());
 
-        // Start on local "List"
         table.setItems(shoppingList);
 
         // Filters
@@ -301,7 +289,6 @@ public class ShoppingListController extends BaseController {
         // allow multi-row selection
         table.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
 
-// Delete is enabled if EITHER any checkbox is ticked OR any row is selected
         var anyCheckboxChecked = Bindings.createBooleanBinding(
                 () -> table.getItems() != null && table.getItems().stream().anyMatch(PantryItem::isSelected),
                 table.itemsProperty()
@@ -333,7 +320,6 @@ public class ShoppingListController extends BaseController {
             );
         }
 
-        // Pills act like radio buttons (single click)
         ToggleGroup pills = new ToggleGroup();
         listToggle.setToggleGroup(pills);
         expiringToggle.setToggleGroup(pills);
@@ -379,8 +365,7 @@ public class ShoppingListController extends BaseController {
             stage.setMinHeight(400);
             stage.centerOnScreen();
         });
-        // ----- Dark-mode toggle button (no new FXML ids) -----
-        // ----- Theme toggle (dark class only; light = default) -----
+        // ----- Theme toggle -----
         Platform.runLater(() -> {
             if (table.getScene() == null) return;
 
@@ -389,13 +374,12 @@ public class ShoppingListController extends BaseController {
             Scene  scene = table.getScene();
             Parent root  = scene.getRoot();
 
-            // Tiny round button near Export (or pinned to top-right if needed)
+            // Tiny round button near Export
             Button themeBtn = new Button();
             themeBtn.getStyleClass().add("theme-toggle");
             themeBtn.setFocusTraversable(false);
             themeBtn.setTooltip(new Tooltip("Toggle theme"));
 
-            // Try to place next to Export; else absolute top-right
             Button export = findExportButton(root);
             boolean placed = false;
             if (export != null && export.getParent() instanceof javafx.scene.layout.Pane p) {
@@ -419,7 +403,6 @@ public class ShoppingListController extends BaseController {
                 place.run();
             }
 
-            // Remember user choice (default = LIGHT / no class)
             var prefs = java.util.prefs.Preferences.userNodeForPackage(ShoppingListController.class);
             final String PREF_DARK = "shopping.dark";
             var darkMode = new javafx.beans.property.SimpleBooleanProperty(
@@ -466,7 +449,7 @@ public class ShoppingListController extends BaseController {
             saveLocalList();
 
             // 2) Also pin into Recommended so it stays visible there across tab switches
-            pinnedRecommended.add(item);   // <-- NEW
+            pinnedRecommended.add(item);
             // combined list will auto-refresh via the listener, but we can recompute explicitly:
             recomputeRecommended();
             savePinnedRecommended();
@@ -521,16 +504,12 @@ public class ShoppingListController extends BaseController {
                 var shoppingColl = db.collection("users").document(uid).collection("shoppingList");
                 var pantryColl = db.collection("users").document(uid).collection("pantryItems");
 
-                if (onListTab || onRecommendedTab) { // Combine or just use onRecommendedTab delete logic
+                if (onListTab || onRecommendedTab) {
 
-                    // If the user is deleting from EITHER the List Tab OR the Recommended Tab,
-                    // we will now target the 'shoppingList' collection.
-
-                    var targetColl = shoppingColl; // Target the shoppingList collection
+                    var targetColl = shoppingColl;
 
                     for (PantryItem p : toRemove) {
                         try {
-                            // Use the delete helper designed for the shoppingList collection
                             deleteFromShoppingList(targetColl, p);
                         }
                         catch (Exception ex) {
@@ -573,7 +552,6 @@ public class ShoppingListController extends BaseController {
         }
     }
 
-    // Keep these two wired to search / location UI
     @FXML
     public void handleSearch(ActionEvent e) {
         applyFilters();
@@ -584,7 +562,6 @@ public class ShoppingListController extends BaseController {
         applyFilters();
     }
 
-    // (Legacy toggle handlers not needed anymore; ToggleGroup handles switching)
     @FXML
     public void onToggleAll(ActionEvent e) { /* no-op */ }
 
@@ -636,7 +613,6 @@ public class ShoppingListController extends BaseController {
 
     private boolean loadedExpiring = false;
     private boolean loadedLow = false;
-    // Converts one Firestore document into UI model
     private PantryItem fromDoc(QueryDocumentSnapshot d) {
         String name = d.getString("name");
 
@@ -743,7 +719,7 @@ public class ShoppingListController extends BaseController {
                 Query qIso = coll.whereGreaterThanOrEqualTo("expiryDate", now.toString())
                         .whereLessThanOrEqualTo("expiryDate", in7.toString());
 
-                // B) Alternative names (keep these in case other docs use them)
+                // B) Alternative names
                 com.google.cloud.Timestamp tsStart = com.google.cloud.Timestamp.now();
                 com.google.cloud.Timestamp tsEnd   = com.google.cloud.Timestamp.of(
                         java.util.Date.from(in7.atStartOfDay(ZoneId.systemDefault()).toInstant()));
@@ -758,9 +734,7 @@ public class ShoppingListController extends BaseController {
                 try { items.addAll(runQueryToItems(qStr)); } catch (Exception ignore) {}
 
                 Platform.runLater(() -> {
-                    // replace the fetched list with fresh results
                     expiringSoonFirebase.setAll(items);
-                    // rebuild the combined "Recommended" view so pinned items persist
                     recomputeRecommended();
                 });
 
@@ -771,7 +745,7 @@ public class ShoppingListController extends BaseController {
     }
 
 
-    private static final int LOW_STOCK_THRESHOLD = 1; // tweak if desired
+    private static final int LOW_STOCK_THRESHOLD = 1;
 
     private void fetchLowStockFromFirebase(boolean forceRefresh) {
         if (loadedLow && !forceRefresh) return;
@@ -803,13 +777,10 @@ public class ShoppingListController extends BaseController {
     private void deleteFromShoppingList(CollectionReference shoppingColl, PantryItem p) throws Exception {
         String docId = p.getShoppingDocId();
 
-        // Check if the item has a known Firebase document ID
         if (docId != null && !docId.isEmpty()) {
-            // Use the document ID for direct deletion
             shoppingColl.document(docId).delete().get();
             System.out.println("❌ Successfully deleted from shoppingList by ID: " + p.getName() + " (" + docId + ")");
         } else {
-            // This handles items added locally but never synced/fetched from Firebase.
             System.out.println("ℹ️ Item " + p.getName() + " (List) skipped Firebase delete: No Document ID found.");
         }
     }
