@@ -1,4 +1,4 @@
-package com.example.demo1;
+package Pantry;
 
 import com.github.sarxos.webcam.Webcam;
 import com.google.zxing.*;

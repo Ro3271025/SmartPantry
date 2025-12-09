@@ -16,29 +16,16 @@ public class MainApplication extends Application {
 
     @Override
     public void start(Stage stage) throws IOException {
-        // Initialize theme manager
-        ThemeManager themeManager = ThemeManager.getInstance();
-
         FXMLLoader fxmlLoader = new FXMLLoader(MainApplication.class.getResource("mainScreen.fxml"));
         Scene scene = new Scene(fxmlLoader.load(), 1200, 700);
-
-        // Register the initial scene with ThemeManager
-        themeManager.registerScene(scene);
-
+        //scene.getStylesheets().add(getClass().getResource("style.css").toExternalForm());
         stage.setResizable(true);
         stage.setScene(scene);
         stage.setTitle("SmartPantry");
-
-        // Cleanup when window closes
-        stage.setOnCloseRequest(e -> {
-            themeManager.unregisterScene(scene);
-        });
-
         stage.show();
     }
-
     public static void main(String[] args) {
-        fStore = FirebaseConfiguration.initialize(); // Firebase is initialized HERE
+        fStore = FirebaseConfiguration.initialize(); // ← Firebase is initialized HERE
         launch();
     }
 }

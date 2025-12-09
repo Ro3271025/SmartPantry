@@ -1,4 +1,4 @@
-package com.example.demo1;
+package Pantry;
 
 /**
  * Enumeration of possible status states for pantry items.

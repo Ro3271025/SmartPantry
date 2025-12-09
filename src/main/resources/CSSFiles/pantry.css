@@ -16,6 +16,11 @@
     -fx-border-color: #e5e7eb;
     -fx-border-radius: 10;
 }
+.page-title {
+    -fx-font-size: 25px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #030213;
+}
 
 /* Search field: full-width pill look */
 .search-field {

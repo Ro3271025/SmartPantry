@@ -6,7 +6,7 @@
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.text.Text?>
 
-<AnchorPane prefHeight="500.0" prefWidth="800.0" styleClass="root-pane" stylesheets="@style.css" xmlns="http://javafx.com/javafx/24.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="Controllers.SignUpController">
+<AnchorPane prefHeight="500.0" prefWidth="800.0" styleClass="root-pane" stylesheets="@../CSSFiles/style.css" xmlns="http://javafx.com/javafx/24.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="Controllers.SignUpController">
    <children>
       <!-- Centered Card -->
       <AnchorPane layoutX="225" layoutY="70" prefHeight="380" prefWidth="350" styleClass="login-card">

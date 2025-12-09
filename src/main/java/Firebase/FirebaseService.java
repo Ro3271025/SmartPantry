@@ -1,5 +1,8 @@
-package com.example.demo1;
+package Firebase;
 
+import com.example.demo1.MainApplication;
+import Pantry.PantryItem;
+import Recipe.RecipeItem;
 import com.google.api.core.ApiFuture;
 import com.google.cloud.firestore.*;
 import javafx.collections.FXCollections;

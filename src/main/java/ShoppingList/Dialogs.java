@@ -1,9 +1,8 @@
-package com.example.demo1;
+package ShoppingList;
 
-import Controllers.PantryItem;
+import Firebase.FirebaseConfiguration;
+import com.example.demo1.UserSession;
 import com.google.cloud.Timestamp;
-import com.google.cloud.firestore.CollectionReference;
-import com.google.cloud.firestore.Firestore;
 import javafx.geometry.Insets;
 import javafx.scene.control.*;
 import javafx.scene.layout.GridPane;

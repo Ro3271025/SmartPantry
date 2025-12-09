@@ -1,4 +1,4 @@
-package com.example.demo1;
+package Pantry;
 
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;

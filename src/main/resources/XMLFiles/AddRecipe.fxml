@@ -10,7 +10,7 @@
 <VBox xmlns:fx="http://javafx.com/fxml"
       fx:controller="Controllers.AddRecipeController"
       styleClass="add-recipe-root"
-      stylesheets="@Recipe.css"
+      stylesheets="@../CSSFiles/Recipe.css"
       spacing="12"
       alignment="CENTER">
 

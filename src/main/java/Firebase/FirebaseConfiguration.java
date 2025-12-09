@@ -1,12 +1,11 @@
-package com.example.demo1;
+package Firebase;
 
 import com.google.cloud.firestore.*;
 import com.google.firebase.FirebaseOptions;
 import com.google.auth.oauth2.GoogleCredentials;
 import com.google.firebase.FirebaseApp;
 import com.google.firebase.cloud.FirestoreClient;
-import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseToken;
+
 import java.io.InputStream;
 
 public class FirebaseConfiguration {
