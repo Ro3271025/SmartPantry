@@ -179,7 +179,6 @@
   -fx-background-radius: 999;
   -fx-border-radius: 999;
 }
-/* Make the List pill text bold to match Recommended */
 #listToggle {
   -fx-font-weight: 800;
 }
@@ -249,3 +248,58 @@
   -fx-text-fill: #e5e7eb;
   -fx-prompt-text-fill: #e5e7eb;
 }
+.table-row-cell:filled:selected .table-cell {
+    -fx-text-fill: -sp-text !important;
+}
+
+.shopping-dark .table-row-cell:hover {
+    -fx-background-color: #1f2937;
+    -fx-text-fill: #f9fafb;
+    -fx-cursor: hand;
+}
+
+.shopping-dark .table-row-cell:hover .table-cell {
+    -fx-text-fill: #f9fafb;
+}
+.shopping-dark .table-row-cell:filled:selected,
+.shopping-dark .table-row-cell:filled:selected .table-cell {
+  -fx-background-color: #1f2937;
+  -fx-text-fill: #f9fafb !important;
+}
+.table-row-cell:filled:hover {
+    -fx-background-color: #f1f8e9; /* A very light, subtle green */
+
+    -fx-text-fill: -sp-text;
+
+    -fx-cursor: hand;
+}
+
+.table-row-cell:filled:hover .table-cell {
+    -fx-text-fill: -sp-text;
+    -fx-background-color: transparent;
+}
+.table-row-cell:filled:selected .table-cell {
+    -fx-text-fill: -sp-text !important;
+    -fx-background-color: transparent;
+}
+
+.table-row-cell:filled:selected {
+    -fx-background-color: #ADD8E6;
+    -fx-background-insets: 0;
+    -fx-background-radius: 0;
+}
+.table-row-cell:filled:selected:hover {
+    -fx-background-color: #ADD8E6;
+}
+.table-row-cell:filled:hover:not(:selected) {
+    -fx-background-color: #f1f8e9;
+    -fx-text-fill: -sp-text;
+    -fx-cursor: hand;
+}
+
+.table-row-cell:filled:hover:not(:selected) .table-cell {
+    -fx-text-fill: -sp-text;
+    -fx-background-color: transparent;
+}
+
+

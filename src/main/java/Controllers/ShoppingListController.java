@@ -55,9 +55,9 @@ public class ShoppingListController extends BaseController {
     @FXML
     private ComboBox<String> locationFilter;
     @FXML
-    private TableView<PantryItem> table;
-    @FXML
     private TableColumn<PantryItem, Boolean> selectCol;
+    @FXML
+    private TableView<PantryItem> table;
     @FXML
     private TableColumn<PantryItem, String> nameCol;
     @FXML
@@ -256,6 +256,76 @@ public class ShoppingListController extends BaseController {
         expirationCol.setCellValueFactory(new PropertyValueFactory<>("expiration"));
         lowStockCol.setCellValueFactory(new PropertyValueFactory<>("lowStock"));
         lowStockCol.setCellFactory(tc -> new CheckBoxTableCell<>());
+        locationCol.setCellFactory(column -> new TableCell<PantryItem, String>() {
+
+
+            @Override
+            protected void updateItem(String item, boolean empty) {
+                super.updateItem(item, empty);
+
+                if (empty || item == null) {
+                    setText(null);
+                    setGraphic(null);
+                } else {
+                    String icon = switch (item) {
+                        case "Pantry" -> "🧺 ";
+                        case "Fridge" -> "🧊 ";
+                        case "Freezer" -> "🧊 ";
+                        default -> "";
+                    };
+                    setText(icon + item);
+                }
+            }
+        });
+
+        MenuItem editItem = new MenuItem("Edit Item");
+
+        editItem.setOnAction(event -> {
+            PantryItem selected = table.getSelectionModel().getSelectedItem();
+            if (selected != null) {
+                System.out.println("Editing: " + selected.getName());
+            } else {
+
+            }
+        });
+
+        ContextMenu rowMenu = new ContextMenu();
+        rowMenu.getItems().addAll(editItem);
+
+        table.setRowFactory(tv -> {
+            TableRow<PantryItem> row = new TableRow<>();
+
+            // Bind the context menu to the row. The menu only appears if the row is NOT empty.
+            row.contextMenuProperty().bind(
+                    Bindings.when(row.emptyProperty())
+                            .then((ContextMenu)null)
+                            .otherwise(rowMenu)
+            );
+
+            // Ensure right-click selects the row before showing the menu
+            row.setOnMouseClicked(event -> {
+                if (!row.isEmpty() && event.getButton() == javafx.scene.input.MouseButton.SECONDARY) {
+                    table.getSelectionModel().select(row.getIndex());
+                }
+            });
+
+            return row;
+        });
+
+        editItem.setOnAction(event -> {
+            PantryItem selected = table.getSelectionModel().getSelectedItem();
+            if (selected != null) {
+                // CALL THE NEW DIALOG
+                Dialogs.editItemDialog(selected).showAndWait().ifPresent(updatedItem -> {
+
+                    table.refresh();
+
+                    saveLocalList();
+
+                    savePinnedRecommended();
+                });
+            }
+        });
 // Bind the table to the local list by default
         table.setItems(shoppingList);
 
@@ -335,7 +405,7 @@ public class ShoppingListController extends BaseController {
                 table.setItems(shoppingList);
                 applyHeaderClass("thead-green");
             } else if (newT == expiringToggle) { // "Recommended"
-                fetchExpiringFromFirebase(false);   // don’t force if you don’t need to
+                fetchExpiringFromFirebase(false);
                 table.setItems(recommendedCombined);
                 applyHeaderClass("thead-warn");
             }
