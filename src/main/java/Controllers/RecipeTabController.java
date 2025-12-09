@@ -2,11 +2,9 @@ package Controllers;
 
 import com.example.demo1.FirebaseConfiguration;
 import com.example.demo1.UserSession;
-import com.google.api.core.ApiFuture;
 import com.google.cloud.firestore.CollectionReference;
 import com.google.cloud.firestore.Firestore;
 import com.google.cloud.firestore.QueryDocumentSnapshot;
-import com.google.cloud.firestore.QuerySnapshot;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -17,17 +15,13 @@ import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
 import javafx.stage.Stage;
-import javafx.stage.Modality;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Locale;
-import java.util.concurrent.ExecutionException;
-import java.util.stream.Collectors;
 
-public class RecipeTabController extends BaseController{
+public class RecipeTabController extends BaseController {
     @FXML private Button backButton;
     @FXML private TextField aiInputField;
     @FXML private Button generateButton;
@@ -44,8 +38,6 @@ public class RecipeTabController extends BaseController{
     @FXML private Button notReadyBtn;
     @FXML private Button aiRecommendedBtn;
 
-
-
     private String currentFilter = "all";
     private List<Recipe> allRecipes = new ArrayList<>();
     private String currentUserId;
@@ -59,12 +51,10 @@ public class RecipeTabController extends BaseController{
             showError("User session not found");
             return;
         }
-        // Load pantry items and recipes dynamically
         List<String> pantryItems = getPantryItemNames();
         loadRecipesFromFirebase(pantryItems);
     }
 
-    // Loads recipes stored in Firestore for this user
     private void loadRecipesFromFirebase(List<String> pantryItems) {
         Firestore db = FirebaseConfiguration.getDatabase();
         CollectionReference recipesRef = db.collection("users")
@@ -81,7 +71,6 @@ public class RecipeTabController extends BaseController{
                 String missing = doc.getString("missing");
                 String aiTip = doc.getString("aiTip");
 
-                // Combine all ingredients into one normalized list
                 String combined = ((available != null ? available : "") + "," + (missing != null ? missing : ""))
                         .replaceAll("\\s+", " ")
                         .toLowerCase()
@@ -94,7 +83,6 @@ public class RecipeTabController extends BaseController{
 
                 if (allIngredients.isEmpty()) continue;
 
-                // Recalculate what’s actually available/missing based on the pantry
                 List<String> actualAvailable = new ArrayList<>();
                 List<String> actualMissing = new ArrayList<>();
 
@@ -110,10 +98,8 @@ public class RecipeTabController extends BaseController{
                     else actualMissing.add(ing);
                 }
 
-                // Compute true match percentage
                 int matchPercent = (int) Math.round((double) actualAvailable.size() / allIngredients.size() * 100);
 
-                // Create recipe with updated fields
                 Recipe r = new Recipe(
                         name,
                         matchPercent + "% match",
@@ -125,9 +111,8 @@ public class RecipeTabController extends BaseController{
                 allRecipes.add(r);
             }
 
-            // Display recipes in the UI
             loadRecipes();
-            System.out.println(" Loaded " + allRecipes.size() + " recipes from Firebase (with live pantry matching)");
+            System.out.println("Loaded " + allRecipes.size() + " recipes from Firebase");
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -135,8 +120,6 @@ public class RecipeTabController extends BaseController{
         }
     }
 
-
-    // Reloads recipes after adding one
     @FXML
     private void handleAddRecipe() {
         openPopup("/com/example/demo1/AddRecipe.fxml", "Add Recipe");
@@ -144,7 +127,6 @@ public class RecipeTabController extends BaseController{
         loadRecipesFromFirebase(pantryItems);
     }
 
-    // Navigate back to pantry *
     @FXML
     private void handleBackToPantry() {
         try {
@@ -153,7 +135,16 @@ public class RecipeTabController extends BaseController{
             PantryController controller = loader.getController();
             controller.setCurrentUserId(currentUserId);
             Stage stage = (Stage) backButton.getScene().getWindow();
-            stage.setScene(new Scene(root));
+
+            // Unregister the current scene first
+            themeManager.unregisterScene(backButton.getScene());
+
+            Scene scene = new Scene(root);
+
+            // Register with ThemeManager (this applies the dark theme!)
+            themeManager.registerScene(scene);
+
+            stage.setScene(scene);
             stage.setTitle("Pantry Dashboard");
             stage.show();
         } catch (IOException e) {
@@ -198,11 +189,9 @@ public class RecipeTabController extends BaseController{
     }
 
     private void updateFilterButtons() {
-        // remove highlight
         List<Button> filters = List.of(allRecipesBtn, readyBtn, favoriteBtn, notReadyBtn, aiRecommendedBtn);
         filters.forEach(btn -> btn.getStyleClass().remove("filter-selected"));
 
-        // highlight active one
         switch (currentFilter) {
             case "ready" -> readyBtn.getStyleClass().add("filter-selected");
             case "favorites" -> favoriteBtn.getStyleClass().add("filter-selected");
@@ -212,7 +201,6 @@ public class RecipeTabController extends BaseController{
         }
     }
 
-    /** Apply filter logic */
     private void displayFilteredRecipes() {
         List<Recipe> filtered;
 
@@ -239,8 +227,6 @@ public class RecipeTabController extends BaseController{
         displayRecipes(filtered);
     }
 
-
-    /** Helper to safely parse match percentage text like "80% match" */
     private int parseMatch(String match) {
         try {
             return Integer.parseInt(match.replace("% match", "").trim());
@@ -249,7 +235,6 @@ public class RecipeTabController extends BaseController{
         }
     }
 
-    // Generate mock AI recipe suggestion
     @FXML
     private void handleGenerateRecipe() {
         String prompt = aiInputField.getText().trim();
@@ -261,13 +246,17 @@ public class RecipeTabController extends BaseController{
         aiInputField.clear();
     }
 
-    @FXML private void handleGenerateAgain() {
+    @FXML
+    private void handleGenerateAgain() {
         List<String> pantryItems = getPantryItemNames();
         loadRecipesFromFirebase(pantryItems);
     }
-    @FXML private void handleSeeMore() { showSuccess("Feature coming soon!"); }
 
-    /** 🍳 Create and display recipe cards */
+    @FXML
+    private void handleSeeMore() {
+        showSuccess("Feature coming soon!");
+    }
+
     private void loadRecipes() {
         vBox.getChildren().clear();
         for (int i = 0; i < allRecipes.size(); i += 2) {
@@ -282,7 +271,7 @@ public class RecipeTabController extends BaseController{
             vBox.getChildren().add(row);
         }
     }
-    /** Displays a provided list of recipes in the VBox */
+
     private void displayRecipes(List<Recipe> recipesToShow) {
         vBox.getChildren().clear();
 
@@ -301,7 +290,7 @@ public class RecipeTabController extends BaseController{
             vBox.getChildren().add(row);
         }
     }
-    // Build each card UI
+
     private VBox createRecipeCard(Recipe recipe) {
         VBox card = new VBox(12);
         card.getStyleClass().add("recipe-card");
@@ -327,14 +316,13 @@ public class RecipeTabController extends BaseController{
         deleteBtn.getStyleClass().add("delete-button");
         deleteBtn.setOnAction(e -> handleDeleteRecipe(recipe));
 
-        Button favButton = new Button(recipe.favorite ? "Favorite" : "Add to Favorites");
+        Button favButton = new Button(recipe.favorite ? "★ Favorite" : "☆ Add to Favorites");
         favButton.getStyleClass().add("favorite-button");
         favButton.setOnAction(e -> {
             recipe.favorite = !recipe.favorite;
-            favButton.setText(recipe.favorite ? "Favorite" : "Add to Favorites");
+            favButton.setText(recipe.favorite ? "★ Favorite" : "☆ Add to Favorites");
             updateRecipeInFirebase(recipe);
         });
-
 
         HBox buttons = new HBox(10, editBtn, deleteBtn, favButton);
         buttons.setAlignment(Pos.CENTER_LEFT);
@@ -346,7 +334,6 @@ public class RecipeTabController extends BaseController{
         return card;
     }
 
-    // Delete recipe from Firebase
     private void handleDeleteRecipe(Recipe recipe) {
         try {
             Firestore db = FirebaseConfiguration.getDatabase();
@@ -355,9 +342,8 @@ public class RecipeTabController extends BaseController{
                     .collection("recipes")
                     .document(recipe.id)
                     .delete()
-                    .get(); // ✅ Wait for deletion to complete before refreshing
+                    .get();
 
-            // ✅ Refresh recipes with updated pantry data
             List<String> pantryItems = getPantryItemNames();
             loadRecipesFromFirebase(pantryItems);
 
@@ -366,19 +352,18 @@ public class RecipeTabController extends BaseController{
             showError("Failed to delete recipe: " + e.getMessage());
         }
     }
+
     private void handleEditRecipe(Recipe recipe) {
         Dialog<Recipe> dialog = new Dialog<>();
         dialog.setTitle("Edit Recipe");
         dialog.getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
 
-        // Input fields
         TextField nameField = new TextField(recipe.name);
         TextField availableField = new TextField(recipe.available);
         TextField missingField = new TextField(recipe.missing);
         TextArea aiTipField = new TextArea(recipe.aiTip);
         aiTipField.setPrefRowCount(3);
 
-        // Layout
         GridPane grid = new GridPane();
         grid.setHgap(10);
         grid.setVgap(10);
@@ -402,7 +387,6 @@ public class RecipeTabController extends BaseController{
         });
 
         dialog.showAndWait().ifPresent(updated -> {
-            // ✅ Recalculate match % immediately
             List<String> pantryItems = getPantryItemNames();
             int newMatch = computeMatchPercentage(
                     updated.available,
@@ -411,23 +395,18 @@ public class RecipeTabController extends BaseController{
             );
             updated.match = newMatch + "% match";
 
-            // Update Firestore in background
             updateRecipeInFirebase(updated);
-
-            // Refresh only this card visually
             refreshRecipeCard(updated);
         });
     }
+
     private void refreshRecipeCard(Recipe updated) {
-        // Find the existing card in VBox and replace it
         for (int i = 0; i < vBox.getChildren().size(); i++) {
             if (vBox.getChildren().get(i) instanceof HBox row) {
                 for (int j = 0; j < row.getChildren().size(); j++) {
                     if (row.getChildren().get(j) instanceof VBox card) {
-                        // Find the card by matching the recipe name and ID
                         Label nameLabel = (Label) ((HBox) card.getChildren().get(0)).getChildren().get(0);
                         if (nameLabel.getText().equals(updated.name)) {
-                            // Rebuild and replace the card
                             VBox newCard = createRecipeCard(updated);
                             row.getChildren().set(j, newCard);
                             return;
@@ -451,9 +430,9 @@ public class RecipeTabController extends BaseController{
                                 "available", recipe.available,
                                 "missing", recipe.missing,
                                 "aiTip", recipe.aiTip
-                        ).get(); // wait for completion
+                        ).get();
 
-                System.out.println("✅ Updated recipe in Firebase: " + recipe.name);
+                System.out.println("Updated recipe in Firebase: " + recipe.name);
                 Platform.runLater(() -> showSuccess("Recipe updated successfully!"));
             } catch (Exception e) {
                 Platform.runLater(() -> showError("Failed to update recipe: " + e.getMessage()));
@@ -462,9 +441,6 @@ public class RecipeTabController extends BaseController{
         }).start();
     }
 
-
-
-    /** Helper for icons */
     private HBox createIngredientRow(String icon, String iconStyle, String label, String items) {
         Label iconLabel = new Label(icon);
         iconLabel.getStyleClass().add(iconStyle);
@@ -474,7 +450,7 @@ public class RecipeTabController extends BaseController{
         itemsText.getStyleClass().add("ingredient-text");
         return new HBox(8, iconLabel, labelText, itemsText);
     }
-    // Load the user's pantry items (names only)
+
     private List<String> getPantryItemNames() {
         List<String> pantryNames = new ArrayList<>();
         try {
@@ -495,17 +471,17 @@ public class RecipeTabController extends BaseController{
         }
         return pantryNames;
     }
+
     @FXML
     private void handleSearch() {
         String query = searchField.getText().toLowerCase().trim();
         if (query.isEmpty()) {
-            loadRecipes(); // show all if search is cleared
+            loadRecipes();
             return;
         }
 
         vBox.getChildren().clear();
 
-        // Filter recipes based on the query (name, available, missing, or aiTip)
         List<Recipe> filtered = allRecipes.stream()
                 .filter(r -> r.name.toLowerCase().contains(query)
                         || r.available.toLowerCase().contains(query)
@@ -525,10 +501,10 @@ public class RecipeTabController extends BaseController{
             vBox.getChildren().add(row);
         }
     }
-    // Compute true match % using flexible word comparison
+
     private int computeMatchPercentage(String available, String missing, List<String> pantryItems) {
         String combined = ((available != null ? available : "") + "," + (missing != null ? missing : ""))
-                .replaceAll("\\s+", " ")  // clean spacing
+                .replaceAll("\\s+", " ")
                 .trim()
                 .toLowerCase();
 
@@ -543,10 +519,9 @@ public class RecipeTabController extends BaseController{
 
         long matches = allIngredients.stream()
                 .filter(ingredient -> pantryItems.stream().anyMatch(pantry ->
-                        // ✅ flexible comparison:
                         pantry.equals(ingredient) ||
-                                pantry.equals(ingredient.replaceAll("s$", "")) ||       // plural → singular
-                                pantry.replaceAll("s$", "").equals(ingredient) ||       // singular → plural
+                                pantry.equals(ingredient.replaceAll("s$", "")) ||
+                                pantry.replaceAll("s$", "").equals(ingredient) ||
                                 ingredient.contains(pantry) || pantry.contains(ingredient)
                 ))
                 .count();
@@ -554,8 +529,6 @@ public class RecipeTabController extends BaseController{
         return (int) Math.round((double) matches / allIngredients.size() * 100);
     }
 
-
-    // Alerts
     private void showError(String msg) {
         Alert a = new Alert(Alert.AlertType.ERROR);
         a.setHeaderText(null);
@@ -570,7 +543,6 @@ public class RecipeTabController extends BaseController{
         a.showAndWait();
     }
 
-    /** Inner recipe record */
     private static class Recipe {
         String id, name, match, available, missing, aiTip;
         boolean favorite;

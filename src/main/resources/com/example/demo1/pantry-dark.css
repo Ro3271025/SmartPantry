@@ -1,0 +1,238 @@
+/* =========================================================
+   --- PANTRY DASHBOARD DARK THEME ---
+   Sleek dark design matching modern dashboards
+========================================================= */
+
+/* Root scene: very dark background like the reference */
+.root {
+    -fx-font-family: "Inter", "Segoe UI", system-ui, sans-serif;
+    -fx-background-color: #0f1419;
+}
+
+/* === Header + search rows === */
+.toolbar {
+    -fx-padding: 16 20 0 20;
+    -fx-background-color: #0f1419;
+}
+
+.title {
+    -fx-font-size: 18px;
+    -fx-font-weight: 700;
+    -fx-text-fill: #ffffff;
+}
+
+/* Small square icon-style buttons (palette, logout) */
+.icon {
+    -fx-background-radius: 10;
+    -fx-background-color: #1e2730;
+    -fx-padding: 6 10 6 10;
+    -fx-border-color: #2a3441;
+    -fx-border-radius: 10;
+}
+
+.icon:hover {
+    -fx-background-color: #2a3441;
+}
+
+/* Search field: darker with subtle border */
+.search-field {
+    -fx-pref-width: 560;
+    -fx-background-radius: 999;
+    -fx-padding: 8 14 8 14;
+    -fx-background-color: #1e2730;
+    -fx-text-fill: #ffffff;
+    -fx-border-color: #2a3441;
+    -fx-border-radius: 999;
+    -fx-prompt-text-fill: #6b7280;
+}
+
+.search-field:focused {
+    -fx-border-color: #10b981;
+}
+
+/* Outlined pill buttons (Recipes, Shopping) */
+.pill {
+    -fx-background-color: #1e2730;
+    -fx-text-fill: #d1d5db;
+    -fx-background-radius: 999;
+    -fx-border-color: #2a3441;
+    -fx-border-radius: 999;
+    -fx-padding: 8 14 8 14;
+}
+
+.pill:hover {
+    -fx-background-color: #2a3441;
+    -fx-text-fill: #ffffff;
+}
+
+/* Primary accent (Add Item) - brighter green for dark mode */
+.primary {
+    -fx-background-color: #10b981;
+    -fx-text-fill: white;
+    -fx-background-radius: 999;
+    -fx-padding: 8 16 8 16;
+}
+
+.primary:hover {
+    -fx-background-color: #14da9a;
+}
+
+/* Badge on Shopping button */
+.badge-container {
+    -fx-alignment: center;
+}
+
+.badge {
+    -fx-background-color: #10b981;
+    -fx-text-fill: white;
+    -fx-font-size: 10px;
+    -fx-padding: 1 6 1 6;
+    -fx-background-radius: 999;
+    -fx-translate-x: -8;
+    -fx-translate-y: -10;
+}
+
+/* === Segmented filter tabs === */
+.segmented {
+    -fx-padding: 8 20 12 20;
+}
+
+.segmented .toggle-button {
+    -fx-background-radius: 999;
+    -fx-background-color: transparent;
+    -fx-text-fill: #9ca3af;
+    -fx-padding: 6 12 6 12;
+}
+
+.segmented .toggle-button:hover {
+    -fx-background-color: #1e2730;
+    -fx-text-fill: #ffffff;
+}
+
+.segmented .toggle-button:selected {
+    -fx-background-color: #10b981;
+    -fx-text-fill: white;
+}
+
+/* Scroll container */
+.viewport {
+    -fx-background-color: #0f1419;
+}
+
+.viewport .viewport {
+    -fx-background-color: #0f1419;
+}
+
+/* === Item cards === */
+.card {
+    -fx-background-color: #1e2730;
+    -fx-background-radius: 16;
+    /* FIXED: match light mode shadow size from 10 → 8 */
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.4), 8, 0, 0, 2);
+    -fx-border-color: #2a3441;
+    -fx-border-radius: 16;
+}
+
+.card:hover {
+    /* FIXED: match light mode hover shadow size from 16 → 14 */
+    -fx-effect: dropshadow(gaussian, rgba(16,185,129,0.3), 14, 0, 0, 4);
+    -fx-border-color: #10b981;
+}
+
+/* Title inside each card */
+.card-title {
+    -fx-font-size: 14px;
+    -fx-font-weight: 700;
+    -fx-text-fill: #ffffff;
+}
+
+.muted {
+    -fx-text-fill: #9ca3af;
+}
+
+/* Status-specific border colors (darker versions) */
+.state-expiring { -fx-border-color: #FF9933; }
+.state-expired  { -fx-border-color: #E53935; }
+.state-low      { -fx-border-color: #FF9933; }
+.state-ok       { -fx-border-color: #10b981; }
+
+/* Status chips (badges) - adjusted for dark mode */
+.chip {
+    -fx-font-size: 10px;
+    -fx-background-radius: 999;
+    -fx-padding: 2 8 2 8;
+}
+
+.chip-expiring {
+    -fx-background-color: #5a3a0f;
+    -fx-text-fill: #FFD699;
+}
+
+.chip-danger {
+    -fx-background-color: #5a1f1f;
+    -fx-text-fill: #FFADAD;
+}
+
+.chip-warn {
+    -fx-background-color: #5a3a0f;
+    -fx-text-fill: #FFD699;
+}
+
+.chip-ok {
+    -fx-background-color: #1a4d3d;
+    -fx-text-fill: #A7F3D0;
+}
+
+/* Secondary buttons in cards (Edit, Delete) */
+.secondary {
+    -fx-background-color: #2a3441;
+    -fx-text-fill: #d1d5db;
+    -fx-background-radius: 6;
+    -fx-padding: 6 12 6 12;
+}
+
+.secondary:hover {
+    -fx-background-color: #374151;
+}
+
+.danger {
+    -fx-background-color: #dc2626;
+    -fx-text-fill: white;
+    -fx-background-radius: 6;
+    -fx-padding: 6 12 6 12;
+}
+
+.danger:hover {
+    -fx-background-color: #ef4444;
+}
+
+/* Scrollbar styling for dark mode */
+.scroll-pane {
+    -fx-background-color: #0f1419;
+}
+
+.scroll-pane .scroll-bar:vertical {
+    -fx-background-color: transparent;
+}
+
+.scroll-pane .scroll-bar:vertical .thumb {
+    -fx-background-color: #2a3441;
+    -fx-background-radius: 4;
+}
+
+.scroll-pane .scroll-bar:vertical .thumb:hover {
+    -fx-background-color: #374151;
+}
+
+.scroll-pane .scroll-bar:horizontal {
+    -fx-background-color: transparent;
+}
+
+.scroll-pane .scroll-bar:horizontal .thumb {
+    -fx-background-color: #2a3441;
+    -fx-background-radius: 4;
+}
+
+.scroll-pane .scroll-bar:horizontal .thumb:hover {
+    -fx-background-color: #374151;
+}

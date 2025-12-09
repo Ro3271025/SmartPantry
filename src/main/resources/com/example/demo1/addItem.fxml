@@ -7,67 +7,66 @@
 <VBox xmlns:fx="http://javafx.com/fxml"
       fx:controller="Controllers.AddItemController"
       spacing="15"
-      style="-fx-background-color: #f5f5f5; -fx-padding: 30;">
+      styleClass="add-item-container">
 
-    <Label text="Add Item to Pantry"
-           style="-fx-font-size: 24px; -fx-font-weight: bold; -fx-text-fill: #2f7a64;" />
-    <Separator />
+    <padding>
+        <Insets top="30" right="30" bottom="30" left="30" />
+    </padding>
+
+    <Label text="Add Item to Pantry" styleClass="add-item-title" />
+    <Separator styleClass="form-separator" />
 
     <!-- Item Name -->
     <VBox spacing="5">
-        <Label text="Item Name *" style="-fx-font-size: 12px; -fx-font-weight: bold;" />
-        <TextField fx:id="itemNameField" promptText="e.g., Milk" style="-fx-pref-height: 35px;" />
+        <Label text="Item Name *" styleClass="field-label" />
+        <TextField fx:id="itemNameField" promptText="e.g., Milk" styleClass="form-field" />
     </VBox>
 
     <!-- Quantity -->
     <VBox spacing="5">
-        <Label text="Quantity *" style="-fx-font-size: 12px; -fx-font-weight: bold;" />
-        <TextField fx:id="quantityField" promptText="e.g., 2" style="-fx-pref-height: 35px;" />
+        <Label text="Quantity *" styleClass="field-label" />
+        <TextField fx:id="quantityField" promptText="e.g., 2" styleClass="form-field" />
     </VBox>
 
     <!-- Unit -->
     <VBox spacing="5">
-        <Label text="Unit *" style="-fx-font-size: 12px; -fx-font-weight: bold;" />
-        <ComboBox fx:id="unitComboBox" promptText="Select unit" prefWidth="340" style="-fx-pref-height: 35px;" />
+        <Label text="Unit *" styleClass="field-label" />
+        <ComboBox fx:id="unitComboBox" promptText="Select unit" prefWidth="340" styleClass="form-combo" />
     </VBox>
 
     <!-- Location -->
     <VBox spacing="5">
-        <Label text="Storage Location" style="-fx-font-size: 12px; -fx-font-weight: bold;" />
-        <ComboBox fx:id="locationComboBox" promptText="Select location" prefWidth="340" style="-fx-pref-height: 35px;" />
+        <Label text="Storage Location" styleClass="field-label" />
+        <ComboBox fx:id="locationComboBox" promptText="Select location" prefWidth="340" styleClass="form-combo" />
     </VBox>
 
     <!-- Category -->
     <VBox spacing="5">
-        <Label text="Category" style="-fx-font-size: 12px; -fx-font-weight: bold;" />
-        <ComboBox fx:id="categoryComboBox" promptText="Select category" prefWidth="340" style="-fx-pref-height: 35px;" />
+        <Label text="Category" styleClass="field-label" />
+        <ComboBox fx:id="categoryComboBox" promptText="Select category" prefWidth="340" styleClass="form-combo" />
     </VBox>
 
     <!-- Expiration Date -->
     <VBox spacing="5">
-        <Label text="Expiration Date *" style="-fx-font-size: 12px; -fx-font-weight: bold;" />
-        <DatePicker fx:id="expiryDatePicker" promptText="Select date" prefWidth="340" style="-fx-pref-height: 35px;" />
+        <Label text="Expiration Date *" styleClass="field-label" />
+        <DatePicker fx:id="expiryDatePicker" promptText="Select date" prefWidth="340" styleClass="form-datepicker" />
     </VBox>
 
-    <Separator />
+    <Separator styleClass="form-separator" />
 
     <!-- Buttons -->
     <VBox spacing="10">
         <Button text="📷 Scan Barcode" onAction="#handleScanBarcode"
-                prefWidth="340" prefHeight="40"
-                style="-fx-border-color: #2f7a64; -fx-border-width: 2; -fx-background-color: white; -fx-text-fill: #2f7a64; -fx-font-weight: bold;" />
+                prefWidth="340" prefHeight="40" styleClass="scan-button" />
 
         <Button text="Save Item" onAction="#handleSaveItem"
-                prefWidth="340" prefHeight="45"
-                style="-fx-background-color: #2f7a64; -fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 14px;" />
+                prefWidth="340" prefHeight="45" styleClass="save-button" />
 
         <Button text="Cancel" onAction="#handleCancel"
-                prefWidth="340" prefHeight="40"
-                style="-fx-background-color: #e0e0e0; -fx-text-fill: #333;" />
+                prefWidth="340" prefHeight="40" styleClass="cancel-button" />
     </VBox>
 
     <!-- Status Label -->
-    <Label fx:id="statusLabel" wrapText="true" prefWidth="340"
-           style="-fx-font-size: 13px; -fx-padding: 10; -fx-background-color: white; -fx-background-radius: 5;" />
+    <Label fx:id="statusLabel" wrapText="true" prefWidth="340" styleClass="status-label" />
 
 </VBox>

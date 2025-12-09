@@ -1,0 +1,193 @@
+/* =========================================================
+   ADD ITEM DIALOG - LIGHT MODE
+========================================================= */
+
+/* Container */
+.add-item-container {
+    -fx-background-color: #f5f5f5 !important;
+}
+
+/* Title */
+.add-item-title {
+    -fx-font-size: 24px !important;
+    -fx-font-weight: bold !important;
+    -fx-text-fill: #10b981 !important;
+}
+
+/* Field Labels */
+.field-label {
+    -fx-font-size: 12px !important;
+    -fx-font-weight: bold !important;
+    -fx-text-fill: #374151 !important;
+}
+
+/* Text Fields */
+.form-field {
+    -fx-pref-height: 35px !important;
+    -fx-background-color: white !important;
+    -fx-text-fill: #111827 !important;
+    -fx-prompt-text-fill: #9ca3af !important;
+    -fx-border-color: #d1d5db !important;
+    -fx-border-radius: 6px !important;
+    -fx-background-radius: 6px !important;
+}
+
+.form-field:focused {
+    -fx-border-color: #10b981 !important;
+    -fx-border-width: 2px !important;
+}
+
+/* ComboBox */
+.form-combo {
+    -fx-pref-height: 35px !important;
+    -fx-background-color: white !important;
+    -fx-border-color: #d1d5db !important;
+    -fx-border-radius: 6px !important;
+    -fx-background-radius: 6px !important;
+}
+
+.form-combo:focused {
+    -fx-border-color: #10b981 !important;
+}
+
+.form-combo .list-cell {
+    -fx-background-color: white !important;
+    -fx-text-fill: #111827 !important;
+}
+
+.form-combo .list-cell:filled:selected {
+    -fx-background-color: #10b981 !important;
+    -fx-text-fill: white !important;
+}
+
+.form-combo .list-cell:filled:hover {
+    -fx-background-color: #f3f4f6 !important;
+}
+
+.form-combo .arrow-button {
+    -fx-background-color: #f3f4f6 !important;
+}
+
+.form-combo .arrow {
+    -fx-background-color: #6b7280 !important;
+}
+
+/* DatePicker */
+.form-datepicker {
+    -fx-pref-height: 35px !important;
+    -fx-background-color: white !important;
+    -fx-border-color: #d1d5db !important;
+    -fx-border-radius: 6px !important;
+    -fx-background-radius: 6px !important;
+}
+
+.form-datepicker:focused {
+    -fx-border-color: #10b981 !important;
+}
+
+.form-datepicker .text-field {
+    -fx-background-color: white !important;
+    -fx-text-fill: #111827 !important;
+    -fx-prompt-text-fill: #9ca3af !important;
+}
+
+.form-datepicker .arrow-button {
+    -fx-background-color: #f3f4f6 !important;
+}
+
+.form-datepicker .arrow {
+    -fx-background-color: #6b7280 !important;
+}
+
+/* DatePicker Popup */
+.date-picker-popup {
+    -fx-background-color: white !important;
+    -fx-border-color: #d1d5db !important;
+}
+
+.date-picker-popup .month-year-pane {
+    -fx-background-color: #f9fafb !important;
+}
+
+.date-picker-popup .day-cell {
+    -fx-background-color: white !important;
+    -fx-text-fill: #111827 !important;
+}
+
+.date-picker-popup .day-cell:hover {
+    -fx-background-color: #f3f4f6 !important;
+}
+
+.date-picker-popup .selected {
+    -fx-background-color: #10b981 !important;
+    -fx-text-fill: white !important;
+}
+
+.date-picker-popup .today {
+    -fx-background-color: #ecfdf5 !important;
+    -fx-text-fill: #10b981 !important;
+}
+
+/* Separator */
+.form-separator {
+    -fx-background-color: #e5e7eb !important;
+}
+
+.form-separator .line {
+    -fx-border-color: #e5e7eb !important;
+}
+
+/* Scan Barcode Button */
+.scan-button {
+    -fx-background-color: #10b981 !important;
+    -fx-text-fill: white !important;
+    -fx-border-color: #10b981 !important;
+    -fx-border-radius: 6px !important;
+    -fx-background-radius: 6px !important;
+    -fx-font-weight: bold !important;
+    -fx-cursor: hand;
+}
+
+.scan-button:hover {
+    -fx-background-color: #059669 !important;
+    -fx-border-color: #059669 !important;
+}
+
+/* Save Button */
+.save-button {
+    -fx-background-color: #10b981 !important;
+    -fx-text-fill: white !important;
+    -fx-font-weight: bold !important;
+    -fx-font-size: 14px !important;
+    -fx-border-radius: 6px !important;
+    -fx-background-radius: 6px !important;
+    -fx-cursor: hand;
+}
+
+.save-button:hover {
+    -fx-background-color: #059669 !important;
+}
+
+/* Cancel Button */
+.cancel-button {
+    -fx-background-color: #e5e7eb !important;
+    -fx-text-fill: #374151 !important;
+    -fx-border-color: #d1d5db !important;
+    -fx-border-radius: 6px !important;
+    -fx-background-radius: 6px !important;
+    -fx-cursor: hand;
+}
+
+.cancel-button:hover {
+    -fx-background-color: #d1d5db !important;
+    -fx-text-fill: #111827 !important;
+}
+
+/* Status Label */
+.status-label {
+    -fx-font-size: 13px !important;
+    -fx-padding: 10px !important;
+    -fx-background-color: #f3f4f6 !important;
+    -fx-background-radius: 5px !important;
+    -fx-text-fill: #374151 !important;
+}

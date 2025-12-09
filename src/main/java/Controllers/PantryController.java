@@ -4,15 +4,15 @@ import javafx.fxml.Initializable;
 import com.example.demo1.PantryItem;
 import com.example.demo1.FirebaseConfiguration;
 import com.example.demo1.FirebaseService;
+import com.example.demo1.ThemeManager;
 import javafx.collections.ObservableList;
-import com.example.demo1.UserSession; // <-- use your session
+import com.example.demo1.UserSession;
 
 import java.net.URL;
 import java.time.ZoneId;
 import java.util.Date;
 import java.util.ResourceBundle;
 import java.util.concurrent.ExecutionException;
-
 
 import javafx.event.Event;
 import javafx.fxml.FXML;
@@ -39,6 +39,7 @@ public class PantryController extends BaseController implements Initializable {
     private FirebaseService firebaseService;
     private ObservableList<PantryItem> allItems;
     private ToggleGroup filterGroup;
+
     @FXML
     private TextField searchField;
     @FXML
@@ -63,8 +64,35 @@ public class PantryController extends BaseController implements Initializable {
     private final DateTimeFormatter DATE_FMT =
             DateTimeFormatter.ofPattern("MMM d, uuuu", Locale.US);
 
-    // 🔑 Dynamic user ID (set after login)
     private String currentUserId = null;
+
+    private void setupThemeButton() {
+        if (styleBtn != null) {
+            styleBtn.setText("🎨");
+
+            Tooltip themeTooltip = new Tooltip("Theme Settings");
+            themeTooltip.setShowDelay(javafx.util.Duration.millis(300));
+            Tooltip.install(styleBtn, themeTooltip);
+
+            styleBtn.setOnAction(e -> {
+                System.out.println("🎨 Opening Theme Settings page...");
+                try {
+                    openThemeSettings(e);
+                } catch (IOException ex) {
+                    System.err.println("Error opening Theme Settings: " + ex.getMessage());
+                    ex.printStackTrace();
+                }
+            });
+
+            System.out.println("✓ Theme button initialized successfully");
+        } else {
+            System.err.println("⚠ Warning: styleBtn is null - check FXML fx:id");
+        }
+    }
+
+    private void openThemeSettings(javafx.event.ActionEvent event) throws IOException {
+        switchScene(event, "ThemeSettings");
+    }
 
     private void renderCards(ObservableList<PantryItem> items) {
         cardFlow.getChildren().clear();
@@ -82,44 +110,34 @@ public class PantryController extends BaseController implements Initializable {
         }
     }
 
-    /**
-     * Create a card UI for a single pantry item
-     */
     private VBox createItemCard(PantryItem item) {
         VBox card = new VBox(12);
         card.getStyleClass().add("card");
         card.setPrefWidth(320);
         card.setPadding(new Insets(16));
 
-        // Item name
         Label nameLabel = new Label(item.getName());
         nameLabel.getStyleClass().add("card-title");
         nameLabel.setStyle("-fx-font-size: 18px; -fx-font-weight: bold;");
 
-        // Category
         Label categoryLabel = new Label("📂 " + (item.getCategory() != null ? item.getCategory() : "Uncategorized"));
         categoryLabel.setStyle("-fx-font-size: 14px; -fx-text-fill: #7f8c8d;");
 
-        // Quantity
         Label quantityLabel = new Label("📦 " + (item.getQuantityLabel() != null ? item.getQuantityLabel() :
                 "Quantity: " + item.getQuantityNumeric()));
         quantityLabel.setStyle("-fx-font-size: 14px;");
 
-        // Expiration date
         LocalDate expirationDate = item.getExpires();
-
         String expirationText = expirationDate != null ?
                 "📅 Expires: " + expirationDate.format(DATE_FMT) :
                 "📅 No expiration date";
         Label expirationLabel = new Label(expirationText);
         expirationLabel.setStyle("-fx-font-size: 14px;");
 
-        // Status chip
         ItemStatus status = calculateStatus(expirationDate, item.getQuantityNumeric());
         Label statusChip = new Label(statusToLabel(status));
         statusChip.getStyleClass().addAll("chip", statusToChipClass(status));
 
-        // Action buttons
         HBox actionButtons = new HBox(8);
         actionButtons.setAlignment(Pos.CENTER_RIGHT);
 
@@ -133,7 +151,6 @@ public class PantryController extends BaseController implements Initializable {
 
         actionButtons.getChildren().addAll(editBtn, deleteBtn);
 
-        // Add all components to card
         card.getChildren().addAll(
                 nameLabel,
                 categoryLabel,
@@ -146,18 +163,10 @@ public class PantryController extends BaseController implements Initializable {
         return card;
     }
 
-
-    /**
-     * Setup search field listener
-     */
     private void setupSearchListener() {
         searchField.textProperty().addListener((observable, oldValue, newValue) -> applyFilters());
     }
 
-
-    /**
-     * Load all pantry items from Firebase for the current user
-     */
     private void loadPantryItems() {
         if (currentUserId == null || currentUserId.isBlank()) {
             showErrorAlert("Not signed in", "Missing user id. Please login.");
@@ -179,7 +188,6 @@ public class PantryController extends BaseController implements Initializable {
         loadPantryItems();
     }
 
-
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
         try {
@@ -191,8 +199,8 @@ public class PantryController extends BaseController implements Initializable {
 
         setupFilters();
         setupSearchListener();
+        setupThemeButton();
 
-        // Why: ensure controller works even if setCurrentUserId wasn't called
         if (currentUserId == null || currentUserId.isBlank()) {
             currentUserId = UserSession.getCurrentUserId();
         }
@@ -204,22 +212,17 @@ public class PantryController extends BaseController implements Initializable {
         }
     }
 
-    /**
-     * Apply search and filter to items
-     */
     private void applyFilters() {
         if (allItems == null) return;
 
         String searchText = searchField.getText().toLowerCase();
         ObservableList<PantryItem> filteredItems = allItems.filtered(item -> {
-            // Apply search filter
             boolean matchesSearch = searchText.isEmpty() ||
                     item.getName().toLowerCase().contains(searchText) ||
                     (item.getCategory() != null && item.getCategory().toLowerCase().contains(searchText));
 
             if (!matchesSearch) return false;
 
-            // Apply status filter
             if (segExpiring.isSelected()) {
                 LocalDate expDate = item.getExpires();
                 ItemStatus status = calculateStatus(expDate, item.getQuantityNumeric());
@@ -228,45 +231,17 @@ public class PantryController extends BaseController implements Initializable {
                 return item.getQuantityNumeric() <= 2;
             }
 
-            return true; // "All" filter
+            return true;
         });
 
         renderCards(filteredItems);
     }
 
-
-    /**
-     * Opens the Add Item screen in a new popup window
-     */
-//    @FXML
-//    private void addItemBtnOnAction(ActionEvent event) {
-//        try {
-//            FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/example/demo1/addItem.fxml"));
-//            Scene addItemScene = new Scene(loader.load(), 400, 650);
-//
-//            // Pass current user ID into AddItemController
-//            AddItemController controller = loader.getController();
-//           // controller.setCurrentUserId(currentUserId);
-//
-//            Stage addItemStage = new Stage();
-//            addItemStage.setTitle("Add New Item");
-//            addItemStage.setScene(addItemScene);
-//            addItemStage.initModality(Modality.APPLICATION_MODAL);
-//            addItemStage.showAndWait();
-//
-//
-//            // render();
-//
-//        } catch (IOException e) {
-//            System.err.println("Error opening Add Item window: " + e.getMessage());
-//            e.printStackTrace();
-//        }
-//    }
     @FXML
     private void addItemBtnOnAction(ActionEvent event) {
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/example/demo1/addItem.fxml"));
-            Scene addItemScene = new Scene(loader.load(), 400, 650);
+            Scene addItemScene = new Scene(loader.load(), 400, 720);
 
             AddItemController controller = loader.getController();
             String uid = (currentUserId != null && !currentUserId.isBlank())
@@ -274,10 +249,17 @@ public class PantryController extends BaseController implements Initializable {
                     : UserSession.getCurrentUserId();
             controller.setCurrentUserId(uid);
 
+            // Register scene with ThemeManager to apply correct theme
+            themeManager.registerScene(addItemScene);
+
             Stage addItemStage = new Stage();
             addItemStage.setTitle("Add New Item");
             addItemStage.setScene(addItemScene);
             addItemStage.initModality(Modality.APPLICATION_MODAL);
+
+            // Unregister when popup closes
+            addItemStage.setOnHidden(e -> themeManager.unregisterScene(addItemScene));
+
             addItemStage.showAndWait();
 
             loadPantryItems();
@@ -287,55 +269,23 @@ public class PantryController extends BaseController implements Initializable {
         }
     }
 
-
-    /**
-     * Opens the Recipe Tab screen
-     */
     @FXML
     private void recipesBtnOnAction(ActionEvent event) throws IOException {
         switchScene(event, "Recipe");
     }
 
-
-//    private void setupFilters() {
-//        ToggleGroup filterGroup = new ToggleGroup();
-//        segAll.setToggleGroup(filterGroup);
-//        segExpiring.setToggleGroup(filterGroup);
-//        segLowStock.setToggleGroup(filterGroup);
-//    }
-
     private void setupFilters() {
-        filterGroup = new ToggleGroup(); // REMOVED 'ToggleGroup' keyword (uses field instead)
+        filterGroup = new ToggleGroup();
         segAll.setToggleGroup(filterGroup);
         segExpiring.setToggleGroup(filterGroup);
         segLowStock.setToggleGroup(filterGroup);
 
-        // ADDED THESE THREE LINES - Add listeners to filter buttons
         segAll.setOnAction(e -> applyFilters());
         segExpiring.setOnAction(e -> applyFilters());
         segLowStock.setOnAction(e -> applyFilters());
     }
 
-//    private void setupPlaceholderButtons() {
-//        recipesBtn.setOnAction(event -> System.out.println("[Placeholder] Recipes button clicked"));
-//        shoppingBtn.setOnAction(event -> System.out.println("[Placeholder] Shopping button clicked"));
-//        styleBtn.setOnAction(event -> System.out.println("[Placeholder] Style Guide button clicked"));
-//        logoutBtn.setOnAction(event -> System.out.println("[Placeholder] Logout button clicked"));
-//    }
-
-//    private ItemStatus calculateStatus(LocalDate expirationDate, int quantity) {
-//        LocalDate today = LocalDate.now();
-//        long daysUntilExpiration = ChronoUnit.DAYS.between(today, expirationDate);
-//
-//        if (daysUntilExpiration < 0) return ItemStatus.EXPIRED;
-//        if (daysUntilExpiration <= 7) return ItemStatus.EXPIRING;
-//        if (quantity <= 2) return ItemStatus.LOW_STOCK;
-//        return ItemStatus.OK;
-//    }
-
-
     private ItemStatus calculateStatus(LocalDate expirationDate, int quantity) {
-        // ADDED THIS CHECK - Handle null expiration dates
         if (expirationDate == null) {
             return quantity <= 2 ? ItemStatus.LOW_STOCK : ItemStatus.OK;
         }
@@ -349,22 +299,15 @@ public class PantryController extends BaseController implements Initializable {
         return ItemStatus.OK;
     }
 
-
-
-
-
     private String statusToLabel(ItemStatus status) {
         return switch (status) {
-            case OK -> "✓ OK";           // ADDED EMOJI
-            case EXPIRING -> "⚠️ Expiring Soon"; // ADDED EMOJI + "Soon"
-            case EXPIRED -> "❌ Expired";      // ADDED EMOJI
-            case LOW_STOCK -> "⬇️ Low Stock";    // ADDED EMOJI
+            case OK -> "✓ OK";
+            case EXPIRING -> "⚠️ Expiring Soon";
+            case EXPIRED -> "❌ Expired";
+            case LOW_STOCK -> "⬇️ Low Stock";
         };
     }
 
-    /**
-     * Show error alert dialog
-     */
     private void showErrorAlert(String title, String message) {
         Alert alert = new Alert(Alert.AlertType.ERROR);
         alert.setTitle(title);
@@ -387,36 +330,35 @@ public class PantryController extends BaseController implements Initializable {
         switchScene(event, "PantryItemsView");
     }
 
-
-    /**
-     * Handle editing an item
-     */
     private void handleEditItem(PantryItem item) {
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/example/demo1/addItem.fxml"));
-            Scene editItemScene = new Scene(loader.load(), 400, 650);
+            Scene editItemScene = new Scene(loader.load(), 400, 720);
 
             AddItemController controller = loader.getController();
-            // ensure the dialog is in EDIT mode for this item
             controller.setCurrentUserId(currentUserId);
-            controller.setEditMode(item); // ✅ THIS WAS MISSING
+            controller.setEditMode(item);
+
+            // Register scene with ThemeManager to apply correct theme
+            themeManager.registerScene(editItemScene);
 
             Stage editItemStage = new Stage();
             editItemStage.setTitle("Edit Item");
             editItemStage.setScene(editItemScene);
             editItemStage.initModality(Modality.APPLICATION_MODAL);
+
+            // Unregister when popup closes
+            editItemStage.setOnHidden(e -> themeManager.unregisterScene(editItemScene));
+
             editItemStage.showAndWait();
 
-            loadPantryItems(); // refresh after edit
+            loadPantryItems();
         } catch (IOException e) {
             System.err.println("Error opening Edit Item window: " + e.getMessage());
             e.printStackTrace();
         }
     }
 
-    /**
-     * Handle deleting an item
-     */
     private void handleDeleteItem(PantryItem item) {
         Alert confirmDialog = new Alert(Alert.AlertType.CONFIRMATION);
         confirmDialog.setTitle("Delete Item");
@@ -426,7 +368,6 @@ public class PantryController extends BaseController implements Initializable {
         confirmDialog.showAndWait().ifPresent(response -> {
             if (response == ButtonType.OK) {
                 try {
-                    // ✅ Ensure we have both uid and item id
                     String uid = (currentUserId != null && !currentUserId.isBlank())
                             ? currentUserId
                             : com.example.demo1.UserSession.getCurrentUserId();
@@ -438,7 +379,6 @@ public class PantryController extends BaseController implements Initializable {
                         showErrorAlert("Delete Error", "Item has no id (cannot delete).");
                         return;
                     }
-
 
                     firebaseService.deletePantryItem(item.getId(), uid);
 
@@ -455,11 +395,9 @@ public class PantryController extends BaseController implements Initializable {
     @FXML
     private void logoutBtnOnAction(ActionEvent event) {
         try {
-            // UserSession.clearSession();
-            switchScene(event, "MainScreen"); // Loads MainScreen.fxml via BaseController
+            switchScene(event, "MainScreen");
         } catch (IOException ex) {
             showErrorAlert("Navigation Error", "Failed to open main screen: " + ex.getMessage());
         }
     }
-
 }
