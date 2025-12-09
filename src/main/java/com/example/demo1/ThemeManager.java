@@ -1,13 +1,16 @@
 package com.example.demo1;
 
 import javafx.scene.Scene;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.prefs.Preferences;
 
 /**
  * Manages application-wide theme switching between light and dark modes.
- * Persists user's theme preference and applies it to all scenes.
+ * Handles the split CSS file structure:
+ *   - /com/example/demo1/  (primary)
+ *   - /CSSFiles/           (secondary)
  */
 public class ThemeManager {
     private static ThemeManager instance;
@@ -24,6 +27,7 @@ public class ThemeManager {
         this.registeredScenes = new ArrayList<>();
         // Load saved theme preference, default to light
         this.currentTheme = prefs.get(THEME_PREF_KEY, LIGHT_THEME);
+        System.out.println("ThemeManager initialized. Current theme: " + currentTheme);
     }
 
     public static ThemeManager getInstance() {
@@ -40,6 +44,7 @@ public class ThemeManager {
         if (scene != null && !registeredScenes.contains(scene)) {
             registeredScenes.add(scene);
             applyThemeToScene(scene);
+            System.out.println("✓ Registered scene with ThemeManager. Total scenes: " + registeredScenes.size());
         }
     }
 
@@ -67,6 +72,7 @@ public class ThemeManager {
     public void setLightTheme() {
         currentTheme = LIGHT_THEME;
         prefs.put(THEME_PREF_KEY, LIGHT_THEME);
+        System.out.println("☀️ Switching to Light Mode");
         applyThemeToAllScenes();
     }
 
@@ -76,6 +82,7 @@ public class ThemeManager {
     public void setDarkTheme() {
         currentTheme = DARK_THEME;
         prefs.put(THEME_PREF_KEY, DARK_THEME);
+        System.out.println("🌙 Switching to Dark Mode");
         applyThemeToAllScenes();
     }
 
@@ -110,40 +117,77 @@ public class ThemeManager {
 
         scene.getStylesheets().clear();
 
-        // Add base stylesheets that every scene needs
-        String basePath = "/com/example/demo1/";
-
         if (isDarkMode()) {
-            // Dark theme stylesheets (order matters - later ones override earlier)
-            addStylesheetIfExists(scene, basePath + "dark-theme.css");
-            addStylesheetIfExists(scene, basePath + "pantry-dark.css");
-            addStylesheetIfExists(scene, basePath + "Recipe-dark.css");
-            addStylesheetIfExists(scene, basePath + "styles-dark.css");
-            addStylesheetIfExists(scene, basePath + "addItem-dark.css");
-            addStylesheetIfExists(scene, basePath + "ShoppingList-dark.css"); // Must be last for Shopping List
+            // Dark theme stylesheets
+            addStylesheetIfExists(scene, "dark-theme.css");
+            addStylesheetIfExists(scene, "pantry-dark.css");
+            addStylesheetIfExists(scene, "Recipe-dark.css");
+            addStylesheetIfExists(scene, "styles-dark.css");
+            addStylesheetIfExists(scene, "style-dark.css");
+            addStylesheetIfExists(scene, "addItem-dark.css");
+            addStylesheetIfExists(scene, "ShoppingList-dark.css");
         } else {
             // Light theme stylesheets
-            addStylesheetIfExists(scene, basePath + "style.css");
-            addStylesheetIfExists(scene, basePath + "pantry.css");
-            addStylesheetIfExists(scene, basePath + "Recipe.css");
-            addStylesheetIfExists(scene, basePath + "styles.css");
-            addStylesheetIfExists(scene, basePath + "addItem.css");
-            addStylesheetIfExists(scene, basePath + "ShoppingList.css");
+            addStylesheetIfExists(scene, "style.css");
+            addStylesheetIfExists(scene, "pantry.css");
+            addStylesheetIfExists(scene, "Recipe.css");
+            addStylesheetIfExists(scene, "styles.css");
+            addStylesheetIfExists(scene, "addItem.css");
         }
+
+        System.out.println("  Applied " + scene.getStylesheets().size() + " stylesheets");
     }
 
     /**
-     * Add stylesheet to scene if it exists
+     * Add stylesheet to scene if it exists, searching multiple locations.
+     * Search order:
+     *   1. /com/example/demo1/{filename}
+     *   2. /CSSFiles/{filename}
      */
-    private void addStylesheetIfExists(Scene scene, String path) {
+    private void addStylesheetIfExists(Scene scene, String filename) {
+        String stylesheet = null;
+
+        // 1. Try primary location: /com/example/demo1/
         try {
-            String stylesheet = getClass().getResource(path).toExternalForm();
-            if (stylesheet != null) {
-                scene.getStylesheets().add(stylesheet);
+            URL url = getClass().getResource("/com/example/demo1/" + filename);
+            if (url != null) {
+                stylesheet = url.toExternalForm();
             }
         } catch (Exception e) {
-            // Stylesheet doesn't exist, skip it
-            System.out.println("Stylesheet not found: " + path);
+            // ignore
+        }
+
+        // 2. Try CSSFiles folder: /CSSFiles/
+        if (stylesheet == null) {
+            try {
+                URL url = getClass().getResource("/CSSFiles/" + filename);
+                if (url != null) {
+                    stylesheet = url.toExternalForm();
+                }
+            } catch (Exception e) {
+                // ignore
+            }
+        }
+
+        // 3. Try MainApplication's classloader
+        if (stylesheet == null) {
+            try {
+                URL url = MainApplication.class.getResource(filename);
+                if (url != null) {
+                    stylesheet = url.toExternalForm();
+                }
+            } catch (Exception e) {
+                // ignore
+            }
+        }
+
+        // Add if found
+        if (stylesheet != null) {
+            scene.getStylesheets().add(stylesheet);
+            System.out.println("  + Added: " + filename);
+        } else {
+            // Not an error - some CSS files are optional
+            System.out.println("  - Skipped (not found): " + filename);
         }
     }
 

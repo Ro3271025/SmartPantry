@@ -169,7 +169,7 @@ public class ShoppingListController extends BaseController {
     }
     // --- Firestore path helpers (users/{id}/pantryItems) ---
     private String currentUserDocId() {
-        // TODO: swap this for your session user if you have one.
+
         return "lewidt@farmingdale.edu";
     }
 

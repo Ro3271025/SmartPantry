@@ -19,7 +19,7 @@ Main layout:
 - center = ScrollPane -> FlowPane (cards)
 -->
 
-<BorderPane prefHeight="800.0" prefWidth="1280.0" stylesheets="@../CSSFiles/pantry.css" xmlns="http://javafx.com/javafx/24.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="Controllers.PantryController">
+<BorderPane prefHeight="800.0" prefWidth="1280.0" xmlns="http://javafx.com/javafx/24.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="Controllers.PantryController">
 
     <!-- === Header Section === -->
     <top>
@@ -28,8 +28,8 @@ Main layout:
             <HBox alignment="CENTER_LEFT" spacing="12" styleClass="toolbar">
                 <Label fx:id="dashboardTitle" text="Pantry Dashboard" styleClass="page-title" />
                 <Region HBox.hgrow="ALWAYS" />
-                <!-- Style guide (icon) -->
-                <Button fx:id="styleBtn" styleClass="icon" text="🎨" />
+                <!-- Style guide / Theme Settings (icon) -->
+                <Button fx:id="styleBtn" onAction="#styleBtnOnAction" styleClass="icon" text="🎨" />
                 <!-- Recipes -->
                 <Button fx:id="recipesBtn" onAction="#recipesBtnOnAction" styleClass="pill" text="👨‍🍳 Recipes" />
                 <!-- Shopping with badge graphic -->
@@ -42,7 +42,8 @@ Main layout:
                     </graphic>
                 </Button>
                 <!-- Logout (icon) -->
-                <Button fx:id="logoutBtn" onAction="#logoutBtnOnAction" styleClass="icon" text="🚪" />            </HBox>
+                <Button fx:id="logoutBtn" onAction="#logoutBtnOnAction" styleClass="icon" text="🚪" />
+            </HBox>
 
             <!-- Row 2: Search + Add Item -->
             <HBox alignment="CENTER_LEFT" spacing="12" styleClass="toolbar">
@@ -67,7 +68,7 @@ Main layout:
     <center>
         <ScrollPane fitToWidth="true" pannable="true" styleClass="viewport">
             <content>
-                <!-- FlowPane wrapss cards responsively (3/2/1 columns based on width) -->
+                <!-- FlowPane wraps cards responsively (3/2/1 columns based on width) -->
                 <FlowPane fx:id="cardFlow" hgap="24" prefWrapLength="1100" vgap="24">
                     <padding>
                         <Insets bottom="16" left="16" right="16" top="16" />
