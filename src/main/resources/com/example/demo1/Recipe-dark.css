@@ -5,7 +5,7 @@
 
 /* ===== RECIPE PAGE CONTAINER ===== */
 .main-container {
-    -fx-background-color: #0f1419 !important;
+    -fx-background-color: #1a1a1a !important;
 }
 
 .recipes-container {
@@ -348,7 +348,7 @@
 
 /* Login Button - Dark styled */
 .login-button-login {
-    -fx-background-color: #1e2730 !important;
+    -fx-background-color: #1a1a1a !important;
     -fx-text-fill: #ffffff !important;
     -fx-border-color: #2a3441 !important;
     -fx-border-radius: 4px !important;
@@ -358,7 +358,7 @@
 }
 
 .login-button-login:hover {
-    -fx-background-color: #2a3441 !important;
+    -fx-background-color: #111827 !important;
 }
 
 /* Create Account Button - Green */
