@@ -10,14 +10,7 @@
 <?import javafx.scene.layout.FlowPane?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.Region?>
-<?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
-
-<!--
-Main layout:
-- BorderPane with top = header/search/filters
-- center = ScrollPane -> FlowPane (cards)
--->
 
 <BorderPane prefHeight="800.0" prefWidth="1280.0" xmlns="http://javafx.com/javafx/24.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="Controllers.PantryController">
 
@@ -32,15 +25,8 @@ Main layout:
                 <Button fx:id="styleBtn" onAction="#styleBtnOnAction" styleClass="icon" text="🎨" />
                 <!-- Recipes -->
                 <Button fx:id="recipesBtn" onAction="#recipesBtnOnAction" styleClass="pill" text="👨‍🍳 Recipes" />
-                <!-- Shopping with badge graphic -->
-                <Button fx:id="shoppingBtn" onAction="#goToShoppingList" styleClass="pill" text="🛒 Shopping">
-                    <graphic>
-                        <StackPane styleClass="badge-container">
-                            <Label text=" " /> <!-- shim just to position badge -->
-                            <Label styleClass="badge" text="4" />
-                        </StackPane>
-                    </graphic>
-                </Button>
+                <!-- Shopping WITHOUT hardcoded badge -->
+                <Button fx:id="shoppingBtn" onAction="#goToShoppingList" styleClass="pill" text="🛒 Shopping" />
                 <!-- Logout (icon) -->
                 <Button fx:id="logoutBtn" onAction="#logoutBtnOnAction" styleClass="icon" text="🚪" />
             </HBox>

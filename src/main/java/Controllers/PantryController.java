@@ -23,6 +23,7 @@ import javafx.scene.control.*;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
+import javafx.scene.layout.StackPane;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.event.ActionEvent;
@@ -33,6 +34,10 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.Locale;
+
+import com.google.cloud.firestore.Firestore;
+import com.google.api.core.ApiFuture;
+import com.google.cloud.firestore.QuerySnapshot;
 
 public class PantryController extends BaseController implements Initializable {
     private FirebaseService firebaseService;
@@ -176,6 +181,7 @@ public class PantryController extends BaseController implements Initializable {
     public void setCurrentUserId(String uid) {
         this.currentUserId = uid;
         loadPantryItems();
+        updateShoppingBadge();
     }
 
 
@@ -198,8 +204,61 @@ public class PantryController extends BaseController implements Initializable {
 
         if (currentUserId != null && !currentUserId.isBlank()) {
             loadPantryItems();
+            updateShoppingBadge();
         } else {
             showErrorAlert("Not signed in", "No current user found. Please login.");
+        }
+    }
+
+    /**
+     * Update the shopping list badge with actual count from Firebase
+     */
+    private void updateShoppingBadge() {
+        if (shoppingBtn == null) return;
+
+        try {
+            String uid = (currentUserId != null && !currentUserId.isBlank())
+                    ? currentUserId
+                    : UserSession.getCurrentUserId();
+
+            if (uid == null || uid.isBlank()) {
+                // Hide badge if no user
+                shoppingBtn.setGraphic(null);
+                return;
+            }
+
+            // Get shopping list count from Firebase
+            Firestore db = FirebaseConfiguration.getDatabase();
+            ApiFuture<QuerySnapshot> future = db.collection("users")
+                    .document(uid)
+                    .collection("shoppingList")
+                    .get();
+
+            QuerySnapshot snapshot = future.get();
+            int count = snapshot.size();
+
+            if (count > 0) {
+                // Create badge with actual count
+                StackPane badgeContainer = new StackPane();
+                badgeContainer.getStyleClass().add("badge-container");
+
+                Label badge = new Label(String.valueOf(count));
+                badge.getStyleClass().add("badge");
+
+                Label spacer = new Label(" ");
+
+                badgeContainer.getChildren().addAll(spacer, badge);
+                shoppingBtn.setGraphic(badgeContainer);
+            } else {
+                // No items - hide badge
+                shoppingBtn.setGraphic(null);
+            }
+
+        } catch (Exception e) {
+            System.err.println("Error updating shopping badge: " + e.getMessage());
+            e.printStackTrace();
+            // On error, hide badge
+            shoppingBtn.setGraphic(null);
         }
     }
 
@@ -261,10 +320,14 @@ public class PantryController extends BaseController implements Initializable {
             themeManager.registerScene(addItemScene);
 
             addItemStage.initModality(Modality.APPLICATION_MODAL);
-            addItemStage.setOnHidden(e -> themeManager.unregisterScene(addItemScene));
+            addItemStage.setOnHidden(e -> {
+                themeManager.unregisterScene(addItemScene);
+                // Refresh items and badge after closing add item dialog
+                loadPantryItems();
+                updateShoppingBadge();
+            });
             addItemStage.showAndWait();
 
-            loadPantryItems();
         } catch (IOException e) {
             System.err.println("Error opening Add Item window: " + e.getMessage());
             e.printStackTrace();
@@ -347,6 +410,7 @@ public class PantryController extends BaseController implements Initializable {
     @FXML
     private void goToShoppingList(Event event) throws IOException {
         switchScene(event, "PantryItemsView");
+        // Badge will be updated when user returns to this screen
     }
 
 
@@ -376,10 +440,13 @@ public class PantryController extends BaseController implements Initializable {
             themeManager.registerScene(editItemScene);
 
             editItemStage.initModality(Modality.APPLICATION_MODAL);
-            editItemStage.setOnHidden(e -> themeManager.unregisterScene(editItemScene));
+            editItemStage.setOnHidden(e -> {
+                themeManager.unregisterScene(editItemScene);
+                // Refresh items after editing
+                loadPantryItems();
+            });
             editItemStage.showAndWait();
 
-            loadPantryItems(); // refresh after edit
         } catch (IOException e) {
             System.err.println("Error opening Edit Item window: " + e.getMessage());
             e.printStackTrace();

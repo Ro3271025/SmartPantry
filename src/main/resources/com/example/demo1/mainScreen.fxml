@@ -1,47 +1,74 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <?import javafx.scene.control.Button?>
-<?import javafx.scene.control.MenuButton?>
-<?import javafx.scene.control.MenuItem?>
+<?import javafx.scene.control.Hyperlink?>
 <?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.layout.Region?>
 <?import javafx.scene.text.Text?>
+<?import javafx.geometry.Insets?>
 
-<AnchorPane prefHeight="500" prefWidth="800" styleClass="main-pane" stylesheets="@style.css" xmlns="http://javafx.com/javafx/24.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="Controllers.MainScreenController">
+<AnchorPane prefHeight="700" prefWidth="1200" styleClass="main-pane" xmlns="http://javafx.com/javafx/24.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="Controllers.MainScreenController">
 
-    <children>
-        <!-- Top Navbar -->
-        <Text layoutX="50" layoutY="40" styleClass="brand-title" text="SmartPantry" />
+    <!-- Top Navbar -->
+    <HBox alignment="CENTER_LEFT" spacing="20" AnchorPane.leftAnchor="60" AnchorPane.rightAnchor="60" AnchorPane.topAnchor="30">
+        <Text styleClass="brand-title" text="SmartPantry" />
 
-        <MenuButton layoutX="620" layoutY="20" styleClass="nav-button" text="About">
-            <items>
-                <MenuItem text="Our Names" />
-                <MenuItem text="Our Project Information" />
-                <MenuItem text="Team" />
-            </items>
-        </MenuButton>
+        <!-- Spacer to push nav links to the right -->
+        <Region HBox.hgrow="ALWAYS" />
 
-        <MenuButton layoutX="700" layoutY="20" styleClass="nav-button" text="Contact Us">
-            <items>
-                <MenuItem text="Our Email" />
-                <MenuItem text="Our Names" />
-                <MenuItem text="Our Phone Number" />
-            </items>
-        </MenuButton>
+        <!-- Navigation Links -->
+        <HBox alignment="CENTER_RIGHT" spacing="40">
+            <Hyperlink styleClass="nav-link" text="About" />
+            <Hyperlink styleClass="nav-link" text="Contact us" />
+            <Hyperlink styleClass="nav-link" text="Pricing" />
+        </HBox>
+    </HBox>
 
-        <!-- Headline and subtext -->
-        <Text layoutX="60" layoutY="150" styleClass="headline" text="Track and Manage Your Pantry Smarter" wrappingWidth="350" />
+    <!-- Main Content Area - Left side -->
+    <VBox alignment="TOP_LEFT" spacing="15" AnchorPane.leftAnchor="60" AnchorPane.topAnchor="150">
+        <Text styleClass="headline" text="Track and" />
+        <Text styleClass="headline" text="Manage Your" />
+        <Text styleClass="headline" text="Pantry Smarter" />
 
-        <Text layoutX="60.0" layoutY="209.0" styleClass="subtext" text="Your personal assistant for managing groceries, saving money, and planning meals." wrappingWidth="380" />
+        <VBox spacing="5">
+            <padding>
+                <Insets top="10" />
+            </padding>
+            <Text styleClass="subtext" text="Your personal assistant for managing groceries," />
+            <Text styleClass="subtext" text="saving money, and planning meals." />
+        </VBox>
 
-        <!-- Buttons -->
-        <Button fx:id="msLoginButton" layoutX="60" layoutY="250" onAction="#msLoginButtonOnAction" styleClass="login-button" text="Log In" />
+        <HBox spacing="20">
+            <padding>
+                <Insets top="25" />
+            </padding>
+            <Button fx:id="msLoginButton" onAction="#msLoginButtonOnAction" styleClass="login-button" text="Log In" prefWidth="140" prefHeight="50" />
+            <Button fx:id="msSignUpButton" onAction="#msSignUpButtonOnAction" styleClass="signup-button" text="Sign Up" prefWidth="140" prefHeight="50" />
+        </HBox>
+    </VBox>
 
-        <Button fx:id="msSignUpButton" layoutX="160" layoutY="250" onAction="#msSignUpButtonOnAction" styleClass="signup-button" text="Sign Up" />
+    <!-- Footer Section -->
+    <HBox spacing="200" AnchorPane.bottomAnchor="100" AnchorPane.leftAnchor="60">
+        <VBox spacing="10">
+            <Text styleClass="footer-text" text="Launching soon on" />
+            <HBox spacing="15">
+                <!-- Made these buttons disabled and non-clickable -->
+                <Button styleClass="store-button-disabled" text="iOS" disable="true" opacity="0.5" />
+                <Button styleClass="store-button-disabled" text="Google Play" disable="true" opacity="0.5" />
+            </HBox>
+        </VBox>
 
-        <Button fx:id="ExitButton" layoutX="720" layoutY="450" onAction="#ExitButtonOnAction" styleClass="exit-button" text="Exit" />
+        <VBox spacing="10">
+            <Text styleClass="footer-text" text="Available now online" />
+            <!-- Made this button disabled and non-clickable -->
+            <Button styleClass="store-button-disabled" text="Web App" disable="true" opacity="0.5" />
+        </VBox>
+    </HBox>
 
-        <!-- Footer -->
-        <Text layoutX="60" layoutY="400" styleClass="footer-text" text="Launching soon on" />
-        <Text layoutX="600" layoutY="400" styleClass="footer-text" text="Available now online" />
-    </children>
+    <!-- Exit Button - Bottom Right -->
+    <Button fx:id="ExitButton" onAction="#ExitButtonOnAction" styleClass="exit-button" text="Exit"
+            AnchorPane.bottomAnchor="30" AnchorPane.rightAnchor="60" />
+
 </AnchorPane>

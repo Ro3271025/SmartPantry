@@ -123,3 +123,87 @@
 .nav-button:hover {
     -fx-text-fill: #2d3748;
 }
+/* =========================================================
+   LOGIN PAGE - LIGHT MODE ADDITIONS
+   Add these styles to src/main/resources/CSSFiles/style.css
+========================================================= */
+
+.root-pane {
+    -fx-background-color: #ffffff;
+}
+
+.login-card {
+    -fx-background-color: #ffffff;
+    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 10, 0, 0, 2);
+    -fx-background-radius: 12;
+    -fx-padding: 30;
+}
+
+.form-title {
+    -fx-font-size: 28px;
+    -fx-font-weight: bold;
+    -fx-fill: #2d3748;
+}
+
+.form-label {
+    -fx-font-size: 12px;
+    -fx-text-fill: #4a5568;
+    -fx-font-weight: 600;
+}
+
+.input-field {
+    -fx-background-color: #f7fafc;
+    -fx-text-fill: #2d3748;
+    -fx-prompt-text-fill: #a0aec0;
+    -fx-border-color: #e2e8f0;
+    -fx-border-radius: 6;
+    -fx-background-radius: 6;
+    -fx-padding: 8 12;
+}
+
+.input-field:focused {
+    -fx-border-color: #48bb78;
+    -fx-background-color: #ffffff;
+}
+
+.login-button-login {
+    -fx-background-color: #48bb78;
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+    -fx-font-size: 14px;
+    -fx-background-radius: 6;
+    -fx-cursor: hand;
+}
+
+.login-button-login:hover {
+    -fx-background-color: #38a169;
+}
+
+.social-button-google {
+    -fx-background-color: white;
+    -fx-text-fill: #4a5568;
+    -fx-border-color: #e2e8f0;
+    -fx-border-width: 1;
+    -fx-border-radius: 6;
+    -fx-background-radius: 6;
+    -fx-cursor: hand;
+}
+
+.social-button-google:hover {
+    -fx-background-color: #f7fafc;
+    -fx-border-color: #cbd5e0;
+}
+
+.signup-button-login {
+    -fx-background-color: #edf2f7;
+    -fx-text-fill: #4a5568;
+    -fx-border-color: #e2e8f0;
+    -fx-border-width: 1;
+    -fx-border-radius: 6;
+    -fx-background-radius: 6;
+    -fx-cursor: hand;
+}
+
+.signup-button-login:hover {
+    -fx-background-color: #e2e8f0;
+}

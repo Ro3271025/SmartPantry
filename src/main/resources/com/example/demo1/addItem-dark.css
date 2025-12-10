@@ -1,29 +1,37 @@
 /* =========================================================
-   ADD ITEM DIALOG - DARK MODE
-   Matches light mode sizing with dark theme colors
+   ADD ITEM DIALOG - DARK MODE (NO PSEUDO-SELECTORS)
+   JavaFX-compatible version without :last-of-type
 ========================================================= */
 
 /* Container */
-.add-item-container {
+VBox.add-item-container {
     -fx-background-color: #1a1a1a !important;
+    -fx-padding: 30 30 30 30 !important;
+    -fx-spacing: 15 !important;
+}
+
+/* CRITICAL: All internal VBoxes get spacing=5 and padding=0 */
+VBox.add-item-container > VBox {
+    -fx-spacing: 5 !important;
+    -fx-padding: 0 !important;
 }
 
 /* Title */
-.add-item-title {
+VBox.add-item-container > Label.add-item-title {
     -fx-font-size: 24px !important;
     -fx-font-weight: bold !important;
     -fx-text-fill: #10b981 !important;
 }
 
 /* Field Labels */
-.field-label {
+VBox.add-item-container Label.field-label {
     -fx-font-size: 12px !important;
     -fx-font-weight: bold !important;
     -fx-text-fill: #e5e7eb !important;
 }
 
 /* Text Fields */
-.form-field {
+VBox.add-item-container TextField.form-field {
     -fx-pref-height: 35px !important;
     -fx-background-color: #2d2d2d !important;
     -fx-text-fill: #ffffff !important;
@@ -33,47 +41,47 @@
     -fx-background-radius: 6px !important;
 }
 
-.form-field:focused {
+VBox.add-item-container TextField.form-field:focused {
     -fx-border-color: #10b981 !important;
     -fx-border-width: 2px !important;
 }
 
 /* ComboBox */
-.form-combo {
+VBox.add-item-container ComboBox.form-combo {
     -fx-pref-height: 35px !important;
-    -fx-background-color: #10b981 !important;
-    -fx-border-color: #10b981 !important;
+    -fx-background-color: #2d2d2d !important;
+    -fx-border-color: #424242 !important;
     -fx-border-radius: 6px !important;
     -fx-background-radius: 6px !important;
 }
 
-.form-combo:focused {
-    -fx-border-color: #059669 !important;
+VBox.add-item-container ComboBox.form-combo:focused {
+    -fx-border-color: #10b981 !important;
 }
 
-.form-combo .list-cell {
+VBox.add-item-container ComboBox.form-combo .list-cell {
+    -fx-background-color: #2d2d2d !important;
+    -fx-text-fill: #ffffff !important;
+}
+
+VBox.add-item-container ComboBox.form-combo .list-cell:filled:selected {
     -fx-background-color: #10b981 !important;
     -fx-text-fill: white !important;
 }
 
-.form-combo .list-cell:filled:selected {
-    -fx-background-color: #059669 !important;
-    -fx-text-fill: white !important;
+VBox.add-item-container ComboBox.form-combo .list-cell:filled:hover {
+    -fx-background-color: #424242 !important;
 }
 
-.form-combo .list-cell:filled:hover {
-    -fx-background-color: #059669 !important;
+VBox.add-item-container ComboBox.form-combo .arrow-button {
+    -fx-background-color: #424242 !important;
 }
 
-.form-combo .arrow-button {
-    -fx-background-color: transparent !important;
+VBox.add-item-container ComboBox.form-combo .arrow {
+    -fx-background-color: #e5e7eb !important;
 }
 
-.form-combo .arrow {
-    -fx-background-color: white !important;
-}
-
-/* ComboBox Popup/Dropdown */
+/* ComboBox Dropdown */
 .form-combo .combo-box-popup .list-view {
     -fx-background-color: #2d2d2d !important;
 }
@@ -93,7 +101,7 @@
 }
 
 /* DatePicker */
-.form-datepicker {
+VBox.add-item-container DatePicker.form-datepicker {
     -fx-pref-height: 35px !important;
     -fx-background-color: #2d2d2d !important;
     -fx-border-color: #424242 !important;
@@ -101,45 +109,23 @@
     -fx-background-radius: 6px !important;
 }
 
-.form-datepicker:focused {
+VBox.add-item-container DatePicker.form-datepicker:focused {
     -fx-border-color: #10b981 !important;
 }
 
-.form-datepicker > .text-field {
+VBox.add-item-container DatePicker.form-datepicker > .text-field {
     -fx-background-color: #2d2d2d !important;
     -fx-text-fill: #ffffff !important;
     -fx-prompt-text-fill: #9ca3af !important;
     -fx-background-radius: 6px 0 0 6px !important;
 }
 
-.form-datepicker > .arrow-button {
+VBox.add-item-container DatePicker.form-datepicker > .arrow-button {
     -fx-background-color: #424242 !important;
     -fx-background-radius: 0 6px 6px 0 !important;
 }
 
-.form-datepicker > .arrow-button > .arrow {
-    -fx-background-color: #e5e7eb !important;
-}
-
-/* Generic DatePicker styling (fallback) */
-.date-picker {
-    -fx-background-color: #2d2d2d !important;
-    -fx-border-color: #424242 !important;
-    -fx-border-radius: 6px !important;
-    -fx-background-radius: 6px !important;
-}
-
-.date-picker > .text-field {
-    -fx-background-color: #2d2d2d !important;
-    -fx-text-fill: #ffffff !important;
-    -fx-prompt-text-fill: #9ca3af !important;
-}
-
-.date-picker > .arrow-button {
-    -fx-background-color: #424242 !important;
-}
-
-.date-picker > .arrow-button > .arrow {
+VBox.add-item-container DatePicker.form-datepicker > .arrow-button > .arrow {
     -fx-background-color: #e5e7eb !important;
 }
 
@@ -153,26 +139,6 @@
     -fx-background-color: #1a1a1a !important;
 }
 
-.date-picker-popup .month-year-pane .label {
-    -fx-text-fill: #ffffff !important;
-}
-
-.date-picker-popup .month-year-pane .spinner .button {
-    -fx-background-color: #424242 !important;
-}
-
-.date-picker-popup .month-year-pane .spinner .button .arrow {
-    -fx-background-color: #e5e7eb !important;
-}
-
-.date-picker-popup .week-number-cell {
-    -fx-text-fill: #9ca3af !important;
-}
-
-.date-picker-popup .day-name-cell {
-    -fx-text-fill: #9ca3af !important;
-}
-
 .date-picker-popup .day-cell {
     -fx-background-color: #2d2d2d !important;
     -fx-text-fill: #ffffff !important;
@@ -182,32 +148,27 @@
     -fx-background-color: #424242 !important;
 }
 
-.date-picker-popup .day-cell.selected {
+.date-picker-popup .selected {
     -fx-background-color: #10b981 !important;
     -fx-text-fill: white !important;
 }
 
-.date-picker-popup .day-cell.today {
+.date-picker-popup .today {
     -fx-background-color: #374151 !important;
     -fx-text-fill: #10b981 !important;
-    -fx-font-weight: bold !important;
-}
-
-.date-picker-popup .day-cell.outside-month {
-    -fx-text-fill: #6b7280 !important;
 }
 
 /* Separator */
-.form-separator {
+VBox.add-item-container > Separator.form-separator {
     -fx-background-color: #424242 !important;
 }
 
-.form-separator .line {
+VBox.add-item-container > Separator.form-separator .line {
     -fx-border-color: #424242 !important;
 }
 
 /* Scan Barcode Button */
-.scan-button {
+VBox.add-item-container Button.scan-button {
     -fx-background-color: #10b981 !important;
     -fx-text-fill: white !important;
     -fx-border-color: #10b981 !important;
@@ -215,15 +176,16 @@
     -fx-background-radius: 6px !important;
     -fx-font-weight: bold !important;
     -fx-cursor: hand !important;
+    -fx-pref-height: 40px !important;
 }
 
-.scan-button:hover {
+VBox.add-item-container Button.scan-button:hover {
     -fx-background-color: #059669 !important;
     -fx-border-color: #059669 !important;
 }
 
 /* Save Button */
-.save-button {
+VBox.add-item-container Button.save-button {
     -fx-background-color: #10b981 !important;
     -fx-text-fill: white !important;
     -fx-font-weight: bold !important;
@@ -231,14 +193,15 @@
     -fx-border-radius: 6px !important;
     -fx-background-radius: 6px !important;
     -fx-cursor: hand !important;
+    -fx-pref-height: 45px !important;
 }
 
-.save-button:hover {
+VBox.add-item-container Button.save-button:hover {
     -fx-background-color: #059669 !important;
 }
 
 /* Cancel Button */
-.cancel-button {
+VBox.add-item-container Button.cancel-button {
     -fx-background-color: #374151 !important;
     -fx-text-fill: #e5e7eb !important;
     -fx-border-color: #4b5563 !important;
@@ -246,16 +209,17 @@
     -fx-border-radius: 6px !important;
     -fx-background-radius: 6px !important;
     -fx-cursor: hand !important;
+    -fx-pref-height: 40px !important;
 }
 
-.cancel-button:hover {
+VBox.add-item-container Button.cancel-button:hover {
     -fx-background-color: #4b5563 !important;
     -fx-text-fill: #ffffff !important;
     -fx-border-color: #6b7280 !important;
 }
 
 /* Status Label */
-.status-label {
+VBox.add-item-container Label.status-label {
     -fx-font-size: 13px !important;
     -fx-padding: 10px !important;
     -fx-background-color: #2d2d2d !important;
@@ -263,7 +227,7 @@
     -fx-text-fill: #e5e7eb !important;
 }
 
-/* ScrollPane (if used) */
+/* ScrollPane */
 .scroll-pane {
     -fx-background-color: #1a1a1a !important;
 }

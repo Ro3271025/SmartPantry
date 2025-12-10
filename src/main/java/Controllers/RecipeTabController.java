@@ -25,6 +25,7 @@ import javafx.scene.layout.TilePane;   // grid container
 import javafx.scene.layout.Region;     // for pref size clamps
 
 import java.io.IOException;
+import java.net.URL;
 import java.time.LocalDate;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
@@ -120,20 +121,34 @@ public class RecipeTabController extends BaseController {
     @FXML
     private void handleBackToPantry() {
         try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/example/demo1/PantryDashboard.fxml"));
+            // Use findFXML from BaseController to locate the file
+            URL fxmlUrl = findFXML("PantryDashboard");
+
+            if (fxmlUrl == null) {
+                showError("Could not find PantryDashboard.fxml");
+                return;
+            }
+
+            FXMLLoader loader = new FXMLLoader(fxmlUrl);  // SET THE LOCATION!
             Parent root = loader.load();
+
             PantryController controller = loader.getController();
             controller.setCurrentUserId(currentUserId);
 
             Stage stage = (Stage) backButton.getScene().getWindow();
-            stage.setScene(new Scene(root));
+            Scene scene = new Scene(root);
+
+            // Register with ThemeManager
+            themeManager.registerScene(scene);
+
+            stage.setScene(scene);
             stage.setTitle("Pantry Dashboard");
             stage.show();
         } catch (IOException e) {
-            showError("Failed to navigate to Pantry Dashboard");
+            e.printStackTrace();
+            showError("Failed to navigate to Pantry Dashboard: " + e.getMessage());
         }
     }
-
     // ==== Generate (Discover) ====
     @FXML
     private void handleGenerateRecipe() {
