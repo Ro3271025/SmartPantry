@@ -1,20 +1,19 @@
 package Controllers;
+
 import Firebase.FirebaseConfiguration;
 import com.example.demo1.UserSession;
-import com.google.cloud.firestore.Firestore;
 import com.google.cloud.Timestamp;
+import com.google.cloud.firestore.FieldValue;
+import com.google.cloud.firestore.Firestore;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
-import java.io.IOException;
-import java.util.Arrays;
-import java.util.List;
 
+import java.util.*;
 
-import java.util.HashMap;
-import java.util.Map;
-public class AddRecipeController extends BaseController{
+public class AddRecipeController extends BaseController {
+
     @FXML private TextField recipeNameField;
     @FXML private TextField availableField;
     @FXML private TextField missingField;
@@ -22,67 +21,77 @@ public class AddRecipeController extends BaseController{
     @FXML private Label statusLabel;
 
     @FXML
-    private void saveRecipe() throws IOException {
+    private void saveRecipe() {
         String uid = UserSession.getCurrentUserId();
+        if (uid == null || uid.isEmpty()) { showInlineError("Logged-In User Not Found"); return; }
 
-        if (uid == null || uid.isEmpty()) {
-            showError("Logged-In User Not Found");
-            return;
-        }
-        String name = recipeNameField.getText().trim();
-        String available = availableField.getText().trim();
-        String missing = missingField.getText().trim();
-        String aiTip = aiTipField.getText().trim();
+        String name = safe(recipeNameField.getText());
+        String available = safe(availableField.getText());
+        String missing = safe(missingField.getText());
+        String aiTip = safe(aiTipField.getText());
 
-        if (name.isEmpty()) {
-            showError("Recipe Name is required.");
-            return;
-        }
+        if (name.isBlank()) { showInlineError("Recipe Name is required."); return; }
+
         try {
             Firestore db = FirebaseConfiguration.getDatabase();
 
-            Map<String, Object> recipeData = new HashMap<>();
-            recipeData.put("title", name);
-            recipeData.put("ingredients", Arrays.asList(available.split("\\s*,\\s*")));
-            recipeData.put("missingIngredients", Arrays.asList(missing.split("\\s*,\\s*")));
-            recipeData.put("steps", List.of(aiTip.isEmpty() ? "No tip provided." : aiTip));
-            recipeData.put("createdBy", "manual");
-            recipeData.put("favorite", false);
-            recipeData.put("createdAt", Timestamp.now());
+            // Unified fields
+            Map<String, Object> data = new HashMap<>();
+            data.put("title", name);
+            data.put("ingredients", splitCSV(available));
+            data.put("missingIngredients", splitCSV(missing));
+            data.put("steps", List.of(aiTip.isBlank() ? "No tip provided." : aiTip));
+            data.put("createdBy", "manual");
+            data.put("favorite", false);
+            data.put("createdAt", Timestamp.now());
+            data.put("updatedAt", FieldValue.serverTimestamp());
 
-            db.collection("users")
-                    .document(uid)
-                    .collection("recipes")
-                    .add(recipeData)
+            // Legacy fields so Discover (legacy) lists it too
+            data.put("name", name);
+            data.put("available", available);
+            data.put("missing", missing);
+            data.put("aiTip", aiTip);
+
+            // Use slug (stable id) so "Saved" tab lines up with legacy edits
+            String docId = name.toLowerCase(Locale.ROOT)
+                    .replaceAll("[^a-z0-9]+","-")
+                    .replaceAll("(^-|-$)","");
+
+            db.collection("users").document(uid).collection("recipes")
+                    .document(docId)          // stable id
+                    .set(data)                // upsert
                     .get();
 
             statusLabel.setTextFill(Color.GREEN);
             statusLabel.setText("✓ Recipe saved successfully!");
-            clearForm();
 
-            // Close window after short delay
+            // close
             Stage stage = (Stage) recipeNameField.getScene().getWindow();
             stage.close();
+
         } catch (Exception e) {
-            showError("Error saving recipe: " + e.getMessage());
+            showInlineError("Error saving recipe: " + e.getMessage());
         }
     }
+
     @FXML
     private void handleCancel() {
         Stage stage = (Stage) recipeNameField.getScene().getWindow();
         stage.close();
     }
 
-    private void showError(String msg) {
+    private void showInlineError(String msg) {
         statusLabel.setTextFill(Color.RED);
         statusLabel.setText("✗ " + msg);
     }
 
-    private void clearForm() {
-        recipeNameField.clear();
-        availableField.clear();
-        missingField.clear();
-        aiTipField.clear();
-    }
+    private static String safe(String s){ return s == null ? "" : s.trim(); }
 
+    private static List<String> splitCSV(String s) {
+        if (s == null || s.isBlank()) return List.of();
+        String[] parts = s.split("\\s*,\\s*");
+        List<String> out = new ArrayList<>();
+        for (String p : parts) if (!p.isBlank()) out.add(p);
+        return out;
+    }
 }
