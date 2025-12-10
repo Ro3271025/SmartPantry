@@ -207,3 +207,191 @@
 .signup-button-login:hover {
     -fx-background-color: #e2e8f0;
 }
+/* ============================================
+   THEME SETTINGS PAGE - LIGHT MODE ADDITIONS
+   ============================================
+   Add this to your light mode CSS file (style.css)
+   to fix the theme settings page styling
+   ============================================ */
+
+/* Theme Settings Root */
+.theme-settings-root {
+    -fx-background-color: #f5f5f5;
+}
+
+/* Header Section */
+.header-section {
+    -fx-background-color: white;
+    -fx-padding: 20;
+    -fx-spacing: 16;
+}
+
+/* Back Button */
+.back-button {
+    -fx-background-color: transparent;
+    -fx-text-fill: #10b981;
+    -fx-font-size: 14px;
+    -fx-cursor: hand;
+    -fx-underline: false;
+    -fx-border-width: 0;
+    -fx-padding: 8 12;
+}
+
+.back-button:hover {
+    -fx-text-fill: #0d9668;
+    -fx-background-color: rgba(16, 185, 129, 0.1);
+    -fx-background-radius: 5;
+}
+
+/* Page Title */
+.page-title {
+    -fx-text-fill: #1a1a1a;
+    -fx-font-size: 32px;
+    -fx-font-weight: bold;
+}
+
+/* Page Subtitle */
+.page-subtitle {
+    -fx-text-fill: #6b7280;
+    -fx-font-size: 14px;
+}
+
+/* Content Area */
+.content-area {
+    -fx-background-color: transparent;
+    -fx-spacing: 24;
+}
+
+.content-scroll {
+    -fx-background-color: transparent;
+}
+
+/* Settings Card */
+.settings-card {
+    -fx-background-color: white;
+    -fx-background-radius: 12;
+    -fx-padding: 24;
+    -fx-spacing: 20;
+    -fx-border-color: #e5e7eb;
+    -fx-border-width: 1;
+    -fx-border-radius: 12;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.1), 10, 0, 0, 2);
+}
+
+/* Card Title */
+.card-title {
+    -fx-text-fill: #1a1a1a;
+    -fx-font-size: 20px;
+    -fx-font-weight: 600;
+}
+
+/* Card Subtitle */
+.card-subtitle {
+    -fx-text-fill: #6b7280;
+    -fx-font-size: 14px;
+}
+
+/* Theme Option Container */
+.theme-option {
+    -fx-background-color: transparent;
+    -fx-spacing: 12;
+    -fx-padding: 16;
+    -fx-background-radius: 8;
+}
+
+.theme-option:hover {
+    -fx-background-color: #f9fafb;
+}
+
+/* Theme Preview Boxes */
+.theme-preview {
+    -fx-min-width: 60;
+    -fx-min-height: 60;
+    -fx-pref-width: 60;
+    -fx-pref-height: 60;
+    -fx-background-radius: 8;
+    -fx-alignment: center;
+}
+
+.light-preview {
+    -fx-background-color: #ffffff;
+    -fx-border-color: #e5e7eb;
+    -fx-border-width: 2;
+    -fx-border-radius: 8;
+}
+
+.dark-preview {
+    -fx-background-color: #1f2937;
+    -fx-border-color: #374151;
+    -fx-border-width: 2;
+    -fx-border-radius: 8;
+}
+
+/* Theme Icon */
+.theme-icon {
+    -fx-font-size: 28px;
+}
+
+/* Theme Name */
+.theme-name {
+    -fx-text-fill: #1a1a1a;
+    -fx-font-size: 16px;
+    -fx-font-weight: 600;
+}
+
+/* Theme Description */
+.theme-description {
+    -fx-text-fill: #6b7280;
+    -fx-font-size: 13px;
+}
+
+/* Theme Button */
+.theme-button {
+    -fx-background-color: #10b981;
+    -fx-text-fill: white;
+    -fx-font-size: 14px;
+    -fx-font-weight: 600;
+    -fx-background-radius: 6;
+    -fx-padding: 10 20;
+    -fx-cursor: hand;
+    -fx-border-width: 0;
+}
+
+.theme-button:hover {
+    -fx-background-color: #0d9668;
+}
+
+.theme-button.active {
+    -fx-background-color: #059669;
+}
+
+/* Current Theme Info */
+.current-theme-info {
+    -fx-background-color: #d1fae5;
+    -fx-padding: 16;
+    -fx-background-radius: 8;
+    -fx-border-color: #10b981;
+    -fx-border-width: 1;
+    -fx-border-radius: 8;
+}
+
+.current-theme-icon {
+    -fx-font-size: 32px;
+}
+
+.current-theme-label {
+    -fx-text-fill: #1a1a1a;
+    -fx-font-size: 16px;
+    -fx-font-weight: 600;
+}
+
+.current-theme-status {
+    -fx-text-fill: #059669;
+    -fx-font-size: 13px;
+}
+
+/* Separator */
+.separator .line {
+    -fx-border-color: #e5e7eb;
+    -fx-background-color: #e5e7eb;
+}

@@ -7,10 +7,9 @@ import java.util.List;
 import java.util.prefs.Preferences;
 
 /**
- * Manages application-wide theme switching between light and dark modes.
- * Handles the split CSS file structure:
- *   - /com/example/demo1/  (primary)
- *   - /CSSFiles/           (secondary)
+ * Multi-File ThemeManager - Loads matching CSS files for each theme
+ * Light Mode: style.css, pantry.css, Recipe.css, styles.css, addItem.css, ShoppingList.css
+ * Dark Mode: pantry-dark.css, Recipe-dark.css, ShoppingList-dark.css, addItem-dark.css
  */
 public class ThemeManager {
     private static ThemeManager instance;
@@ -111,31 +110,46 @@ public class ThemeManager {
 
     /**
      * Apply current theme to a specific scene
+     * MATCHING FILES APPROACH:
+     * - Each page-specific CSS file has a dark version
+     * - pantry.css → pantry-dark.css
+     * - Recipe.css → Recipe-dark.css
+     * - ShoppingList.css → ShoppingList-dark.css
      */
     private void applyThemeToScene(Scene scene) {
         if (scene == null) return;
 
+        // CRITICAL: Clear ALL existing stylesheets first
         scene.getStylesheets().clear();
+        System.out.println("  Cleared all stylesheets");
 
         if (isDarkMode()) {
-            // Dark theme stylesheets
-            addStylesheetIfExists(scene, "dark-theme.css");
+            addStylesheetIfExists(scene, "style-dark.css");
+            addStylesheetIfExists(scene, "welcome-dark.css");
             addStylesheetIfExists(scene, "pantry-dark.css");
             addStylesheetIfExists(scene, "Recipe-dark.css");
-            addStylesheetIfExists(scene, "styles-dark.css");
-            addStylesheetIfExists(scene, "style-dark.css");
-            addStylesheetIfExists(scene, "addItem-dark.css");
             addStylesheetIfExists(scene, "ShoppingList-dark.css");
-        } else {
-            // Light theme stylesheets
+            addStylesheetIfExists(scene, "ThemeSettings-dark.css");
+            addStylesheetIfExists(scene, "addItem-dark.css");
+        }
+
+        else {
+            // LIGHT MODE: Load light versions (original files)
             addStylesheetIfExists(scene, "style.css");
             addStylesheetIfExists(scene, "pantry.css");
             addStylesheetIfExists(scene, "Recipe.css");
             addStylesheetIfExists(scene, "styles.css");
             addStylesheetIfExists(scene, "addItem.css");
+            addStylesheetIfExists(scene, "ShoppingList.css");
         }
 
-        System.out.println("  Applied " + scene.getStylesheets().size() + " stylesheets");
+        // Force scene to refresh CSS
+        if (scene.getRoot() != null) {
+            scene.getRoot().applyCss();
+            scene.getRoot().layout();
+        }
+
+        System.out.println("  ✓ Applied " + scene.getStylesheets().size() + " stylesheet(s)");
     }
 
     /**
@@ -143,6 +157,7 @@ public class ThemeManager {
      * Search order:
      *   1. /com/example/demo1/{filename}
      *   2. /CSSFiles/{filename}
+     *   3. MainApplication's classloader
      */
     private void addStylesheetIfExists(Scene scene, String filename) {
         String stylesheet = null;

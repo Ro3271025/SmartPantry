@@ -8,7 +8,7 @@
             fx:controller="Controllers.ThemeSettingsController"
             prefHeight="600.0" prefWidth="800.0"
             styleClass="theme-settings-root"
-            stylesheets="@ThemeSettings.css">
+            >
 
     <!-- Header -->
     <top>

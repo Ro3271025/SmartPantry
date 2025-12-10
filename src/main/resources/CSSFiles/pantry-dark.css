@@ -1,0 +1,223 @@
+/* ============================================
+   PANTRY DASHBOARD - DARK THEME
+   ============================================ */
+
+/* Root background - uniform dark blue */
+.root {
+    -fx-background-color: #1e2730;
+}
+
+/* Dashboard root - uniform dark blue */
+.dashboard-root {
+    -fx-background-color: #1e2730;
+}
+
+/* Dashboard title */
+.dashboard-title {
+    -fx-text-fill: #ffffff;
+    -fx-font-size: 28px;
+    -fx-font-weight: bold;
+}
+
+/* Search field */
+.search-field,
+#searchField {
+    -fx-background-color: #1e2730;
+    -fx-text-fill: #e0e0e0;
+    -fx-prompt-text-fill: #888888;
+    -fx-border-color: #2a3441;
+    -fx-border-radius: 5;
+    -fx-background-radius: 5;
+    -fx-padding: 10 15;
+}
+
+/* Filter buttons (All, Expire Soon, Low Stock) */
+.filter-btn,
+.filter-button {
+    -fx-background-color: #2a3441;
+    -fx-text-fill: #e0e0e0;
+    -fx-background-radius: 5;
+    -fx-padding: 8 16;
+    -fx-cursor: hand;
+    -fx-border-width: 0;
+}
+
+.filter-btn:hover,
+.filter-button:hover {
+    -fx-background-color: #374151;
+}
+
+.filter-btn.active,
+.filter-button.active {
+    -fx-background-color: #10b981;
+    -fx-text-fill: white;
+}
+
+/* Food item card container */
+.item-container,
+.food-item,
+.pantry-item {
+    -fx-background-color: #1e2730;
+    -fx-background-radius: 10;
+    -fx-padding: 16;
+    -fx-border-color: #2a3441;
+    -fx-border-width: 1;
+    -fx-border-radius: 10;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.3), 8, 0, 0, 2);
+}
+
+.item-container:hover,
+.food-item:hover,
+.pantry-item:hover {
+    -fx-border-color: #10b981;
+}
+
+/* Item name/title */
+.item-name,
+.food-name,
+.item-title {
+    -fx-text-fill: #ffffff;
+    -fx-font-size: 18px;
+    -fx-font-weight: bold;
+}
+
+/* Item category */
+.item-category,
+.category-label {
+    -fx-text-fill: #9ca3af;
+    -fx-font-size: 13px;
+}
+
+/* Item quantity */
+.item-quantity,
+.quantity-label {
+    -fx-text-fill: #e0e0e0;
+    -fx-font-size: 14px;
+}
+
+/* Expiration date */
+.item-expiration,
+.expiration-label {
+    -fx-text-fill: #9ca3af;
+    -fx-font-size: 13px;
+}
+
+/* Status labels */
+.status-label {
+    -fx-font-weight: 600;
+    -fx-font-size: 13px;
+}
+
+.expiring-soon {
+    -fx-text-fill: #f59e0b;
+}
+
+.expired {
+    -fx-text-fill: #ef4444;
+}
+
+.low-stock {
+    -fx-text-fill: #f59e0b;
+}
+
+.in-stock,
+.good-stock {
+    -fx-text-fill: #10b981;
+}
+
+/* Edit button on cards */
+.edit-btn,
+.edit-button {
+    -fx-background-color: #2a3441;
+    -fx-text-fill: #e0e0e0;
+    -fx-background-radius: 5;
+    -fx-padding: 6 12;
+    -fx-font-size: 12px;
+    -fx-cursor: hand;
+    -fx-border-width: 0;
+}
+
+.edit-btn:hover,
+.edit-button:hover {
+    -fx-background-color: #374151;
+}
+
+/* Delete button on cards */
+.delete-btn,
+.delete-button {
+    -fx-background-color: #ef4444;
+    -fx-text-fill: white;
+    -fx-background-radius: 5;
+    -fx-padding: 6 12;
+    -fx-font-size: 12px;
+    -fx-cursor: hand;
+    -fx-border-width: 0;
+}
+
+.delete-btn:hover,
+.delete-button:hover {
+    -fx-background-color: #dc2626;
+}
+
+/* Add Item button */
+.add-item-btn,
+.add-button {
+    -fx-background-color: #10b981;
+    -fx-text-fill: white;
+    -fx-background-radius: 5;
+    -fx-padding: 10 20;
+    -fx-font-size: 14px;
+    -fx-font-weight: 600;
+    -fx-cursor: hand;
+    -fx-border-width: 0;
+}
+
+.add-item-btn:hover,
+.add-button:hover {
+    -fx-background-color: #0d9668;
+}
+
+/* Top navigation buttons */
+.nav-button,
+.recipes-btn,
+.shopping-btn {
+    -fx-background-color: #10b981;
+    -fx-text-fill: white;
+    -fx-background-radius: 5;
+    -fx-padding: 8 16;
+    -fx-cursor: hand;
+    -fx-border-width: 0;
+}
+
+.nav-button:hover,
+.recipes-btn:hover,
+.shopping-btn:hover {
+    -fx-background-color: #0d9668;
+}
+
+/* Grid/Flow pane for items */
+.items-grid,
+.items-container {
+    -fx-background-color: transparent;
+    -fx-hgap: 16;
+    -fx-vgap: 16;
+}
+
+/* ScrollPane */
+.scroll-pane {
+    -fx-background-color: transparent;
+}
+
+.scroll-pane .viewport {
+    -fx-background-color: transparent;
+}
+
+/* General labels */
+.label {
+    -fx-text-fill: #e0e0e0;
+}
+
+/* VBox and HBox containers */
+VBox, HBox {
+    -fx-background-color: transparent;
+}

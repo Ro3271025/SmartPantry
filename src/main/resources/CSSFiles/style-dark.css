@@ -1,0 +1,126 @@
+/* ============================================
+   LOGIN PAGE - DARK THEME
+   ============================================ */
+
+/* Root background */
+.root, .root-pane {
+    -fx-background-color: #0f1419;
+}
+
+/* Login card container */
+.login-card {
+    -fx-background-color: transparent;
+    -fx-spacing: 12;
+    -fx-alignment: center;
+}
+
+/* Form title - "Login" */
+.form-title {
+    -fx-fill: #ffffff;
+    -fx-font-size: 32px;
+    -fx-font-weight: bold;
+}
+
+/* Form labels - "Email", "Password" */
+.form-label {
+    -fx-text-fill: #e0e0e0;
+    -fx-font-size: 14px;
+}
+
+/* Input fields */
+.input-field {
+    -fx-background-color: #ffffff;
+    -fx-text-fill: #1a1a1a;
+    -fx-prompt-text-fill: #888888;
+    -fx-border-color: #10b981;
+    -fx-border-width: 2;
+    -fx-border-radius: 5;
+    -fx-background-radius: 5;
+    -fx-padding: 10 12;
+    -fx-pref-width: 220;
+    -fx-max-width: 220;
+    -fx-min-height: 40;
+    -fx-pref-height: 40;
+    -fx-font-size: 14px;
+}
+
+.input-field:focused {
+    -fx-border-color: #0d9668;
+    -fx-border-width: 2;
+}
+
+/* Log In button */
+.login-button-login,
+.login-btn {
+    -fx-background-color: #10b981;
+    -fx-text-fill: white;
+    -fx-font-size: 15px;
+    -fx-font-weight: 600;
+    -fx-padding: 10 12;
+    -fx-background-radius: 5;
+    -fx-pref-width: 220;
+    -fx-max-width: 220;
+    -fx-min-height: 40;
+    -fx-cursor: hand;
+}
+
+.login-button-login:hover,
+.login-btn:hover {
+    -fx-background-color: #0d9668;
+}
+
+/* Google Login button */
+.social-button-google,
+.google-btn {
+    -fx-background-color: white;
+    -fx-text-fill: #1a1a1a;
+    -fx-font-size: 14px;
+    -fx-padding: 10 12;
+    -fx-background-radius: 5;
+    -fx-border-color: #e0e0e0;
+    -fx-border-width: 1;
+    -fx-border-radius: 5;
+    -fx-pref-width: 220;
+    -fx-max-width: 220;
+    -fx-min-height: 40;
+    -fx-cursor: hand;
+}
+
+.social-button-google:hover,
+.google-btn:hover {
+    -fx-background-color: #f5f5f5;
+}
+
+/* Go Back button */
+.signup-button-login,
+.back-btn {
+    -fx-background-color: #10b981;
+    -fx-text-fill: white;
+    -fx-font-size: 14px;
+    -fx-padding: 10 12;
+    -fx-background-radius: 5;
+    -fx-pref-width: 200;
+    -fx-max-width: 200;
+    -fx-min-height: 40;
+    -fx-cursor: hand;
+}
+
+.signup-button-login:hover,
+.back-btn:hover {
+    -fx-background-color: #0d9668;
+}
+
+/* Container transparency */
+VBox, HBox, AnchorPane {
+    -fx-background-color: transparent;
+}
+
+/* General labels */
+.label {
+    -fx-text-fill: #e0e0e0;
+}
+
+/* Text elements */
+Text {
+    -fx-fill: #e0e0e0;
+}

@@ -7,6 +7,8 @@
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.layout.Region?>
 <?import javafx.scene.text.Text?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.image.Image?>
 <?import javafx.geometry.Insets?>
 
 <AnchorPane prefHeight="700" prefWidth="1200" styleClass="main-pane" xmlns="http://javafx.com/javafx/24.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="Controllers.MainScreenController">
@@ -49,12 +51,20 @@
         </HBox>
     </VBox>
 
+    <!-- Watermelon Image - Right side -->
+    <ImageView fitHeight="400" fitWidth="400" preserveRatio="true"
+               AnchorPane.rightAnchor="100" AnchorPane.topAnchor="150">
+        <image>
+            <!-- Using the watermelon image you provided -->
+
+        </image>
+    </ImageView>
+
     <!-- Footer Section -->
     <HBox spacing="200" AnchorPane.bottomAnchor="100" AnchorPane.leftAnchor="60">
         <VBox spacing="10">
             <Text styleClass="footer-text" text="Launching soon on" />
             <HBox spacing="15">
-                <!-- Made these buttons disabled and non-clickable -->
                 <Button styleClass="store-button-disabled" text="iOS" disable="true" opacity="0.5" />
                 <Button styleClass="store-button-disabled" text="Google Play" disable="true" opacity="0.5" />
             </HBox>
@@ -62,7 +72,6 @@
 
         <VBox spacing="10">
             <Text styleClass="footer-text" text="Available now online" />
-            <!-- Made this button disabled and non-clickable -->
             <Button styleClass="store-button-disabled" text="Web App" disable="true" opacity="0.5" />
         </VBox>
     </HBox>
