@@ -5,6 +5,7 @@ import AI.RecipeDTO;
 import Firebase.FirebaseConfiguration;
 import Firebase.FirebaseService;
 import Pantry.PantryItem;
+import Recipe.RecipeAPIService;
 import com.example.demo1.UserSession;
 import com.google.cloud.firestore.*;
 import javafx.application.Platform;
@@ -15,16 +16,20 @@ import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.Node;
 import javafx.scene.control.*;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.layout.*;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 
+import java.awt.Desktop;
 import java.io.IOException;
+import java.net.URI;
 import java.time.LocalDate;
 import java.util.*;
 import java.util.concurrent.*;
-import java.util.stream.Collectors;
 
 public class RecipeTabController extends BaseController {
 
@@ -271,8 +276,20 @@ public class RecipeTabController extends BaseController {
         VBox aiTip = new VBox(new Label("✨ AI Tip: " + tip));
         aiTip.getStyleClass().add("ai-tip");
 
+        // === NEW: Click card → Online Recipes modal (RecipeAPIService) ===
+        card.setOnMouseClicked(me -> {
+            Node tgt = me.getPickResult() == null ? null : me.getPickResult().getIntersectedNode();
+            if (tgt instanceof Button || isChildOf(tgt, buttons)) return; // ignore clicks on buttons
+            openOnlineRecipesModal(name.getText(), recipe.available == null ? "" : recipe.available);
+        });
+
         card.getChildren().addAll(header, available, missing, buttons, aiTip);
         return card;
+    }
+
+    private boolean isChildOf(Node node, Node container) {
+        for (Node cur = node; cur != null; cur = cur.getParent()) if (cur == container) return true;
+        return false;
     }
 
     private void handleDeleteRecipe(LegacyRecipe recipe) {
@@ -556,6 +573,13 @@ public class RecipeTabController extends BaseController {
         VBox metaBox = new VBox(new Label(meta.isEmpty() ? "" : meta));
         metaBox.getStyleClass().add("ai-tip");
 
+        // === NEW: click saved card → Online modal too ===
+        card.setOnMouseClicked(me -> {
+            Node tgt = me.getPickResult() == null ? null : me.getPickResult().getIntersectedNode();
+            if (tgt instanceof Button || isChildOf(tgt, header)) return; // ignore star/delete clicks
+            openOnlineRecipesModal(r.title, String.join(", ", r.ingredients));
+        });
+
         card.getChildren().addAll(header, row1, row2, metaBox);
         return card;
     }
@@ -666,7 +690,7 @@ public class RecipeTabController extends BaseController {
         }));
     }
 
-    // ====== Generate (AI) – results are shown on Saved tab after you save them yourself
+    // ====== Generate (AI)
     @FXML
     private void handleGenerateRecipe() {
         if (!ai.isModelAvailable()) { showError("Local AI not ready. Run: 1) ollama pull phi3:mini  2) ollama serve"); return; }
@@ -693,7 +717,6 @@ public class RecipeTabController extends BaseController {
                 return;
             }
 
-            // Show a quick modal letting the user choose to save each result
             for (RecipeDTO d : recipes) {
                 UnifiedRecipe r = fromAI(d);
                 boolean saveIt = confirmSave(r.title);
@@ -781,4 +804,196 @@ public class RecipeTabController extends BaseController {
         boolean favorite = false;
         Source source = Source.STATIC;
     }
+
+    // ======== Online Recipes modal (RecipeAPIService) ========
+    private void openOnlineRecipesModal(String nameQuery, String availableCsv) {
+        String q = nameQuery == null ? "" : nameQuery.trim();
+
+        // Left: list of results
+        ListView<OnlineItem> listView = new ListView<>();
+        listView.setPrefWidth(360);
+
+        // Right: details pane
+        VBox detailPane = new VBox(10);
+        detailPane.setPadding(new Insets(12));
+        detailPane.getChildren().setAll(new Label("Searching online: " + (q.isBlank() ? "(blank)" : q)));
+
+        SplitPane split = new SplitPane(listView, new ScrollPane(detailPane));
+        split.setDividerPositions(0.35);
+
+        Stage stage = new Stage();
+        stage.setTitle("Online Recipes — " + (q.isBlank() ? "Search" : q));
+        stage.initModality(Modality.WINDOW_MODAL);
+        if (vBox != null && vBox.getScene() != null && vBox.getScene().getWindow() != null)
+            stage.initOwner(vBox.getScene().getWindow());
+        stage.setScene(new Scene(split, 1000, 700));
+        stage.show();
+
+        // search (async)
+        CompletableFuture
+                .supplyAsync(() -> RecipeAPIService.smartSearch(q, availableCsv == null ? "" : availableCsv, 10), io)
+                .thenAccept(results -> Platform.runLater(() -> {
+                    List<OnlineItem> items = new ArrayList<>();
+                    for (Map<String,String> m : results) {
+                        items.add(new OnlineItem(
+                                m.getOrDefault("id",""),
+                                m.getOrDefault("title","(Untitled)"),
+                                m.getOrDefault("image","")
+                        ));
+                    }
+                    listView.getItems().setAll(items);
+                    listView.setCellFactory(_ -> new OnlineCell());
+                    listView.getSelectionModel().selectedItemProperty().addListener((obs, old, sel) -> {
+                        if (sel != null) populateDetail(detailPane, sel);
+                    });
+                    if (!items.isEmpty()) listView.getSelectionModel().selectFirst();
+                    else detailPane.getChildren().setAll(new Label("No results from providers."));
+                }))
+                .exceptionally(ex -> { Platform.runLater(() -> showError("Online recipe search failed: " + ex.getMessage())); return null; });
+    }
+
+    private void populateDetail(VBox detailPane, OnlineItem item) {
+        detailPane.getChildren().clear();
+
+        Label title = new Label(item.title);
+        title.getStyleClass().add("recipe-name");
+
+        ImageView image = new ImageView();
+        if (item.imageUrl != null && !item.imageUrl.isBlank()) image.setImage(new Image(item.imageUrl, true));
+        image.setPreserveRatio(true);
+        image.setFitWidth(520);
+
+        // fetch details (async)
+        CompletableFuture
+                .supplyAsync(() -> RecipeAPIService.getRecipeDetailsUnified(item.id), io)
+                .thenAccept(details -> Platform.runLater(() -> {
+                    String instructions = details.getOrDefault("instructions", "No instructions available.");
+                    String sourceUrl = details.getOrDefault("sourceUrl", "");
+
+                    TextArea instructionsArea = new TextArea(stripHtml(instructions).trim());
+                    instructionsArea.setEditable(false);
+                    instructionsArea.setWrapText(true);
+                    instructionsArea.setPrefRowCount(18);
+
+                    Button openSource = new Button("Open Source");
+                    openSource.setDisable(sourceUrl.isBlank());
+                    openSource.setOnAction(e -> openExternalUrl(sourceUrl));
+
+                    detailPane.getChildren().setAll(
+                            title,
+                            image,
+                            new Label("Instructions:"),
+                            instructionsArea,
+                            openSource,
+                            new Label("Source URL:"),
+                            new Label(sourceUrl)
+                    );
+                }))
+                .exceptionally(ex -> { Platform.runLater(() -> showError("Failed to load details: " + ex.getMessage())); return null; });
+    }
+
+    private String stripHtml(String s) { return s == null ? "" : s.replaceAll("<[^>]*>", " "); }
+
+    private void openExternalUrl(String url) {
+        if (url == null || url.isBlank()) return;
+        try {
+            if (Desktop.isDesktopSupported()) {
+                Desktop d = Desktop.getDesktop();
+                if (d.isSupported(Desktop.Action.BROWSE)) { d.browse(URI.create(url)); return; }
+            }
+            String os = System.getProperty("os.name").toLowerCase(Locale.ROOT);
+            if (os.contains("win")) new ProcessBuilder("rundll32","url.dll,FileProtocolHandler",url).start();
+            else if (os.contains("mac")) new ProcessBuilder("open", url).start();
+            else new ProcessBuilder("xdg-open", url).start();
+        } catch (Exception e) {
+            Platform.runLater(() -> showError("Could not open link: " + e.getMessage()));
+        }
+    }
+
+    private static final class OnlineItem {
+        final String id; final String title; final String imageUrl;
+        OnlineItem(String id, String title, String imageUrl){ this.id=id; this.title=title; this.imageUrl=imageUrl; }
+        @Override public String toString(){ return title; }
+    }
+    private static final class OnlineCell extends ListCell<OnlineItem> {
+        private final HBox root = new HBox(10);
+        private final ImageView img = new ImageView();
+        private final Label title = new Label();
+        OnlineCell(){
+            img.setFitWidth(64); img.setFitHeight(64); img.setPreserveRatio(true);
+            root.setAlignment(Pos.CENTER_LEFT);
+            root.getChildren().addAll(img, title);
+        }
+        @Override protected void updateItem(OnlineItem item, boolean empty){
+            super.updateItem(item, empty);
+            if (empty || item == null) {
+                setGraphic(null);
+            } else {
+                title.setText(item.title == null ? "(Untitled)" : item.title);
+                if (item.imageUrl != null && !item.imageUrl.isBlank()) img.setImage(new Image(item.imageUrl, true));
+                else img.setImage(null);
+                setGraphic(root);
+            }
+        }
+    }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
