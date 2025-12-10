@@ -391,7 +391,7 @@ Separator .line {
 ========================================================= */
 
 .main-pane {
-    -fx-background-color: #1a1a1a !important;
+    -fx-background-color: #1e2730  !important;
 }
 
 .brand-title {
@@ -914,8 +914,10 @@ MenuButton:hover {
 }
 
 .header-section {
-    -fx-background-color: transparent !important;
+    -fx-background-color: #1a1a1a !important;
+    -fx-effect: none !important;
 }
+
 
 .filter-container {
     -fx-background-color: transparent !important;
@@ -1304,4 +1306,24 @@ VBox .form-field,
     -fx-border-color: #424242 !important;
     -fx-border-radius: 6px !important;
     -fx-background-radius: 6px !important;
+}
+
+ToolBar,
+.tool-bar {
+    -fx-background-color: #1a1a1a !important;
+    -fx-background-insets: 0 !important;
+    -fx-padding: 0 !important;
+    -fx-border-width: 0 !important;
+    -fx-effect: none !important;
+}
+BorderPane {
+    -fx-background-insets: 0 !important;
+}
+
+BorderPane > .top {
+    -fx-background-color: #1a1a1a !important;
+}
+MenuBar {
+    -fx-background-color: #1a1a1a !important;
+    -fx-border-width: 0 !important;
 }

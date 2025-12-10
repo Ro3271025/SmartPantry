@@ -38,8 +38,10 @@
 
 /* ===== HEADER SECTION ===== */
 .header-section {
-    -fx-background-color: transparent !important;
+    -fx-background-color: #1a1a1a !important;
+    -fx-effect: none !important;
 }
+
 
 .page-title {
     -fx-text-fill: #ffffff !important;

@@ -45,7 +45,7 @@ VBox.add-item-container TextField.form-field {
     -fx-max-height: 35px !important;
     -fx-min-height: 35px !important;
     -fx-pref-width: 340px !important;
-    -fx-background-color: #2d2d2d !important;
+    -fx-background-color: #1e2730 !important;
     -fx-text-fill: #ffffff !important;
     -fx-prompt-text-fill: #9ca3af !important;
     -fx-border-color: #424242 !important;
@@ -124,7 +124,7 @@ VBox.add-item-container DatePicker.form-datepicker {
     -fx-max-height: 35px !important;
     -fx-min-height: 35px !important;
     -fx-pref-width: 340px !important;
-    -fx-background-color: #2d2d2d !important;
+    -fx-background-color: #1e2730 !important;
     -fx-border-color: #424242 !important;
     -fx-border-radius: 6px !important;
     -fx-background-radius: 6px !important;
@@ -135,7 +135,7 @@ VBox.add-item-container DatePicker.form-datepicker:focused {
 }
 
 VBox.add-item-container DatePicker.form-datepicker > .text-field {
-    -fx-background-color: #2d2d2d !important;
+    -fx-background-color: #1e2730 !important;
     -fx-text-fill: #ffffff !important;
     -fx-prompt-text-fill: #9ca3af !important;
     -fx-background-radius: 6px 0 0 6px !important;

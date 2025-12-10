@@ -1,0 +1,84 @@
+/* ================================
+   WELCOME PAGE — DARK MODE
+================================ */
+
+/* Page root */
+.welcome-root {
+    -fx-background-color: #0f1419;
+}
+
+/* Top nav */
+.nav-bar {
+    -fx-background-color: transparent;
+}
+
+/* Brand */
+.brand-title {
+    -fx-text-fill: #10b981;
+    -fx-font-weight: bold;
+}
+
+/* Main headline */
+.headline {
+    -fx-text-fill: #ffffff;
+}
+
+/* Sub text */
+.subtext {
+    -fx-text-fill: #9ca3af;
+}
+
+/* Card panel */
+.hero-card {
+    -fx-background-color: #1e2730;
+    -fx-background-radius: 12;
+    -fx-padding: 32;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.4), 16, 0, 0, 4);
+}
+
+/* Buttons */
+.login-button {
+    -fx-background-color: #2d2d2d;
+    -fx-text-fill: #e5e7eb;
+    -fx-background-radius: 20;
+    -fx-padding: 10 24;
+}
+
+.login-button:hover {
+    -fx-background-color: #374151;
+}
+
+.signup-button {
+    -fx-background-color: #10b981;
+    -fx-text-fill: white;
+    -fx-background-radius: 20;
+    -fx-padding: 10 24;
+}
+
+.signup-button:hover {
+    -fx-background-color: #14da9a;
+}
+
+/* Footer labels */
+.footer-text {
+    -fx-text-fill: #6b7280;
+}
+
+/* Pills */
+.platform-pill {
+    -fx-background-color: #2d2d2d;
+    -fx-text-fill: #9ca3af;
+    -fx-background-radius: 16;
+    -fx-padding: 4 12;
+}
+
+/* Exit button */
+.exit-button {
+    -fx-background-color: #dc2626;
+    -fx-text-fill: white;
+    -fx-background-radius: 20;
+}
+
+.exit-button:hover {
+    -fx-background-color: #ef4444;
+}
