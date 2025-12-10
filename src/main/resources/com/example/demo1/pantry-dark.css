@@ -1,0 +1,249 @@
+/* =========================================================
+   --- PANTRY DASHBOARD DARK THEME ---
+   Sleek dark design matching modern dashboards
+   FIXED: Added !important to override dark-theme.css
+========================================================= */
+
+/* Root scene: very dark background like the reference */
+.root {
+    -fx-font-family: "Inter", "Segoe UI", system-ui, sans-serif;
+    -fx-background-color: #0f1419 !important;
+}
+
+/* === Header + search rows === */
+.toolbar {
+    -fx-padding: 16 20 0 20 !important;
+    -fx-background-color: transparent !important;  /* FIXED: Remove dark blue bars */
+}
+
+.title {
+    -fx-font-size: 18px !important;
+    -fx-font-weight: 700 !important;
+    -fx-text-fill: #ffffff !important;
+}
+
+/* Page title for Pantry Dashboard */
+.page-title {
+    -fx-font-size: 25px !important;
+    -fx-font-weight: bold !important;
+    -fx-text-fill: #ffffff !important;
+}
+
+/* Small square icon-style buttons (palette, logout) */
+.icon {
+    -fx-background-radius: 10 !important;
+    -fx-background-color: #1e2730 !important;
+    -fx-padding: 6 10 6 10 !important;
+    -fx-border-color: #2a3441 !important;
+    -fx-border-radius: 10 !important;
+}
+
+.icon:hover {
+    -fx-background-color: #2a3441 !important;
+}
+
+/* Search field: darker with subtle border */
+.search-field {
+    -fx-pref-width: 560 !important;
+    -fx-background-radius: 999 !important;
+    -fx-padding: 8 14 8 14 !important;
+    -fx-background-color: #1e2730 !important;
+    -fx-text-fill: #ffffff !important;
+    -fx-border-color: #2a3441 !important;
+    -fx-border-radius: 999 !important;
+    -fx-prompt-text-fill: #6b7280 !important;
+}
+
+.search-field:focused {
+    -fx-border-color: #10b981 !important;
+}
+
+/* Outlined pill buttons (Recipes, Shopping) */
+.pill {
+    -fx-background-color: #1e2730 !important;
+    -fx-text-fill: #d1d5db !important;
+    -fx-background-radius: 999 !important;
+    -fx-border-color: #2a3441 !important;
+    -fx-border-radius: 999 !important;
+    -fx-padding: 8 14 8 14 !important;
+}
+
+.pill:hover {
+    -fx-background-color: #2a3441 !important;
+    -fx-text-fill: #ffffff !important;
+}
+
+/* Primary accent (Add Item) - brighter green for dark mode */
+.primary {
+    -fx-background-color: #10b981 !important;
+    -fx-text-fill: white !important;
+    -fx-background-radius: 999 !important;
+    -fx-padding: 8 16 8 16 !important;
+    -fx-border-color: transparent !important;  /* FIXED: Remove green outline */
+}
+
+.primary:hover {
+    -fx-background-color: #14da9a !important;
+}
+
+/* Badge on Shopping button */
+.badge-container {
+    -fx-alignment: center !important;
+}
+
+.badge {
+    -fx-background-color: #10b981 !important;
+    -fx-text-fill: white !important;
+    -fx-font-size: 10px !important;
+    -fx-padding: 1 6 1 6 !important;
+    -fx-background-radius: 999 !important;
+    -fx-translate-x: -8 !important;
+    -fx-translate-y: -10 !important;
+}
+
+/* === Segmented filter tabs === */
+.segmented {
+    -fx-padding: 8 20 12 20 !important;
+}
+
+.segmented .toggle-button {
+    -fx-background-radius: 999 !important;
+    -fx-background-color: transparent !important;
+    -fx-text-fill: #9ca3af !important;
+    -fx-padding: 6 12 6 12 !important;
+}
+
+.segmented .toggle-button:hover {
+    -fx-background-color: #1e2730 !important;
+    -fx-text-fill: #ffffff !important;
+}
+
+.segmented .toggle-button:selected {
+    -fx-background-color: #10b981 !important;
+    -fx-text-fill: white !important;
+    -fx-border-color: transparent !important;  /* FIXED: Remove green outline */
+}
+
+/* Scroll container */
+.viewport {
+    -fx-background-color: #0f1419 !important;
+}
+
+.viewport .viewport {
+    -fx-background-color: #0f1419 !important;
+}
+
+/* === Item cards === */
+.card {
+    -fx-background-color: #1e2730 !important;
+    -fx-background-radius: 16 !important;
+    /* FIXED: match light mode shadow size (8 instead of 10) */
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.4), 8, 0, 0, 2) !important;
+    -fx-border-color: #2a3441 !important;
+    -fx-border-radius: 16 !important;
+}
+
+.card:hover {
+    /* FIXED: match light mode hover shadow size (14 instead of 16) */
+    -fx-effect: dropshadow(gaussian, rgba(16,185,129,0.3), 14, 0, 0, 4) !important;
+    -fx-border-color: #10b981 !important;
+}
+
+/* Title inside each card */
+.card-title {
+    -fx-font-size: 14px !important;
+    -fx-font-weight: 700 !important;
+    -fx-text-fill: #ffffff !important;
+}
+
+.muted {
+    -fx-text-fill: #9ca3af !important;
+}
+
+/* Status-specific border colors (darker versions) */
+.state-expiring { -fx-border-color: #FF9933 !important; }
+.state-expired  { -fx-border-color: #E53935 !important; }
+.state-low      { -fx-border-color: #FF9933 !important; }
+.state-ok       { -fx-border-color: #10b981 !important; }
+
+/* Status chips (badges) - adjusted for dark mode */
+.chip {
+    -fx-font-size: 10px !important;
+    -fx-background-radius: 999 !important;
+    -fx-padding: 2 8 2 8 !important;
+}
+
+.chip-expiring {
+    -fx-background-color: #5a3a0f !important;
+    -fx-text-fill: #FFD699 !important;
+}
+
+.chip-danger {
+    -fx-background-color: #5a1f1f !important;
+    -fx-text-fill: #FFADAD !important;
+}
+
+.chip-warn {
+    -fx-background-color: #5a3a0f !important;
+    -fx-text-fill: #FFD699 !important;
+}
+
+.chip-ok {
+    -fx-background-color: #1a4d3d !important;
+    -fx-text-fill: #A7F3D0 !important;
+}
+
+/* Secondary buttons in cards (Edit, Delete) */
+/* FIXED: Added !important to padding to override dark-theme.css */
+.secondary {
+    -fx-background-color: #2a3441 !important;
+    -fx-text-fill: #d1d5db !important;
+    -fx-background-radius: 6 !important;
+    -fx-padding: 6px 12px !important;  /* ← FIXED: Matches light mode */
+}
+
+.secondary:hover {
+    -fx-background-color: #374151 !important;
+}
+
+.danger {
+    -fx-background-color: #dc2626 !important;
+    -fx-text-fill: white !important;
+    -fx-background-radius: 6 !important;
+    -fx-padding: 6px 12px !important;  /* ← FIXED: Matches light mode */
+}
+
+.danger:hover {
+    -fx-background-color: #ef4444 !important;
+}
+
+/* Scrollbar styling for dark mode */
+.scroll-pane {
+    -fx-background-color: #0f1419 !important;
+}
+
+.scroll-pane .scroll-bar:vertical {
+    -fx-background-color: transparent !important;
+}
+
+.scroll-pane .scroll-bar:vertical .thumb {
+    -fx-background-color: #2a3441 !important;
+    -fx-background-radius: 4 !important;
+}
+
+.scroll-pane .scroll-bar:vertical .thumb:hover {
+    -fx-background-color: #374151 !important;
+}
+
+.scroll-pane .scroll-bar:horizontal {
+    -fx-background-color: transparent !important;
+}
+
+.scroll-pane .scroll-bar:horizontal .thumb {
+    -fx-background-color: #2a3441 !important;
+    -fx-background-radius: 4 !important;
+}
+
+.scroll-pane .scroll-bar:horizontal .thumb:hover {
+    -fx-background-color: #374151 !important;
+}

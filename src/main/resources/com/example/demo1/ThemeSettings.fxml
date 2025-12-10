@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<BorderPane xmlns:fx="http://javafx.com/fxml"
+            fx:controller="Controllers.ThemeSettingsController"
+            prefHeight="600.0" prefWidth="800.0"
+            styleClass="theme-settings-root"
+            >
+
+    <!-- Header -->
+    <top>
+        <VBox styleClass="header-section">
+            <HBox alignment="CENTER_LEFT" spacing="12">
+                <Button fx:id="backButton"
+                        text="← Back to Dashboard"
+                        styleClass="back-button"
+                        onAction="#handleBackToDashboard"/>
+            </HBox>
+
+            <VBox spacing="8">
+                <Label text="Theme Settings" styleClass="page-title"/>
+                <Label text="Customize how SmartPantry looks" styleClass="page-subtitle"/>
+            </VBox>
+        </VBox>
+    </top>
+
+    <!-- Main Content -->
+    <center>
+        <ScrollPane fitToWidth="true" styleClass="content-scroll">
+            <VBox spacing="24" styleClass="content-area">
+                <padding>
+                    <Insets top="32" right="48" bottom="32" left="48"/>
+                </padding>
+
+                <!-- Theme Selection Card -->
+                <VBox styleClass="settings-card" spacing="20">
+                    <Label text="Appearance" styleClass="card-title"/>
+                    <Label text="Choose how SmartPantry looks to you"
+                           styleClass="card-subtitle"/>
+
+                    <Separator/>
+
+                    <!-- Light Mode Option -->
+                    <VBox styleClass="theme-option" spacing="12">
+                        <HBox spacing="16" alignment="CENTER_LEFT">
+                            <VBox styleClass="theme-preview light-preview">
+                                <Label text="☀️" styleClass="theme-icon"/>
+                            </VBox>
+
+                            <VBox spacing="4" HBox.hgrow="ALWAYS">
+                                <Label text="Light Mode" styleClass="theme-name"/>
+                                <Label text="Clean white backgrounds with subtle shadows"
+                                       styleClass="theme-description"/>
+                            </VBox>
+
+                            <Button fx:id="lightModeButton"
+                                    text="Use Light Mode"
+                                    styleClass="theme-button"
+                                    onAction="#handleSetLightMode"/>
+                        </HBox>
+                    </VBox>
+
+                    <Separator/>
+
+                    <!-- Dark Mode Option -->
+                    <VBox styleClass="theme-option" spacing="12">
+                        <HBox spacing="16" alignment="CENTER_LEFT">
+                            <VBox styleClass="theme-preview dark-preview">
+                                <Label text="🌙" styleClass="theme-icon"/>
+                            </VBox>
+
+                            <VBox spacing="4" HBox.hgrow="ALWAYS">
+                                <Label text="Dark Mode" styleClass="theme-name"/>
+                                <Label text="Easy on the eyes with dark backgrounds"
+                                       styleClass="theme-description"/>
+                            </VBox>
+
+                            <Button fx:id="darkModeButton"
+                                    text="Use Dark Mode"
+                                    styleClass="theme-button"
+                                    onAction="#handleSetDarkMode"/>
+                        </HBox>
+                    </VBox>
+                </VBox>
+
+                <!-- Current Theme Info Card -->
+                <VBox styleClass="settings-card" spacing="16">
+                    <Label text="Current Theme" styleClass="card-title"/>
+
+                    <HBox spacing="12" alignment="CENTER_LEFT" styleClass="current-theme-info">
+                        <Label fx:id="currentThemeIcon"
+                               text="☀️"
+                               styleClass="current-theme-icon"/>
+                        <VBox spacing="4">
+                            <Label fx:id="currentThemeLabel"
+                                   text="Light Mode"
+                                   styleClass="current-theme-label"/>
+                            <Label text="Active and applied"
+                                   styleClass="current-theme-status"/>
+                        </VBox>
+                    </HBox>
+                </VBox>
+
+            </VBox>
+        </ScrollPane>
+    </center>
+
+</BorderPane>

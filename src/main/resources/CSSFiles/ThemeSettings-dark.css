@@ -1,0 +1,214 @@
+/* ============================================
+   THEME SETTINGS PAGE - DARK THEME
+   ============================================ */
+
+/* Root background */
+.root {
+    -fx-background-color: #0f1419;
+}
+
+/* Theme settings root */
+.theme-settings-root {
+    -fx-background-color: #0f1419;
+}
+
+/* Header section */
+.header-section {
+    -fx-background-color: transparent;
+    -fx-padding: 20;
+    -fx-spacing: 16;
+}
+
+/* Back button */
+.back-button {
+    -fx-background-color: transparent;
+    -fx-text-fill: #10b981;
+    -fx-font-size: 14px;
+    -fx-cursor: hand;
+    -fx-underline: false;
+    -fx-border-width: 0;
+    -fx-padding: 8 12;
+}
+
+.back-button:hover {
+    -fx-text-fill: #0d9668;
+    -fx-background-color: rgba(16, 185, 129, 0.1);
+    -fx-background-radius: 5;
+}
+
+/* Page title */
+.page-title {
+    -fx-text-fill: #ffffff;
+    -fx-font-size: 32px;
+    -fx-font-weight: bold;
+}
+
+/* Page subtitle */
+.page-subtitle {
+    -fx-text-fill: #9ca3af;
+    -fx-font-size: 14px;
+}
+
+/* Content area */
+.content-area {
+    -fx-background-color: transparent;
+    -fx-spacing: 24;
+}
+
+/* Content scroll */
+.content-scroll {
+    -fx-background-color: transparent;
+}
+
+/* Settings card */
+.settings-card {
+    -fx-background-color: #1e2730;
+    -fx-background-radius: 12;
+    -fx-padding: 24;
+    -fx-spacing: 20;
+    -fx-border-color: #2a3441;
+    -fx-border-width: 1;
+    -fx-border-radius: 12;
+}
+
+/* Card title */
+.card-title {
+    -fx-text-fill: #ffffff;
+    -fx-font-size: 20px;
+    -fx-font-weight: 600;
+}
+
+/* Card subtitle */
+.card-subtitle {
+    -fx-text-fill: #9ca3af;
+    -fx-font-size: 14px;
+}
+
+/* Theme option container */
+.theme-option {
+    -fx-background-color: transparent;
+    -fx-spacing: 12;
+    -fx-padding: 16;
+    -fx-background-radius: 8;
+}
+
+.theme-option:hover {
+    -fx-background-color: rgba(16, 185, 129, 0.05);
+}
+
+/* Theme preview boxes */
+.theme-preview {
+    -fx-min-width: 60;
+    -fx-min-height: 60;
+    -fx-pref-width: 60;
+    -fx-pref-height: 60;
+    -fx-background-radius: 8;
+    -fx-alignment: center;
+}
+
+.light-preview {
+    -fx-background-color: #f9fafb;
+    -fx-border-color: #e5e7eb;
+    -fx-border-width: 2;
+    -fx-border-radius: 8;
+}
+
+.dark-preview {
+    -fx-background-color: #1a1a1a;
+    -fx-border-color: #374151;
+    -fx-border-width: 2;
+    -fx-border-radius: 8;
+}
+
+/* Theme icon */
+.theme-icon {
+    -fx-font-size: 28px;
+}
+
+/* Theme name */
+.theme-name {
+    -fx-text-fill: #ffffff;
+    -fx-font-size: 16px;
+    -fx-font-weight: 600;
+}
+
+/* Theme description */
+.theme-description {
+    -fx-text-fill: #9ca3af;
+    -fx-font-size: 13px;
+}
+
+/* Theme button */
+.theme-button {
+    -fx-background-color: #10b981;
+    -fx-text-fill: white;
+    -fx-font-size: 14px;
+    -fx-font-weight: 600;
+    -fx-background-radius: 6;
+    -fx-padding: 10 20;
+    -fx-cursor: hand;
+    -fx-border-width: 0;
+}
+
+.theme-button:hover {
+    -fx-background-color: #0d9668;
+}
+
+.theme-button.active {
+    -fx-background-color: #065f46;
+    -fx-text-fill: #d1fae5;
+}
+
+/* Current theme info */
+.current-theme-info {
+    -fx-background-color: rgba(16, 185, 129, 0.1);
+    -fx-padding: 16;
+    -fx-background-radius: 8;
+    -fx-border-color: #10b981;
+    -fx-border-width: 1;
+    -fx-border-radius: 8;
+}
+
+.current-theme-icon {
+    -fx-font-size: 32px;
+}
+
+.current-theme-label {
+    -fx-text-fill: #ffffff;
+    -fx-font-size: 16px;
+    -fx-font-weight: 600;
+}
+
+.current-theme-status {
+    -fx-text-fill: #10b981;
+    -fx-font-size: 13px;
+}
+
+/* Separator */
+.separator {
+    -fx-background-color: #2a3441;
+}
+
+.separator .line {
+    -fx-border-color: #2a3441;
+    -fx-background-color: #2a3441;
+}
+
+/* ScrollPane */
+.scroll-pane {
+    -fx-background-color: transparent;
+}
+
+.scroll-pane .viewport {
+    -fx-background-color: transparent;
+}
+
+/* Container transparency */
+VBox, HBox, BorderPane, AnchorPane {
+    -fx-background-color: transparent;
+}
+
+/* General labels */
+.label {
+    -fx-text-fill: #e0e0e0;
+}

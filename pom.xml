@@ -12,10 +12,12 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.compiler.release>24</maven.compiler.release>
-        <junit.version>5.12.1</junit.version>
-        <javafx.version>24.0.1</javafx.version>
         <maven.compiler.source>24</maven.compiler.source>
         <maven.compiler.target>24</maven.compiler.target>
+
+        <javafx.version>24.0.1</javafx.version>
+        <junit.version>5.12.1</junit.version>
+        <jackson.version>2.17.1</jackson.version>
     </properties>
 
     <dependencies>
@@ -41,7 +43,7 @@
             <version>${javafx.version}</version>
         </dependency>
 
-        <!-- Barcode Scanning Libraries -->
+        <!-- Barcode / Camera -->
         <dependency>
             <groupId>com.google.zxing</groupId>
             <artifactId>core</artifactId>
@@ -58,17 +60,7 @@
             <version>0.3.12</version>
         </dependency>
 
-        <!-- Google / Firebase -->
-        <dependency>
-            <groupId>com.google.code.gson</groupId>
-            <artifactId>gson</artifactId>
-            <version>2.10.1</version>
-        </dependency>
-        <dependency>
-            <groupId>com.fasterxml.jackson.core</groupId>
-            <artifactId>jackson-databind</artifactId>
-            <version>2.17.0</version>
-        </dependency>
+        <!-- Firebase / GCP -->
         <dependency>
             <groupId>com.google.firebase</groupId>
             <artifactId>firebase-admin</artifactId>
@@ -80,17 +72,24 @@
             <version>3.6.0</version>
         </dependency>
         <dependency>
-            <groupId>com.google.cloud</groupId>
-            <artifactId>google-cloud-core</artifactId>
-            <version>1.70.0</version>
-        </dependency>
-        <dependency>
             <groupId>com.google.auth</groupId>
             <artifactId>google-auth-library-oauth2-http</artifactId>
             <version>1.11.0</version>
         </dependency>
 
-        <!-- UI Helpers -->
+        <!-- JSON libs -->
+        <dependency>
+            <groupId>com.google.code.gson</groupId>
+            <artifactId>gson</artifactId>
+            <version>2.10.1</version>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+            <version>${jackson.version}</version>
+        </dependency>
+
+        <!-- UI helpers -->
         <dependency>
             <groupId>org.controlsfx</groupId>
             <artifactId>controlsfx</artifactId>
@@ -130,6 +129,7 @@
 
     <build>
         <plugins>
+            <!-- JavaFX run plugin -->
             <plugin>
                 <groupId>org.openjfx</groupId>
                 <artifactId>javafx-maven-plugin</artifactId>
@@ -140,6 +140,16 @@
                         <option>--add-modules</option>
                         <option>javafx.controls,javafx.fxml,javafx.swing</option>
                     </options>
+                </configuration>
+            </plugin>
+
+            <!-- JUnit 5 runner -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>3.2.5</version>
+                <configuration>
+                    <useModulePath>false</useModulePath>
                 </configuration>
             </plugin>
         </plugins>

@@ -1,19 +1,21 @@
 package Controllers;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+
+import ShoppingList.PantryItem;
 import javafx.collections.ListChangeListener;
 import com.google.cloud.firestore.Firestore;
 import com.google.cloud.firestore.QueryDocumentSnapshot;
 import com.google.cloud.Timestamp;
 import com.google.cloud.firestore.CollectionReference;
-import com.example.demo1.FirebaseConfiguration;
+import Firebase.FirebaseConfiguration;
 import java.util.Map;
 import java.util.HashMap;
 import com.example.demo1.UserSession;
 import javafx.application.Platform;
 import java.time.ZoneId;
 import java.util.concurrent.CompletableFuture;
-import com.example.demo1.Dialogs;
+import ShoppingList.Dialogs;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import javafx.application.Platform;
@@ -167,7 +169,7 @@ public class ShoppingListController extends BaseController {
     }
     // --- Firestore path helpers (users/{id}/pantryItems) ---
     private String currentUserDocId() {
-        // TODO: swap this for your session user if you have one.
+
         return "lewidt@farmingdale.edu";
     }
 

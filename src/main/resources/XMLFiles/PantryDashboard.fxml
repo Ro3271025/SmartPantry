@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.control.ToggleButton?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.FlowPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.VBox?>
+
+<BorderPane prefHeight="800.0" prefWidth="1280.0"
+            xmlns="http://javafx.com/javafx/24.0.1"
+            xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="Controllers.PantryController">
+
+    <!-- === Header Section === -->
+    <top>
+        <VBox spacing="10" BorderPane.alignment="CENTER">
+
+            <!-- Row 1: Title + header buttons -->
+            <HBox alignment="CENTER_LEFT" spacing="12" styleClass="toolbar">
+
+                <Label fx:id="dashboardTitle"
+                       text="Pantry Dashboard"
+                       styleClass="page-title" />
+
+                <!-- ✅ NEW: Logged-in user display -->
+                <Label fx:id="userNameLabel"
+                       style="-fx-font-size: 14px; -fx-text-fill: -fx-text-base;" />
+
+                <Region HBox.hgrow="ALWAYS" />
+
+                <Button fx:id="styleBtn"
+                        onAction="#styleBtnOnAction"
+                        styleClass="icon"
+                        text="🎨" />
+
+                <Button fx:id="recipesBtn"
+                        onAction="#recipesBtnOnAction"
+                        styleClass="pill"
+                        text="👨‍🍳 Recipes" />
+
+                <Button fx:id="shoppingBtn"
+                        onAction="#goToShoppingList"
+                        styleClass="pill"
+                        text="🛒 Shopping" />
+
+                <Button fx:id="logoutBtn"
+                        onAction="#logoutBtnOnAction"
+                        styleClass="icon"
+                        text="🚪" />
+            </HBox>
+
+            <!-- Row 2: Search + Add Item -->
+            <HBox alignment="CENTER_LEFT" spacing="12" styleClass="toolbar">
+                <TextField fx:id="searchField"
+                           promptText="Search pantry items…"
+                           styleClass="search-field"
+                           HBox.hgrow="ALWAYS" />
+
+                <Button fx:id="addItemBtn"
+                        onAction="#addItemBtnOnAction"
+                        styleClass="primary"
+                        text="+ Add Item" />
+            </HBox>
+
+            <!-- Row 3: Segmented Filters -->
+            <HBox alignment="CENTER_LEFT" spacing="8" styleClass="segmented">
+                <ToggleButton fx:id="segAll" selected="true" text="All" />
+                <ToggleButton fx:id="segExpiring" text="Expire Soon" />
+                <ToggleButton fx:id="segLowStock" text="Low Stock" />
+            </HBox>
+
+        </VBox>
+    </top>
+
+    <!-- === Cards Grid (Scrollable) === -->
+    <center>
+        <ScrollPane fitToWidth="true" pannable="true" styleClass="viewport">
+            <content>
+                <FlowPane fx:id="cardFlow"
+                          hgap="24"
+                          prefWrapLength="1100"
+                          vgap="24">
+                    <padding>
+                        <Insets top="16" right="16" bottom="16" left="16" />
+                    </padding>
+                </FlowPane>
+            </content>
+        </ScrollPane>
+    </center>
+
+</BorderPane>

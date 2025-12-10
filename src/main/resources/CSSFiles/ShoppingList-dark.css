@@ -1,0 +1,218 @@
+/* ============================================
+   SHOPPING LIST - DARK THEME
+   ============================================ */
+
+/* Root background */
+.root {
+    -fx-background-color: #0f1419;
+}
+
+/* Page title */
+.shopping-title,
+.page-title {
+    -fx-text-fill: #ffffff;
+    -fx-font-size: 28px;
+    -fx-font-weight: bold;
+}
+
+/* Back to Dashboard button */
+.back-btn,
+.back-button,
+#backButton {
+    -fx-background-color: #2563eb;
+    -fx-text-fill: white;
+    -fx-background-radius: 5;
+    -fx-padding: 10 20;
+    -fx-cursor: hand;
+    -fx-border-width: 0;
+}
+
+.back-btn:hover,
+.back-button:hover,
+#backButton:hover {
+    -fx-background-color: #1d4ed8;
+}
+
+/* Tab buttons (List / Recommended) */
+.tab-btn,
+.tab-button {
+    -fx-background-color: #2a3441;
+    -fx-text-fill: #e0e0e0;
+    -fx-background-radius: 5;
+    -fx-padding: 8 16;
+    -fx-cursor: hand;
+    -fx-border-width: 0;
+}
+
+.tab-btn:hover,
+.tab-button:hover {
+    -fx-background-color: #374151;
+}
+
+.tab-btn.active,
+.tab-button.active {
+    -fx-background-color: #f59e0b;
+    -fx-text-fill: white;
+}
+
+/* Search field */
+.search-field,
+#searchField {
+    -fx-background-color: #1e2730;
+    -fx-text-fill: #e0e0e0;
+    -fx-prompt-text-fill: #888888;
+    -fx-border-color: #2a3441;
+    -fx-border-radius: 5;
+    -fx-background-radius: 5;
+    -fx-padding: 10 15;
+}
+
+/* Location filter dropdown */
+.location-filter,
+#locationFilter {
+    -fx-background-color: #1e2730;
+    -fx-text-fill: #e0e0e0;
+    -fx-border-color: #2a3441;
+    -fx-border-radius: 5;
+    -fx-background-radius: 5;
+    -fx-padding: 10 15;
+}
+
+/* Export button */
+.export-btn,
+.export-button {
+    -fx-background-color: #10b981;
+    -fx-text-fill: white;
+    -fx-background-radius: 5;
+    -fx-padding: 10 20;
+    -fx-cursor: hand;
+    -fx-border-width: 0;
+}
+
+.export-btn:hover,
+.export-button:hover {
+    -fx-background-color: #0d9668;
+}
+
+/* Table view */
+.table-view {
+    -fx-background-color: #1e2730;
+    -fx-border-color: #2a3441;
+    -fx-border-width: 1;
+}
+
+/* Table column headers */
+.table-view .column-header-background {
+    -fx-background-color: #10b981;
+}
+
+.table-view .column-header {
+    -fx-background-color: #10b981;
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+    -fx-border-width: 0;
+}
+
+.table-view .column-header .label {
+    -fx-text-fill: white;
+}
+
+/* Table cells */
+.table-view .table-cell {
+    -fx-background-color: #1e2730;
+    -fx-text-fill: #e0e0e0;
+    -fx-border-color: #2a3441;
+}
+
+/* Table rows */
+.table-view .table-row-cell {
+    -fx-background-color: #1e2730;
+}
+
+.table-view .table-row-cell:hover {
+    -fx-background-color: #252d38;
+}
+
+.table-view .table-row-cell:selected {
+    -fx-background-color: #374151;
+}
+
+/* Checkbox in table */
+.table-view .check-box {
+    -fx-background-color: transparent;
+}
+
+.table-view .check-box .box {
+    -fx-background-color: #2a3441;
+    -fx-border-color: #10b981;
+}
+
+.table-view .check-box:selected .mark {
+    -fx-background-color: #10b981;
+}
+
+/* Add Item button */
+.add-item-btn,
+.add-button {
+    -fx-background-color: #10b981;
+    -fx-text-fill: white;
+    -fx-background-radius: 5;
+    -fx-padding: 10 20;
+    -fx-cursor: hand;
+    -fx-border-width: 0;
+}
+
+.add-item-btn:hover,
+.add-button:hover {
+    -fx-background-color: #0d9668;
+}
+
+/* Delete button */
+.delete-btn,
+.delete-button {
+    -fx-background-color: #ef4444;
+    -fx-text-fill: white;
+    -fx-background-radius: 5;
+    -fx-padding: 10 20;
+    -fx-cursor: hand;
+    -fx-border-width: 0;
+}
+
+.delete-btn:hover,
+.delete-button:hover {
+    -fx-background-color: #dc2626;
+}
+
+/* ScrollPane */
+.scroll-pane {
+    -fx-background-color: transparent;
+}
+
+.scroll-pane .viewport {
+    -fx-background-color: transparent;
+}
+
+/* ComboBox */
+.combo-box {
+    -fx-background-color: #1e2730;
+    -fx-border-color: #2a3441;
+}
+
+.combo-box .list-cell {
+    -fx-background-color: #1e2730;
+    -fx-text-fill: #e0e0e0;
+}
+
+.combo-box-popup .list-view {
+    -fx-background-color: #1e2730;
+}
+
+/* General labels */
+.label {
+    -fx-text-fill: #e0e0e0;
+}
+
+/* VBox and HBox containers */
+VBox, HBox {
+    -fx-background-color: transparent;
+}
