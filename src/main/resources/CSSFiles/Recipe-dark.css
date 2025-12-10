@@ -1,0 +1,229 @@
+/* ============================================
+   RECIPE PAGE - DARK THEME
+   ============================================ */
+
+/* Root background */
+.root {
+    -fx-background-color: #0f1419;
+}
+
+/* Page title */
+.recipe-title,
+.page-title {
+    -fx-text-fill: #ffffff;
+    -fx-font-size: 28px;
+    -fx-font-weight: bold;
+}
+
+/* Subtitle */
+.recipe-subtitle,
+.page-subtitle {
+    -fx-text-fill: #9ca3af;
+    -fx-font-size: 14px;
+}
+
+/* Back button */
+.back-btn,
+.back-button {
+    -fx-background-color: #2a3441;
+    -fx-text-fill: #10b981;
+    -fx-background-radius: 5;
+    -fx-padding: 8 16;
+    -fx-cursor: hand;
+    -fx-border-width: 0;
+}
+
+.back-btn:hover,
+.back-button:hover {
+    -fx-background-color: #374151;
+}
+
+/* Search field */
+.search-field,
+#searchField,
+.recipe-search {
+    -fx-background-color: #1e2730;
+    -fx-text-fill: #e0e0e0;
+    -fx-prompt-text-fill: #888888;
+    -fx-border-color: #2a3441;
+    -fx-border-radius: 5;
+    -fx-background-radius: 5;
+    -fx-padding: 10 15;
+}
+
+/* Search button */
+.search-btn,
+.search-button {
+    -fx-background-color: #10b981;
+    -fx-text-fill: white;
+    -fx-background-radius: 5;
+    -fx-padding: 10 20;
+    -fx-cursor: hand;
+    -fx-border-width: 0;
+}
+
+.search-btn:hover,
+.search-button:hover {
+    -fx-background-color: #0d9668;
+}
+
+/* AI prompt text area */
+.ai-prompt,
+.prompt-field {
+    -fx-background-color: #1e2730;
+    -fx-text-fill: #e0e0e0;
+    -fx-prompt-text-fill: #888888;
+    -fx-border-color: #2a3441;
+    -fx-border-radius: 5;
+    -fx-background-radius: 5;
+    -fx-padding: 10 15;
+    -fx-control-inner-background: #1e2730;
+}
+
+.ai-prompt .content,
+.prompt-field .content {
+    -fx-background-color: #1e2730;
+}
+
+/* Filter buttons */
+.filter-btn,
+.recipe-filter {
+    -fx-background-color: #2a3441;
+    -fx-text-fill: #e0e0e0;
+    -fx-background-radius: 5;
+    -fx-padding: 8 16;
+    -fx-cursor: hand;
+    -fx-border-width: 0;
+}
+
+.filter-btn:hover,
+.recipe-filter:hover {
+    -fx-background-color: #374151;
+}
+
+.filter-btn.active,
+.recipe-filter.active {
+    -fx-background-color: #10b981;
+    -fx-text-fill: white;
+}
+
+/* Generate button */
+.generate-btn,
+.generate-button {
+    -fx-background-color: #10b981;
+    -fx-text-fill: white;
+    -fx-background-radius: 5;
+    -fx-padding: 10 20;
+    -fx-cursor: hand;
+    -fx-font-weight: 600;
+    -fx-border-width: 0;
+}
+
+.generate-btn:hover,
+.generate-button:hover {
+    -fx-background-color: #0d9668;
+}
+
+/* Add Recipe button */
+.add-recipe-btn,
+.add-recipe-button {
+    -fx-background-color: #10b981;
+    -fx-text-fill: white;
+    -fx-background-radius: 5;
+    -fx-padding: 10 20;
+    -fx-cursor: hand;
+    -fx-border-width: 0;
+}
+
+.add-recipe-btn:hover,
+.add-recipe-button:hover {
+    -fx-background-color: #0d9668;
+}
+
+/* See More Recipes button */
+.see-more-btn,
+.see-more-button {
+    -fx-background-color: #2a3441;
+    -fx-text-fill: #e0e0e0;
+    -fx-background-radius: 5;
+    -fx-padding: 10 20;
+    -fx-cursor: hand;
+    -fx-border-width: 0;
+}
+
+.see-more-btn:hover,
+.see-more-button:hover {
+    -fx-background-color: #374151;
+}
+
+/* Generate Again button */
+.generate-again-btn {
+    -fx-background-color: #2a3441;
+    -fx-text-fill: #e0e0e0;
+    -fx-background-radius: 5;
+    -fx-padding: 10 20;
+    -fx-cursor: hand;
+    -fx-border-width: 0;
+}
+
+.generate-again-btn:hover {
+    -fx-background-color: #374151;
+}
+
+/* Recipe card */
+.recipe-card {
+    -fx-background-color: #1e2730;
+    -fx-background-radius: 10;
+    -fx-padding: 16;
+    -fx-border-color: #2a3441;
+    -fx-border-width: 1;
+    -fx-border-radius: 10;
+}
+
+.recipe-card:hover {
+    -fx-border-color: #10b981;
+}
+
+/* Recipe name */
+.recipe-name {
+    -fx-text-fill: #ffffff;
+    -fx-font-size: 18px;
+    -fx-font-weight: bold;
+}
+
+/* Recipe details */
+.recipe-details {
+    -fx-text-fill: #9ca3af;
+    -fx-font-size: 13px;
+}
+
+/* Status/Error text */
+.status-text,
+.error-text {
+    -fx-text-fill: #9ca3af;
+    -fx-font-size: 14px;
+}
+
+/* ScrollPane */
+.scroll-pane {
+    -fx-background-color: transparent;
+}
+
+.scroll-pane .viewport {
+    -fx-background-color: transparent;
+}
+
+/* General labels */
+.label {
+    -fx-text-fill: #e0e0e0;
+}
+
+/* VBox and HBox containers */
+VBox, HBox {
+    -fx-background-color: transparent;
+}
+
+/* Text areas */
+.text-area {
+    -fx-text-fill: #e0e0e0;
+}

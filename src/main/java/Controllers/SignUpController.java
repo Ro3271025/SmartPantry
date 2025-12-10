@@ -32,7 +32,7 @@ public class SignUpController extends BaseController {
     private Button cancelButton;
     @FXML
     public void cancelButtonOnAction(ActionEvent event) throws IOException {
-        switchScene(event, "MainScreen");
+        switchScene(event, "mainScreen");
     }
 
     @FXML

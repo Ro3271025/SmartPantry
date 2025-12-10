@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.geometry.Insets?>
+
+<VBox xmlns:fx="http://javafx.com/fxml"
+      fx:controller="Controllers.AddItemController"
+      spacing="15"
+      styleClass="add-item-container">
+
+    <padding>
+        <Insets top="30" right="30" bottom="30" left="30" />
+    </padding>
+
+    <Label text="Add Item to Pantry" styleClass="add-item-title" />
+    <Separator styleClass="form-separator" />
+
+    <!-- Item Name -->
+    <VBox spacing="5">
+        <Label text="Item Name *" styleClass="field-label" />
+        <TextField fx:id="itemNameField" promptText="e.g., Milk" styleClass="form-field" />
+    </VBox>
+
+    <!-- Quantity -->
+    <VBox spacing="5">
+        <Label text="Quantity *" styleClass="field-label" />
+        <TextField fx:id="quantityField" promptText="e.g., 2" styleClass="form-field" />
+    </VBox>
+
+    <!-- Unit -->
+    <VBox spacing="5">
+        <Label text="Unit *" styleClass="field-label" />
+        <ComboBox fx:id="unitComboBox" promptText="Select unit" prefWidth="340" styleClass="form-combo" />
+    </VBox>
+
+    <!-- Location -->
+    <VBox spacing="5">
+        <Label text="Storage Location" styleClass="field-label" />
+        <ComboBox fx:id="locationComboBox" promptText="Select location" prefWidth="340" styleClass="form-combo" />
+    </VBox>
+
+    <!-- Category -->
+    <VBox spacing="5">
+        <Label text="Category" styleClass="field-label" />
+        <ComboBox fx:id="categoryComboBox" promptText="Select category" prefWidth="340" styleClass="form-combo" />
+    </VBox>
+
+    <!-- Expiration Date -->
+    <VBox spacing="5">
+        <Label text="Expiration Date *" styleClass="field-label" />
+        <DatePicker fx:id="expiryDatePicker" promptText="Select date" prefWidth="340" styleClass="form-datepicker" />
+    </VBox>
+
+    <Separator styleClass="form-separator" />
+
+    <!-- Buttons -->
+    <VBox spacing="10">
+        <Button text="📷 Scan Barcode" onAction="#handleScanBarcode"
+                prefWidth="340" prefHeight="40" styleClass="scan-button" />
+
+        <Button text="Save Item" onAction="#handleSaveItem"
+                prefWidth="340" prefHeight="45" styleClass="save-button" />
+
+        <Button text="Cancel" onAction="#handleCancel"
+                prefWidth="340" prefHeight="40" styleClass="cancel-button" />
+    </VBox>
+
+    <!-- Status Label -->
+    <Label fx:id="statusLabel" wrapText="true" prefWidth="340" styleClass="status-label" />
+
+</VBox>

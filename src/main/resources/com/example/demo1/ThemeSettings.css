@@ -1,0 +1,142 @@
+/* =========================================================
+   THEME SETTINGS PAGE STYLES
+   This CSS must work with dark-theme.css when loaded
+========================================================= */
+
+/* === LIGHT MODE (DEFAULT) === */
+
+.theme-settings-root {
+    -fx-background-color: #f9fafb;
+}
+
+.header-section {
+    -fx-background-color: white;
+    -fx-padding: 24 48 24 48;
+    -fx-spacing: 16;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.05), 4, 0, 0, 1);
+}
+
+.back-button {
+    -fx-background-color: transparent;
+    -fx-text-fill: #6b7280;
+    -fx-font-size: 14px;
+    -fx-cursor: hand;
+    -fx-padding: 8 16;
+    -fx-background-radius: 8;
+}
+
+.back-button:hover {
+    -fx-background-color: #f3f4f6;
+    -fx-text-fill: #111827;
+}
+
+.page-title {
+    -fx-font-size: 32px;
+    -fx-font-weight: 700;
+    -fx-text-fill: #111827;
+}
+
+.page-subtitle {
+    -fx-font-size: 16px;
+    -fx-text-fill: #6b7280;
+}
+
+.settings-card {
+    -fx-background-color: white;
+    -fx-background-radius: 16;
+    -fx-padding: 32;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.08), 8, 0, 0, 2);
+}
+
+.card-title {
+    -fx-font-size: 20px;
+    -fx-font-weight: 700;
+    -fx-text-fill: #111827;
+}
+
+.card-subtitle {
+    -fx-font-size: 14px;
+    -fx-text-fill: #6b7280;
+}
+
+.theme-preview {
+    -fx-min-width: 80;
+    -fx-min-height: 80;
+    -fx-max-width: 80;
+    -fx-max-height: 80;
+    -fx-background-radius: 12;
+    -fx-alignment: center;
+}
+
+.light-preview {
+    -fx-background-color: linear-gradient(to bottom right, #ffffff, #f9fafb);
+    -fx-border-color: #e5e7eb;
+    -fx-border-width: 2;
+    -fx-border-radius: 12;
+}
+
+.dark-preview {
+    -fx-background-color: linear-gradient(to bottom right, #1a1a1a, #2d2d2d);
+    -fx-border-color: #424242;
+    -fx-border-width: 2;
+    -fx-border-radius: 12;
+}
+
+.theme-icon {
+    -fx-font-size: 32px;
+}
+
+.theme-name {
+    -fx-font-size: 18px;
+    -fx-font-weight: 600;
+    -fx-text-fill: #111827;
+}
+
+.theme-description {
+    -fx-font-size: 14px;
+    -fx-text-fill: #6b7280;
+}
+
+.theme-button {
+    -fx-background-color: #10b981;
+    -fx-text-fill: white;
+    -fx-font-size: 14px;
+    -fx-font-weight: 600;
+    -fx-background-radius: 999;
+    -fx-padding: 10 24;
+    -fx-cursor: hand;
+}
+
+.theme-button:hover {
+    -fx-background-color: #059669;
+}
+
+.theme-button.active {
+    -fx-background-color: #e5e7eb;
+    -fx-text-fill: #6b7280;
+}
+
+.current-theme-info {
+    -fx-background-color: #f0fdf4;
+    -fx-background-radius: 12;
+    -fx-padding: 16;
+}
+
+.current-theme-icon {
+    -fx-font-size: 32px;
+}
+
+.current-theme-label {
+    -fx-font-size: 16px;
+    -fx-font-weight: 600;
+    -fx-text-fill: #065f46;
+}
+
+.current-theme-status {
+    -fx-font-size: 13px;
+    -fx-text-fill: #059669;
+}
+
+.separator {
+    -fx-background-color: #e5e7eb;
+}

@@ -1,0 +1,275 @@
+/* =========================================================
+   ADD ITEM DIALOG - DARK MODE (NUCLEAR OVERRIDE)
+   Maximum specificity to override ALL other styles
+========================================================= */
+
+/* SPECIFIC Container Spacing */
+VBox.add-item-container {
+    -fx-background-color: #1a1a1a !important;
+    -fx-padding: 20 !important;
+    -fx-spacing: 12 !important;
+}
+
+/* ULTRA-SPECIFIC Title */
+VBox.add-item-container > Label.add-item-title {
+    -fx-font-size: 24px !important;
+    -fx-font-weight: bold !important;
+    -fx-text-fill: #10b981 !important;
+    -fx-padding: 0 0 5 0 !important;
+}
+
+/* ULTRA-SPECIFIC Separator (minimal padding) */
+VBox.add-item-container > Separator.form-separator {
+    -fx-background-color: #424242 !important;
+    -fx-padding: 0 !important;
+    -fx-pref-height: 1 !important;
+}
+
+/* ULTRA-SPECIFIC Field Groups (VBox inside container) */
+VBox.add-item-container > VBox {
+    -fx-spacing: 4 !important;
+    -fx-padding: 0 !important;
+}
+
+/* ULTRA-SPECIFIC Field Labels */
+VBox.add-item-container Label.field-label {
+    -fx-font-size: 12px !important;
+    -fx-font-weight: bold !important;
+    -fx-text-fill: #e5e7eb !important;
+    -fx-padding: 0 !important;
+}
+
+/* ULTRA-SPECIFIC Text Fields */
+VBox.add-item-container TextField.form-field {
+    -fx-pref-height: 35px !important;
+    -fx-max-height: 35px !important;
+    -fx-min-height: 35px !important;
+    -fx-pref-width: 340px !important;
+    -fx-background-color: #1e2730 !important;
+    -fx-text-fill: #ffffff !important;
+    -fx-prompt-text-fill: #9ca3af !important;
+    -fx-border-color: #424242 !important;
+    -fx-border-radius: 6px !important;
+    -fx-background-radius: 6px !important;
+    -fx-padding: 0 10 !important;
+}
+
+VBox.add-item-container TextField.form-field:focused {
+    -fx-border-color: #10b981 !important;
+    -fx-border-width: 2px !important;
+}
+
+/* ULTRA-SPECIFIC ComboBox */
+VBox.add-item-container ComboBox.form-combo {
+    -fx-pref-height: 35px !important;
+    -fx-max-height: 35px !important;
+    -fx-min-height: 35px !important;
+    -fx-pref-width: 340px !important;
+    -fx-background-color: #10b981 !important;
+    -fx-border-color: #10b981 !important;
+    -fx-border-radius: 6px !important;
+    -fx-background-radius: 6px !important;
+}
+
+VBox.add-item-container ComboBox.form-combo:focused {
+    -fx-border-color: #059669 !important;
+}
+
+VBox.add-item-container ComboBox.form-combo .list-cell {
+    -fx-background-color: #10b981 !important;
+    -fx-text-fill: white !important;
+    -fx-padding: 4 8 !important;
+}
+
+VBox.add-item-container ComboBox.form-combo .list-cell:filled:selected {
+    -fx-background-color: #059669 !important;
+    -fx-text-fill: white !important;
+}
+
+VBox.add-item-container ComboBox.form-combo .list-cell:filled:hover {
+    -fx-background-color: #059669 !important;
+}
+
+VBox.add-item-container ComboBox.form-combo .arrow-button {
+    -fx-background-color: transparent !important;
+}
+
+VBox.add-item-container ComboBox.form-combo .arrow {
+    -fx-background-color: white !important;
+}
+
+/* ComboBox Dropdown */
+.form-combo .combo-box-popup .list-view {
+    -fx-background-color: #2d2d2d !important;
+}
+
+.form-combo .combo-box-popup .list-cell {
+    -fx-background-color: #2d2d2d !important;
+    -fx-text-fill: #ffffff !important;
+    -fx-padding: 6 10 !important;
+}
+
+.form-combo .combo-box-popup .list-cell:hover {
+    -fx-background-color: #424242 !important;
+}
+
+.form-combo .combo-box-popup .list-cell:selected {
+    -fx-background-color: #10b981 !important;
+    -fx-text-fill: white !important;
+}
+
+/* ULTRA-SPECIFIC DatePicker */
+VBox.add-item-container DatePicker.form-datepicker {
+    -fx-pref-height: 35px !important;
+    -fx-max-height: 35px !important;
+    -fx-min-height: 35px !important;
+    -fx-pref-width: 340px !important;
+    -fx-background-color: #1e2730 !important;
+    -fx-border-color: #424242 !important;
+    -fx-border-radius: 6px !important;
+    -fx-background-radius: 6px !important;
+}
+
+VBox.add-item-container DatePicker.form-datepicker:focused {
+    -fx-border-color: #10b981 !important;
+}
+
+VBox.add-item-container DatePicker.form-datepicker > .text-field {
+    -fx-background-color: #1e2730 !important;
+    -fx-text-fill: #ffffff !important;
+    -fx-prompt-text-fill: #9ca3af !important;
+    -fx-background-radius: 6px 0 0 6px !important;
+}
+
+VBox.add-item-container DatePicker.form-datepicker > .arrow-button {
+    -fx-background-color: #424242 !important;
+    -fx-background-radius: 0 6px 6px 0 !important;
+}
+
+VBox.add-item-container DatePicker.form-datepicker > .arrow-button > .arrow {
+    -fx-background-color: #e5e7eb !important;
+}
+
+/* DatePicker Popup */
+.date-picker-popup {
+    -fx-background-color: #2d2d2d !important;
+    -fx-border-color: #424242 !important;
+}
+
+.date-picker-popup .month-year-pane {
+    -fx-background-color: #1a1a1a !important;
+}
+
+.date-picker-popup .day-cell {
+    -fx-background-color: #2d2d2d !important;
+    -fx-text-fill: #ffffff !important;
+}
+
+.date-picker-popup .day-cell:hover {
+    -fx-background-color: #424242 !important;
+}
+
+.date-picker-popup .selected {
+    -fx-background-color: #10b981 !important;
+    -fx-text-fill: white !important;
+}
+
+.date-picker-popup .today {
+    -fx-background-color: #374151 !important;
+    -fx-text-fill: #10b981 !important;
+}
+
+/* ULTRA-SPECIFIC Buttons Container */
+VBox.add-item-container > VBox:last-of-type {
+    -fx-spacing: 8 !important;
+    -fx-padding: 5 0 0 0 !important;
+}
+
+/* ULTRA-SPECIFIC Scan Button */
+VBox.add-item-container Button.scan-button {
+    -fx-background-color: #10b981 !important;
+    -fx-text-fill: white !important;
+    -fx-border-color: #10b981 !important;
+    -fx-border-radius: 6px !important;
+    -fx-background-radius: 6px !important;
+    -fx-font-weight: bold !important;
+    -fx-cursor: hand !important;
+    -fx-pref-width: 340px !important;
+    -fx-pref-height: 38px !important;
+    -fx-padding: 0 !important;
+}
+
+VBox.add-item-container Button.scan-button:hover {
+    -fx-background-color: #059669 !important;
+    -fx-border-color: #059669 !important;
+}
+
+/* ULTRA-SPECIFIC Save Button */
+VBox.add-item-container Button.save-button {
+    -fx-background-color: #10b981 !important;
+    -fx-text-fill: white !important;
+    -fx-font-weight: bold !important;
+    -fx-font-size: 14px !important;
+    -fx-border-radius: 6px !important;
+    -fx-background-radius: 6px !important;
+    -fx-cursor: hand !important;
+    -fx-pref-width: 340px !important;
+    -fx-pref-height: 42px !important;
+    -fx-padding: 0 !important;
+}
+
+VBox.add-item-container Button.save-button:hover {
+    -fx-background-color: #059669 !important;
+}
+
+/* ULTRA-SPECIFIC Cancel Button */
+VBox.add-item-container Button.cancel-button {
+    -fx-background-color: #374151 !important;
+    -fx-text-fill: #e5e7eb !important;
+    -fx-border-color: #4b5563 !important;
+    -fx-border-width: 1px !important;
+    -fx-border-radius: 6px !important;
+    -fx-background-radius: 6px !important;
+    -fx-cursor: hand !important;
+    -fx-pref-width: 340px !important;
+    -fx-pref-height: 38px !important;
+    -fx-padding: 0 !important;
+}
+
+VBox.add-item-container Button.cancel-button:hover {
+    -fx-background-color: #4b5563 !important;
+    -fx-text-fill: #ffffff !important;
+    -fx-border-color: #6b7280 !important;
+}
+
+/* ULTRA-SPECIFIC Status Label */
+VBox.add-item-container Label.status-label {
+    -fx-font-size: 13px !important;
+    -fx-padding: 8 !important;
+    -fx-background-color: #2d2d2d !important;
+    -fx-background-radius: 5px !important;
+    -fx-text-fill: #e5e7eb !important;
+    -fx-pref-width: 340px !important;
+}
+
+/* ScrollPane */
+.scroll-pane {
+    -fx-background-color: #1a1a1a !important;
+}
+
+.scroll-pane .viewport {
+    -fx-background-color: #1a1a1a !important;
+}
+
+.scroll-pane .scroll-bar:vertical {
+    -fx-background-color: #2d2d2d !important;
+}
+
+.scroll-pane .scroll-bar:vertical .thumb {
+    -fx-background-color: #424242 !important;
+    -fx-background-radius: 4px !important;
+}
+
+.scroll-pane .scroll-bar:vertical .thumb:hover {
+    -fx-background-color: #616161 !important;
+}

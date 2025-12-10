@@ -1,0 +1,393 @@
+/* file: src/main/resources/com/example/demo1/Recipe-dark.css
+   RECIPE PAGE - DARK MODE (buttons updated to use search-field grey #1e2730)
+*/
+
+/* ===== RECIPE PAGE CONTAINER ===== */
+.main-container {
+    -fx-background-color: #1a1a1a !important;
+}
+
+.recipes-container {
+    -fx-background-color: #0f1419 !important;
+}
+
+/* ScrollPane for Recipe page */
+.scroll-pane {
+    -fx-background-color: #0f1419 !important;
+    -fx-background: #0f1419 !important;
+}
+
+.scroll-pane > .viewport {
+    -fx-background-color: #0f1419 !important;
+}
+
+/* ===== BACK BUTTON ===== */
+.back-button {
+    -fx-background-color: transparent !important;
+    -fx-text-fill: #9ca3af !important;
+    -fx-border-color: transparent !important;
+    -fx-cursor: hand;
+}
+
+.back-button:hover {
+    -fx-text-fill: #ffffff !important;
+    -fx-background-color: #1e2730 !important;
+    -fx-background-radius: 6px !important;
+}
+
+/* ===== HEADER SECTION ===== */
+.header-section {
+    -fx-background-color: transparent !important;
+}
+
+.page-title {
+    -fx-text-fill: #ffffff !important;
+    -fx-font-size: 28px !important;
+    -fx-font-weight: bold !important;
+}
+
+.page-subtitle {
+    -fx-text-fill: #9ca3af !important;
+    -fx-font-size: 14px !important;
+}
+
+/* ===== SEARCH FIELD ===== */
+.search-field {
+    -fx-background-color: #1e2730 !important;
+    -fx-text-fill: #ffffff !important;
+    -fx-prompt-text-fill: #6b7280 !important;
+    -fx-border-color: #2a3441 !important;
+    -fx-border-radius: 6px !important;
+    -fx-background-radius: 6px !important;
+    -fx-padding: 10px 14px !important;
+}
+
+.search-field:focused {
+    -fx-border-color: #10b981 !important;
+}
+
+/* ===== AI INPUT CONTAINER ===== */
+.ai-input-container {
+    -fx-background-color: #1e2730 !important;
+    -fx-border-color: #2a3441 !important;
+    -fx-border-radius: 8px !important;
+    -fx-background-radius: 8px !important;
+}
+
+.ai-input-field {
+    -fx-background-color: transparent !important;
+    -fx-text-fill: #ffffff !important;
+    -fx-prompt-text-fill: #6b7280 !important;
+    -fx-border-color: transparent !important;
+}
+
+/* Generate Button - Green */
+.generate-button {
+    -fx-background-color: #10b981 !important;
+    -fx-text-fill: white !important;
+    -fx-border-radius: 6px !important;
+    -fx-background-radius: 6px !important;
+    -fx-padding: 10px 20px !important;
+    -fx-cursor: hand;
+}
+
+.generate-button:hover {
+    -fx-background-color: #14da9a !important;
+}
+
+/* ===== FILTER BUTTONS - now using search-field grey ===== */
+.filter-container {
+    -fx-background-color: transparent !important;
+}
+
+.filter-button {
+    -fx-background-color: #1e2730 !important;
+    -fx-text-fill: #d1d5db !important;
+    -fx-border-color: #2a3441 !important;
+    -fx-border-radius: 6px !important;
+    -fx-background-radius: 6px !important;
+    -fx-padding: 8px 16px !important;
+    -fx-cursor: hand;
+}
+
+.filter-button:hover {
+    -fx-background-color: #2a3441 !important;
+    -fx-text-fill: #ffffff !important;
+    -fx-border-color: #374151 !important;
+}
+
+/* Selected filter - Green highlight */
+.filter-selected {
+    -fx-background-color: #10b981 !important;
+    -fx-text-fill: white !important;
+    -fx-border-color: #10b981 !important;
+}
+
+.filter-selected:hover {
+    -fx-background-color: #14da9a !important;
+}
+
+/* ===== ADD RECIPE BUTTON - Green ===== */
+.add-recipe-button {
+    -fx-background-color: #10b981 !important;
+    -fx-text-fill: white !important;
+    -fx-border-radius: 6px !important;
+    -fx-background-radius: 6px !important;
+    -fx-padding: 8px 16px !important;
+    -fx-cursor: hand;
+}
+
+.add-recipe-button:hover {
+    -fx-background-color: #14da9a !important;
+}
+
+/* ===== RECIPE CARDS ===== */
+.recipe-card {
+    -fx-background-color: #1e2730 !important;
+    -fx-border-color: #2a3441 !important;
+    -fx-border-radius: 12px !important;
+    -fx-background-radius: 12px !important;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.4), 10, 0, 0, 2);
+    -fx-min-width: 350px !important;
+    -fx-pref-width: 400px !important;
+}
+
+.recipe-card:hover {
+    -fx-border-color: #10b981 !important;
+    -fx-effect: dropshadow(gaussian, rgba(16,185,129,0.3), 16, 0, 0, 4);
+}
+
+/* Recipe card children - transparent backgrounds */
+.recipe-card VBox,
+.recipe-card HBox {
+    -fx-background-color: transparent !important;
+}
+
+.recipe-name {
+    -fx-text-fill: #ffffff !important;
+    -fx-font-size: 18px !important;
+    -fx-font-weight: bold !important;
+}
+
+.match-badge {
+    -fx-background-color: #15803d !important;
+    -fx-text-fill: #dcfce7 !important;
+    -fx-padding: 4px 10px !important;
+    -fx-background-radius: 12px !important;
+    -fx-font-size: 12px !important;
+}
+
+/* Ingredient rows */
+.available-icon {
+    -fx-text-fill: #10b981 !important;
+}
+
+.missing-icon {
+    -fx-text-fill: #ef4444 !important;
+}
+
+.ingredient-label {
+    -fx-text-fill: #9ca3af !important;
+    -fx-font-weight: bold !important;
+}
+
+.ingredient-text {
+    -fx-text-fill: #d1d5db !important;
+}
+
+/* AI Tip */
+.ai-tip {
+    -fx-background-color: #1a3d2e !important;
+    -fx-padding: 10px !important;
+    -fx-background-radius: 6px !important;
+}
+
+.ai-tip Label {
+    -fx-text-fill: #a7f3d0 !important;
+    -fx-font-size: 13px !important;
+}
+
+/* ===== RECIPE CARD ACTION BUTTONS ===== */
+
+/* Edit Button - changed to search-field grey */
+.edit-button {
+    -fx-background-color: #1e2730 !important;
+    -fx-text-fill: #d1d5db !important;
+    -fx-border-color: #374151 !important;
+    -fx-border-radius: 6px !important;
+    -fx-background-radius: 6px !important;
+    -fx-padding: 6px 14px !important;
+    -fx-cursor: hand;
+}
+
+.edit-button:hover {
+    -fx-background-color: #2a3441 !important;
+    -fx-text-fill: #ffffff !important;
+}
+
+/* Delete Button - Red */
+.delete-button {
+    -fx-background-color: #dc2626 !important;
+    -fx-text-fill: white !important;
+    -fx-border-radius: 6px !important;
+    -fx-background-radius: 6px !important;
+    -fx-padding: 6px 14px !important;
+    -fx-cursor: hand;
+}
+
+.delete-button:hover {
+    -fx-background-color: #ef4444 !important;
+}
+
+/* Favorite Button - uses search-field grey base, gold accent kept */
+.favorite-button {
+    -fx-background-color: #1e2730 !important;
+    -fx-text-fill: #fbbf24 !important;
+    -fx-border-color: #fbbf24 !important;
+    -fx-border-radius: 6px !important;
+    -fx-background-radius: 6px !important;
+    -fx-padding: 6px 14px !important;
+    -fx-cursor: hand;
+}
+
+.favorite-button:hover {
+    -fx-background-color: #fbbf24 !important;
+    -fx-text-fill: #1a1a1a !important;
+}
+
+/* ===== BOTTOM ACTION BUTTONS ===== */
+.bottom-buttons {
+    -fx-background-color: transparent !important;
+}
+
+/* Generic recipe action button - base changed to search-field grey */
+.recipe-action-button {
+    -fx-background-color: #1e2730 !important;
+    -fx-text-fill: #d1d5db !important;
+    -fx-border-color: #2a3441 !important;
+    -fx-border-radius: 6px !important;
+    -fx-background-radius: 6px !important;
+    -fx-padding: 10px 20px !important;
+    -fx-cursor: hand;
+}
+
+.recipe-action-button:hover {
+    -fx-background-color: #2a3441 !important;
+    -fx-text-fill: #ffffff !important;
+}
+
+/* Secondary Button - base changed to search-field grey */
+.secondary-button {
+    -fx-background-color: #1e2730 !important;
+    -fx-text-fill: #d1d5db !important;
+    -fx-border-color: #2a3441 !important;
+    -fx-border-radius: 6px !important;
+    -fx-background-radius: 6px !important;
+    -fx-padding: 10px 20px !important;
+    -fx-cursor: hand;
+}
+
+.secondary-button:hover {
+    -fx-background-color: #2a3441 !important;
+    -fx-text-fill: #ffffff !important;
+    -fx-border-color: #374151 !important;
+}
+
+/* Primary Button - Solid dark/green (kept as-is) */
+.primary-button {
+    -fx-background-color: #10b981 !important;
+    -fx-text-fill: white !important;
+    -fx-border-color: #10b981 !important;
+    -fx-border-radius: 6px !important;
+    -fx-background-radius: 6px !important;
+    -fx-padding: 10px 20px !important;
+    -fx-cursor: hand;
+}
+
+.primary-button:hover {
+    -fx-background-color: #14da9a !important;
+    -fx-border-color: #14da9a !important;
+}
+
+/* ===== LOGIN PAGE BUTTON FIXES ===== */
+
+/* Google Login Button - WHITE background with BLACK text */
+.social-button-google {
+    -fx-background-color: white !important;
+    -fx-text-fill: #1a1a1a !important;
+    -fx-border-color: #d1d5db !important;
+    -fx-border-radius: 4px !important;
+    -fx-background-radius: 4px !important;
+    -fx-padding: 8px 16px !important;
+    -fx-cursor: hand;
+}
+
+.social-button-google:hover {
+    -fx-background-color: #f3f4f6 !important;
+    -fx-text-fill: #0a0a0a !important;
+    -fx-border-color: #9ca3af !important;
+}
+
+/* Help Button - GRAY background with BLACK text */
+.help-button-login {
+    -fx-background-color: #9ca3af !important;
+    -fx-text-fill: #1a1a1a !important;
+    -fx-border-color: #6b7280 !important;
+    -fx-border-radius: 4px !important;
+    -fx-background-radius: 4px !important;
+    -fx-padding: 8px 16px !important;
+    -fx-cursor: hand;
+}
+
+.help-button-login:hover {
+    -fx-background-color: #d1d5db !important;
+    -fx-text-fill: #0a0a0a !important;
+    -fx-border-color: #9ca3af !important;
+}
+
+/* Login Button - Dark styled */
+.login-button-login {
+    -fx-background-color: #1a1a1a !important;
+    -fx-text-fill: #ffffff !important;
+    -fx-border-color: #2a3441 !important;
+    -fx-border-radius: 4px !important;
+    -fx-background-radius: 4px !important;
+    -fx-padding: 8px 16px !important;
+    -fx-cursor: hand;
+}
+
+.login-button-login:hover {
+    -fx-background-color: #111827 !important;
+}
+
+/* Create Account Button - Green */
+.signup-button-login {
+    -fx-background-color: #10b981 !important;
+    -fx-text-fill: white !important;
+    -fx-border-color: #10b981 !important;
+    -fx-border-radius: 4px !important;
+    -fx-background-radius: 4px !important;
+    -fx-padding: 8px 16px !important;
+    -fx-cursor: hand;
+}
+
+.signup-button-login:hover {
+    -fx-background-color: #14da9a !important;
+    -fx-border-color: #14da9a !important;
+}
+
+/* Cancel Button - Red */
+.cancel-button-login {
+    -fx-background-color: #dc2626 !important;
+    -fx-text-fill: white !important;
+    -fx-border-color: #dc2626 !important;
+    -fx-border-radius: 4px !important;
+    -fx-background-radius: 4px !important;
+    -fx-padding: 8px 16px !important;
+    -fx-cursor: hand;
+}
+
+.cancel-button-login:hover {
+    -fx-background-color: #ef4444 !important;
+    -fx-border-color: #ef4444 !important;
+}

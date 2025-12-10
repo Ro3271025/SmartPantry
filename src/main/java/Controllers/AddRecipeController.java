@@ -1,5 +1,5 @@
 package Controllers;
-import com.example.demo1.FirebaseConfiguration;
+import Firebase.FirebaseConfiguration;
 import com.example.demo1.UserSession;
 import com.google.cloud.firestore.Firestore;
 import com.google.cloud.Timestamp;
@@ -8,6 +8,9 @@ import javafx.scene.control.*;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.List;
+
 
 import java.util.HashMap;
 import java.util.Map;
@@ -39,10 +42,10 @@ public class AddRecipeController extends BaseController{
             Firestore db = FirebaseConfiguration.getDatabase();
 
             Map<String, Object> recipeData = new HashMap<>();
-            recipeData.put("name", name);
-            recipeData.put("available", available);
-            recipeData.put("missing", missing);
-            recipeData.put("aiTip", aiTip.isEmpty() ? "No tip provided." : aiTip);
+            recipeData.put("title", name);
+            recipeData.put("ingredients", Arrays.asList(available.split("\\s*,\\s*")));
+            recipeData.put("missingIngredients", Arrays.asList(missing.split("\\s*,\\s*")));
+            recipeData.put("steps", List.of(aiTip.isEmpty() ? "No tip provided." : aiTip));
             recipeData.put("createdBy", "manual");
             recipeData.put("favorite", false);
             recipeData.put("createdAt", Timestamp.now());
