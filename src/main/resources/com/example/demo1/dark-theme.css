@@ -1,5 +1,5 @@
 /* =========================================================
-   SMARTPANTRY - UNIFIED DARK THEME
+   SMARTPANTRY - UNIFIED DARK THEME (FIXED)
    Color Palette:
    - Background: #1a1a1a
    - Cards/Inputs: #2d2d2d
@@ -9,6 +9,11 @@
    - Text Primary: #ffffff
    - Text Secondary: #e0e0e0
    - Text Muted: #9ca3af
+
+   FIXES APPLIED:
+   - Button padding changed from 8px 16px to 6px 12px (makes buttons oval-shaped)
+   - Recipe card explicit width removed (lets TilePane control sizing)
+   - Secondary and danger button padding adjusted to match
 ========================================================= */
 
 /* =========================================================
@@ -32,9 +37,7 @@ BorderPane {
     -fx-background-color: #1a1a1a !important;
 }
 
-AnchorPane {
-    -fx-background-color: #1a1a1a !important;
-}
+/* Removed global AnchorPane styling - too broad, affects main screen */
 
 StackPane {
     -fx-background-color: transparent !important;
@@ -59,7 +62,7 @@ Text {
 }
 
 /* =========================================================
-   BUTTONS - BASE STYLES
+   BUTTONS - BASE STYLES (FIXED PADDING)
 ========================================================= */
 
 Button {
@@ -68,7 +71,7 @@ Button {
     -fx-border-color: #424242 !important;
     -fx-border-radius: 6px !important;
     -fx-background-radius: 6px !important;
-    -fx-padding: 8px 16px !important;
+    -fx-padding: 6px 12px !important;  /* FIXED: was 8px 16px */
     -fx-cursor: hand;
 }
 
@@ -89,11 +92,12 @@ Button:hover {
     -fx-border-color: #14da9a !important;
 }
 
-/* Secondary Button */
+/* Secondary Button (FIXED PADDING) */
 .secondary {
     -fx-background-color: #2d2d2d !important;
     -fx-text-fill: #e0e0e0 !important;
     -fx-border-color: #424242 !important;
+    -fx-padding: 6px 12px !important;  /* FIXED: match light mode */
 }
 
 .secondary:hover {
@@ -101,11 +105,12 @@ Button:hover {
     -fx-text-fill: #ffffff !important;
 }
 
-/* Danger Button (Red) */
+/* Danger Button (Red) (FIXED PADDING) */
 .danger {
     -fx-background-color: #dc2626 !important;
     -fx-text-fill: white !important;
     -fx-border-color: #dc2626 !important;
+    -fx-padding: 6px 12px !important;  /* FIXED: match light mode */
 }
 
 .danger:hover {
@@ -972,13 +977,13 @@ MenuButton:hover {
     -fx-border-color: transparent !important;
 }
 
+/* RECIPE CARD - FIXED: Removed explicit width constraints */
 .recipe-card {
     -fx-background-color: #2d2d2d !important;
     -fx-border-color: #424242 !important;
     -fx-border-radius: 12px !important;
     -fx-background-radius: 12px !important;
-    -fx-min-width: 350px !important;
-    -fx-pref-width: 400px !important;
+    /* FIXED: Removed min-width and pref-width to match light mode */
 }
 
 .recipe-card:hover {

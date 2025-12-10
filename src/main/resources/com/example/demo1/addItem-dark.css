@@ -3,7 +3,7 @@
    Maximum specificity to override ALL other styles
 ========================================================= */
 
-/* ULTRA-SPECIFIC Container Spacing */
+/* SPECIFIC Container Spacing */
 VBox.add-item-container {
     -fx-background-color: #1a1a1a !important;
     -fx-padding: 20 !important;
