@@ -1,9 +1,12 @@
 package Controllers;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+
 import ShoppingList.PantryItem;
 import javafx.collections.ListChangeListener;
 import com.google.cloud.firestore.Firestore;
+import com.google.cloud.firestore.QueryDocumentSnapshot;
+import com.google.cloud.Timestamp;
 import com.google.cloud.firestore.CollectionReference;
 import Firebase.FirebaseConfiguration;
 import java.util.Map;
@@ -25,7 +28,6 @@ import javafx.print.PrinterJob;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.CheckBoxTableCell;
 import javafx.scene.control.cell.PropertyValueFactory;
-import javafx.scene.input.MouseButton; // Added for right-click handling
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
@@ -36,7 +38,8 @@ import java.util.stream.Collectors;
 import javafx.scene.control.ToggleGroup;
 import java.util.HashSet;
 import java.util.stream.Stream;
-import java.util.Comparator; // Added for sorting
+import javafx.collections.ListChangeListener;
+import java.util.ArrayList;
 
 // ---- Firebase / Firestore (add firebase-admin to pom.xml) ----
 import com.google.api.core.ApiFuture;
@@ -63,9 +66,8 @@ public class ShoppingListController extends BaseController {
     private ComboBox<String> locationFilter;
     @FXML
     private TableView<PantryItem> table;
-
-    // @FXML private TableColumn<PantryItem, Boolean> selectCol; <-- DELETED
-
+    @FXML
+    private TableColumn<PantryItem, Boolean> selectCol;
     @FXML
     private TableColumn<PantryItem, String> nameCol;
     @FXML
@@ -94,7 +96,7 @@ public class ShoppingListController extends BaseController {
     // Where we persist the local "List" view
     private final Path LOCAL_DIR  = Paths.get(System.getProperty("user.home"), ".smartpantry");
     private final Path LOCAL_JSON = LOCAL_DIR.resolve("shopping-list.json");
-    // Keep user's ad-hoc “Recommended” items visible across tab switches
+    // Keep user's ad-hoc "Recommended" items visible across tab switches
     private final ObservableList<PantryItem> pinnedRecommended = FXCollections.observableArrayList();
     // Fetched-from-Firebase (expiringSoonFirebase) + pinnedRecommended merged for display
     private final ObservableList<PantryItem> recommendedCombined = FXCollections.observableArrayList();
@@ -160,11 +162,10 @@ public class ShoppingListController extends BaseController {
 
     /** Show/hide columns depending on the active pill. */
     private void applyModeColumns(Toggle selected) {
-        // Show expiration/low stock columns ONLY if the Recommended (expiringToggle) pill is selected.
-        boolean showExpiringCols = (selected == expiringToggle);
-
-        expirationCol.setVisible(showExpiringCols);
-        lowStockCol.setVisible(showExpiringCols);
+        // Recommended = expiringToggle
+        boolean showRecommendedCols = (selected == expiringToggle);
+        expirationCol.setVisible(showRecommendedCols);
+        lowStockCol.setVisible(showRecommendedCols);
     }
 
     @FXML
@@ -174,8 +175,8 @@ public class ShoppingListController extends BaseController {
 
     // --- Firestore path helpers (users/{id}/pantryItems) ---
     private String currentUserDocId() {
-        // TODO: swap this for your session user if you have one.
-        return "lewidt@farmingdale.edu";
+        String uid = UserSession.getCurrentUserId();
+        return uid != null ? uid : "lewidt@farmingdale.edu";
     }
 
     private CollectionReference pantryColl() {
@@ -185,7 +186,7 @@ public class ShoppingListController extends BaseController {
                 .collection("pantryItems");
     }
 
-    // Decides if an item belongs in the “Expiring soon” pill
+    // Decides if an item belongs in the "Expiring soon" pill
     private boolean isExpiringSoon(LocalDate d) {
         if (d == null) return false;
         LocalDate now = LocalDate.now();
@@ -211,10 +212,9 @@ public class ShoppingListController extends BaseController {
 
     @FXML
     public void initialize() {
-        // ==== 1. Table Columns Setup ====
-        // selectCol.setCellValueFactory(cd -> cd.getValue().selectedProperty()); <-- DELETED
-        // selectCol.setCellFactory(tc -> new CheckBoxTableCell<>()); <-- DELETED
-
+        // ==== Table columns (unchanged) ====
+        selectCol.setCellValueFactory(cd -> cd.getValue().selectedProperty());
+        selectCol.setCellFactory(tc -> new CheckBoxTableCell<>());
         nameCol.setCellValueFactory(new PropertyValueFactory<>("name"));
         qtyCol.setCellValueFactory(new PropertyValueFactory<>("qty"));
         unitCol.setCellValueFactory(new PropertyValueFactory<>("unit"));
@@ -223,108 +223,44 @@ public class ShoppingListController extends BaseController {
         lowStockCol.setCellValueFactory(new PropertyValueFactory<>("lowStock"));
         lowStockCol.setCellFactory(tc -> new CheckBoxTableCell<>());
 
-        // --- Location Column Cell Factory (Icon Fix) ---
-        locationCol.setCellFactory(column -> new TableCell<PantryItem, String>() {
-            @Override
-            protected void updateItem(String item, boolean empty) {
-                super.updateItem(item, empty);
-
-                if (empty || item == null) {
-                    setText(null);
-                } else {
-                    // Use the same consistent icon for Fridge and Freezer for stable alignment
-                    String icon = switch (item) {
-                        case "Pantry" -> "🧺 ";
-                        case "Fridge" -> "🧊 ";
-                        case "Freezer" -> "🧊 ";
-                        default -> "";
-                    };
-                    setText(icon + item);
-                }
-            }
-        });
-
-        // --- Name Column Cell Factory (Light Mode Selection Bug Fix) ---
-        nameCol.setCellFactory(column -> new TableCell<PantryItem, String>() {
-            @Override
-            protected void updateItem(String item, boolean empty) {
-                super.updateItem(item, empty);
-
-                if (empty || item == null) {
-                    setText(null);
-                    setStyle(null);
-                } else {
-                    setText(item);
-
-                    // Force text color to dark when selected to fix the glitch
-                    if (getTableRow() != null && getTableRow().isSelected()) {
-                        setStyle("-fx-text-fill: #333333;");
-                    } else {
-                        setStyle(null);
-                    }
-                }
-            }
-        });
-
-        // ==== 2. Data Loading and Sorting ====
+        // Bind the table to the local list by default
+        table.setItems(shoppingList);
 
         // Load what we had last time
         loadLocalList();
 
-        // Optional: seed local list from bundled JSON or fallback demo data
-        try (InputStream in = getClass().getResourceAsStream("sample-data.json")) {
-            if (in != null) {
-                List<PantryItemDTO> raw = mapper.readValue(in, new TypeReference<>() {
-                });
-                for (PantryItemDTO r : raw) {
-                    shoppingList.add(new PantryItem(
-                            r.name, r.qty, r.unit, r.location,
-                            r.expiration == null ? null : LocalDate.parse(r.expiration),
-                            r.lowStock
-                    ));
-                }
-            }
-        } catch (Exception ignore) {
-            // fallback demo items if resource missing
-            if (shoppingList.isEmpty()) { // Only add if loading failed and list is empty
-                shoppingList.addAll(
-                        new PantryItem("Milk", 1, "gallon", "Fridge", LocalDate.now().plusDays(3), false),
-                        new PantryItem("Eggs", 6, "count", "Fridge", LocalDate.now().plusDays(10), false),
-                        new PantryItem("Apples", 5, "count", "Pantry", LocalDate.now().plusDays(7), true)
-                );
-            }
+        // ===== NEW: Load items from Firestore and merge with local list =====
+        loadFromFirestore();
+
+        // If nothing was saved yet, you can keep your optional demo seed here (or remove it)
+        if (shoppingList.isEmpty()) {
+            shoppingList.addAll(
+                    new PantryItem("Milk", 1, "gallon", "Fridge",  LocalDate.now().plusDays(3),  false)
+                    // …(optional more demo rows)
+            );
+            // Save initial demo once so it persists
+            saveLocalList();
         }
-
-        // --- Location Grouping Comparator and Initial Sorting ---
-        Comparator<PantryItem> locationComparator = (item1, item2) -> {
-            // Primary sort by location
-            int locationComparison = item1.getLocation().compareTo(item2.getLocation());
-
-            if (locationComparison != 0) {
-                return locationComparison;
-            }
-
-            // Secondary sort by item name
-            return item1.getName().compareTo(item2.getName());
-        };
-
-        // Apply the sort logic to the main list
-        FXCollections.sort(shoppingList, locationComparator);
 
         // Auto-save whenever the local list changes (add/edit/delete/checkbox)
         shoppingList.addListener((ListChangeListener<PantryItem>) change -> saveLocalList());
 
-        // Bind the table to the local list by default
+        // Start on local "List"
         table.setItems(shoppingList);
 
         // Filters
         locationFilter.getItems().addAll("All locations", "Pantry", "Fridge", "Freezer");
         locationFilter.getSelectionModel().selectFirst();
 
-        // Allow multi-row selection
+        // Enable Delete only if anything selected in current view
+        var anySelected = Bindings.createBooleanBinding(
+                () -> table.getItems().stream().anyMatch(PantryItem::isSelected),
+                table.itemsProperty()
+        );
+        // allow multi-row selection
         table.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
 
-        // Delete button binding logic
+        // Delete is enabled if EITHER any checkbox is ticked OR any row is selected
         var anyCheckboxChecked = Bindings.createBooleanBinding(
                 () -> table.getItems() != null && table.getItems().stream().anyMatch(PantryItem::isSelected),
                 table.itemsProperty()
@@ -333,8 +269,6 @@ public class ShoppingListController extends BaseController {
         var anyRowSelected = Bindings.isNotEmpty(table.getSelectionModel().getSelectedItems());
 
         deleteBtn.disableProperty().bind(anyCheckboxChecked.or(anyRowSelected).not());
-
-        // ==== 3. Toggle/Pill Setup (Persistent Filter Logic) ====
 
         // Pills act like radio buttons (single click)
         ToggleGroup pills = new ToggleGroup();
@@ -346,30 +280,18 @@ public class ShoppingListController extends BaseController {
             listToggle.setSelected(true);
         }
 
+        // Switch dataset + header color
         pills.selectedToggleProperty().addListener((obs, oldT, newT) -> {
             if (newT == listToggle) {
-                // When switching to List, re-sort the local list
-                FXCollections.sort(shoppingList, locationComparator());
                 table.setItems(shoppingList);
                 applyHeaderClass("thead-green");
-            } else if (newT == expiringToggle) { // "Recommended" (Expiring)
-                fetchExpiringFromFirebase(false);
+            } else if (newT == expiringToggle) { // "Recommended"
+                fetchExpiringFromFirebase(false);   // don't force if you don't need to
                 table.setItems(recommendedCombined);
                 applyHeaderClass("thead-warn");
-            } else if (newT == lowStockToggle) { // "Low Stock"
-                fetchLowStockFromFirebase(false);
-                table.setItems(lowStockFirebase);
-                applyHeaderClass("thead-danger");
             }
-
-            // Apply column visibility based on the new pill selection
             applyModeColumns(newT);
-
-            // Re-apply filter to force the table to update its display
-            applyFilters();
-
-            // Optional: Force focus to table for row header artifact fix
-            Platform.runLater(table::requestFocus);
+            table.refresh();
         });
 
         // Keep the combined Recommended list in sync automatically
@@ -378,87 +300,83 @@ public class ShoppingListController extends BaseController {
         recomputeRecommended(); // initial compute
 
 
-        // Initial header and column display
+        // Initial header
         applyHeaderClass("thead-green");
         applyModeColumns(pills.getSelectedToggle());
 
+
         // Table policies
         table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN);
-
-        // ==== 4. Set Row Factory (Context Menu Binding & Visual Grouping Separator) ====
-        table.setRowFactory(tv -> {
-            TableRow<PantryItem> row = new TableRow<>();
-
-            // --- Context Menu Binding ---
-            row.contextMenuProperty().bind(
-                    Bindings.when(row.emptyProperty())
-                            .then((ContextMenu)null)
-                            .otherwise(rowMenu(row.getItem())) // Pass item for context
-            );
-
-            // Ensure right-click selects the row
-            row.setOnMouseClicked(event -> {
-                if (!row.isEmpty() && event.getButton() == MouseButton.SECONDARY) {
-                    table.getSelectionModel().select(row.getIndex());
-                }
-            });
-
-            // --- Visual Grouping Separator Logic (Fixed the getTableView() access) ---
-            row.getStyleClass().removeAll("group-header-row");
-
-            if (row.getItem() != null) {
-                int index = row.getIndex();
-
-                // Access the TableView items using row.getTableView().getItems()
-                if (index > 0 && index < row.getTableView().getItems().size()) {
-                    PantryItem previousItem = row.getTableView().getItems().get(index - 1);
-
-                    if (!row.getItem().getLocation().equals(previousItem.getLocation())) {
-                        row.getStyleClass().add("group-header-row");
-                    }
-                } else if (index == 0) {
-                    // The very first row should always be a header
-                    row.getStyleClass().add("group-header-row");
-                }
-            }
-            return row;
-        });
-
-
-        // ==== 5. Final Fix: Hiding the Row Header (Aggressive Java Fix) ====
-        table.skinProperty().addListener((obs, oldSkin, newSkin) -> {
-            if (newSkin != null) {
-                javafx.scene.Node columnHeader = table.lookup(".column-header-background");
-                if (columnHeader != null) {
-                    // Inject style to collapse the row-header artifact
-                    columnHeader.setStyle(
-                            columnHeader.getStyle() +
-                                    " .row-header { -fx-size: 0; -fx-padding: 0; }"
-                    );
-                }
-            }
-        });
-
-    } // End of initialize()
-
-    // ===== Context Menu Helper Method =====
-    private ContextMenu rowMenu(PantryItem item) {
-        if (item == null) return null;
-
-        MenuItem editItem = new MenuItem("Edit Item");
-
-        editItem.setOnAction(event -> {
-            Dialogs.editItemDialog(item).showAndWait().ifPresent(updatedItem -> {
-                // Since updateFirebase is called in the Dialogs, just refresh UI
-                table.refresh();
-            });
-        });
-
-        ContextMenu menu = new ContextMenu();
-        menu.getItems().addAll(editItem);
-        return menu;
+        table.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
     }
 
+    // ===== NEW METHOD: Load shopping list items from Firestore =====
+    private void loadFromFirestore() {
+        String uid = UserSession.getCurrentUserId();
+        if (uid == null || uid.isBlank()) {
+            System.out.println("⚠ No user logged in, skipping Firestore load");
+            return;
+        }
+
+        CompletableFuture.runAsync(() -> {
+            try {
+                Firestore db = FirebaseConfiguration.getDatabase();
+                CollectionReference shoppingRef = db.collection("users")
+                        .document(uid)
+                        .collection("shoppingList");
+
+                List<QueryDocumentSnapshot> docs = shoppingRef.get().get().getDocuments();
+                List<PantryItem> firestoreItems = new ArrayList<>();
+
+                for (QueryDocumentSnapshot doc : docs) {
+                    String name = doc.getString("item");
+                    if (name == null) name = doc.getString("name"); // fallback
+
+                    Long qtyLong = doc.getLong("quantity");
+                    int qty = qtyLong == null ? 1 : qtyLong.intValue();
+
+                    String unit = doc.getString("unit");
+                    if (unit == null) unit = "count";
+
+                    String location = doc.getString("location");
+                    if (location == null) location = "Pantry";
+
+                    // Expiration (optional)
+                    LocalDate expiration = null;
+                    Object expRaw = doc.get("expiration");
+                    if (expRaw instanceof String) {
+                        try { expiration = LocalDate.parse((String) expRaw); }
+                        catch (Exception ignore) {}
+                    }
+
+                    boolean lowStock = Boolean.TRUE.equals(doc.getBoolean("lowStock"));
+
+                    PantryItem item = new PantryItem(name, qty, unit, location, expiration, lowStock);
+                    item.setShoppingDocId(doc.getId()); // Store doc ID for deletion
+                    firestoreItems.add(item);
+                }
+
+                // Merge with local list on UI thread
+                Platform.runLater(() -> {
+                    // Add items that aren't already in the local list (based on name)
+                    for (PantryItem firestoreItem : firestoreItems) {
+                        boolean exists = shoppingList.stream()
+                                .anyMatch(local -> local.getName().equalsIgnoreCase(firestoreItem.getName()));
+                        if (!exists) {
+                            shoppingList.add(firestoreItem);
+                        }
+                    }
+                    saveLocalList(); // Persist merged list
+                    table.refresh();
+                    System.out.println("✓ Loaded " + firestoreItems.size() + " items from Firestore shopping list");
+                });
+
+            } catch (Exception e) {
+                System.err.println("✗ Failed to load shopping list from Firestore: " + e.getMessage());
+                e.printStackTrace();
+            }
+        });
+    }
 
     // ===== Actions =====
 
@@ -468,28 +386,19 @@ public class ShoppingListController extends BaseController {
         dialog.showAndWait().ifPresent(item -> {
             // 1) Always add to local "List" and persist
             shoppingList.add(item);
-            FXCollections.sort(shoppingList, locationComparator()); // Re-sort after adding
             saveLocalList();
 
             // 2) Also pin into Recommended so it stays visible there across tab switches
-            pinnedRecommended.add(item);
+            pinnedRecommended.add(item);   // <-- NEW
+            // combined list will auto-refresh via the listener, but we can recompute explicitly:
             recomputeRecommended();
 
-            // 3) If the List pill is active, refresh the table to show the new sorted item
-            if (listToggle.isSelected()) {
+            // 3) If the Recommended pill is active, ensure the table shows the combined list
+            if (expiringToggle.isSelected()) {
+                table.setItems(recommendedCombined);
                 table.refresh();
             }
         });
-    }
-
-    private Comparator<PantryItem> locationComparator() {
-        return (item1, item2) -> {
-            int locationComparison = item1.getLocation().compareTo(item2.getLocation());
-            if (locationComparison != 0) {
-                return locationComparison;
-            }
-            return item1.getName().compareTo(item2.getName());
-        };
     }
 
     @FXML
@@ -512,25 +421,41 @@ public class ShoppingListController extends BaseController {
         current.removeAll(toRemove);
 
         // NEW: also unpin from Recommended, then recompute the combined view
-        pinnedRecommended.removeAll(toRemove);
-        recomputeRecommended();
+        pinnedRecommended.removeAll(toRemove);    // <-- NEW
+        recomputeRecommended();                   // <-- NEW
 
         table.getSelectionModel().clearSelection();
         table.refresh();
 
         if (onListTab) {
             saveLocalList();
-
-            // Delete from Firebase (using the efficient deleteFromFirebase from Dialogs)
-            java.util.concurrent.CompletableFuture.runAsync(() -> {
-                for (PantryItem p : toRemove) {
-                    Dialogs.deleteFromFirebase(p);
-                }
-            });
+            // (keep your Firebase deletion block as-is)
+            String uid = UserSession.getCurrentUserId();
+            if (uid != null && !uid.isBlank()) {
+                var db = FirebaseConfiguration.getDatabase();
+                var coll = db.collection("users").document(uid).collection("shoppingList");
+                java.util.concurrent.CompletableFuture.runAsync(() -> {
+                    for (PantryItem p : toRemove) {
+                        String id = p.getShoppingDocId();
+                        try {
+                            if (id != null && !id.isBlank()) {
+                                coll.document(id).delete().get();
+                            } else {
+                                var q = coll.whereEqualTo("item", p.getName())
+                                        .whereEqualTo("quantity", p.getQty())
+                                        .whereEqualTo("unit", p.getUnit())
+                                        .whereEqualTo("location", p.getLocation());
+                                var snap = q.get().get();
+                                for (var d : snap.getDocuments()) d.getReference().delete().get();
+                            }
+                        } catch (Exception ex) {
+                            System.err.println("⚠ Delete failed: " + ex.getMessage());
+                        }
+                    }
+                });
+            }
         }
     }
-
-    // [ ... existing handleExport, handleSearch, onFilterChanged methods ... ]
 
     @FXML
     public void handleExport(ActionEvent e) {
@@ -589,7 +514,6 @@ public class ShoppingListController extends BaseController {
         String q = (searchField.getText() == null ? "" : searchField.getText().toLowerCase()).trim();
         String sel = locationFilter.getValue();
 
-        // --- Filtering Logic ---
         table.setItems(source.filtered(it -> {
             boolean matchesText = q.isBlank() ||
                     (it.getName() != null && it.getName().toLowerCase().contains(q));
@@ -603,7 +527,7 @@ public class ShoppingListController extends BaseController {
         }));
     }
 
-    // ===== Firebase wiring (Unchanged) =====
+    // ===== Firebase wiring =====
     private static class FirebaseClient {
         private static volatile boolean inited = false;
 
@@ -626,7 +550,7 @@ public class ShoppingListController extends BaseController {
     private boolean loadedExpiring = false;
     private boolean loadedLow = false;
 
-    // [ ... existing toLocalDate and fromDoc methods ... ]
+    // ---- Helpers to work with Firestore docs flexibly ----
 
     private static LocalDate toLocalDate(Object value) {
         if (value == null) return null;
@@ -665,7 +589,7 @@ public class ShoppingListController extends BaseController {
 
         boolean low = Boolean.TRUE.equals(d.getBoolean("lowStock")); // may be absent
 
-        return new PantryItem(d.getId(), name, qty, unit, loc, exp, low); // Ensure doc ID is captured
+        return new PantryItem(name, qty, unit, loc, exp, low);
     }
 
 
@@ -763,8 +687,7 @@ public class ShoppingListController extends BaseController {
         }).start();
     }
 
-
-    // ===== DTO used for optional JSON seed (Unchanged) =====
+    // ===== DTO used for optional JSON seed =====
     public static class PantryItemDTO {
         public String name;
         public int qty;
@@ -785,4 +708,3 @@ public class ShoppingListController extends BaseController {
         }
     }
 }
-

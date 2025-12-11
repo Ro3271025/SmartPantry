@@ -269,14 +269,30 @@ public class RecipeTabController extends BaseController {
             updateLegacyRecipeInFirebase(recipe);
         });
 
-        HBox buttons = new HBox(10, editBtn, deleteBtn, favButton);
+        Button addToListBtn = new Button("➕ Shopping List");
+        addToListBtn.getStyleClass().add("secondary");
+        addToListBtn.setOnAction(e -> {
+            try {
+                List<String> missingList = recipe.missing == null ? List.of() :
+                        Arrays.asList(recipe.missing.split(",")).stream()
+                                .map(String::trim)
+                                .filter(s -> !s.isEmpty())
+                                .toList();
+                addMissingToShoppingList(missingList);
+                showSuccess("Added " + missingList.size() + " items to shopping list!");
+            } catch (Exception ex) {
+                showError("Failed to add to shopping list: " + ex.getMessage());
+            }
+        });
+
+        HBox buttons = new HBox(10, editBtn, deleteBtn, favButton, addToListBtn);
         buttons.setAlignment(Pos.CENTER_LEFT);
 
         String tip = recipe.aiTip == null ? "" : recipe.aiTip;
         VBox aiTip = new VBox(new Label("✨ AI Tip: " + tip));
         aiTip.getStyleClass().add("ai-tip");
 
-        // === NEW: Click card → Online Recipes modal (RecipeAPIService) ===
+        // === Click card → Online Recipes modal (RecipeAPIService) ===
         card.setOnMouseClicked(me -> {
             Node tgt = me.getPickResult() == null ? null : me.getPickResult().getIntersectedNode();
             if (tgt instanceof Button || isChildOf(tgt, buttons)) return; // ignore clicks on buttons
@@ -560,7 +576,18 @@ public class RecipeTabController extends BaseController {
                     }));
         });
 
-        HBox header = new HBox(12, name, star, del);
+        Button addToListBtn = new Button("➕ Shopping List");
+        addToListBtn.getStyleClass().add("secondary");
+        addToListBtn.setOnAction(e -> {
+            try {
+                addMissingToShoppingList(r.missingIngredients);
+                showSuccess("Added " + r.missingIngredients.size() + " items to shopping list!");
+            } catch (Exception ex) {
+                showError("Failed to add to shopping list: " + ex.getMessage());
+            }
+        });
+
+        HBox header = new HBox(12, name, star, del, addToListBtn);
         header.setAlignment(Pos.CENTER_LEFT);
 
         String ingredients = r.ingredients.isEmpty() ? "—" : String.join(", ", r.ingredients);
@@ -573,7 +600,7 @@ public class RecipeTabController extends BaseController {
         VBox metaBox = new VBox(new Label(meta.isEmpty() ? "" : meta));
         metaBox.getStyleClass().add("ai-tip");
 
-        // === NEW: click saved card → Online modal too ===
+        // === Click saved card → Online modal too ===
         card.setOnMouseClicked(me -> {
             Node tgt = me.getPickResult() == null ? null : me.getPickResult().getIntersectedNode();
             if (tgt instanceof Button || isChildOf(tgt, header)) return; // ignore star/delete clicks
@@ -783,6 +810,54 @@ public class RecipeTabController extends BaseController {
         return pct + "% match";
     }
 
+    /**
+     * Add missing ingredients from a recipe to the user's shopping list in Firestore.
+     * Each ingredient is added as a separate document with quantity 1 and pending status.
+     * Uses batch writing for efficiency.
+     *
+     * @param missing List of missing ingredient names
+     * @throws IllegalStateException if no user is logged in
+     * @throws RuntimeException if Firestore write fails
+     */
+    private void addMissingToShoppingList(List<String> missing) {
+        if (currentUserId == null || currentUserId.isBlank()) {
+            throw new IllegalStateException("No user logged in");
+        }
+        if (missing == null || missing.isEmpty()) {
+            return;
+        }
+
+        Firestore db = FirebaseConfiguration.getDatabase();
+        CollectionReference listRef = db.collection("users")
+                .document(currentUserId)
+                .collection("shoppingList");
+        WriteBatch batch = db.batch();
+
+        for (String raw : missing) {
+            if (raw == null) continue;
+            String name = raw.trim();
+            if (name.isEmpty()) continue;
+
+            // Use slug as document ID for consistency
+            String id = slug(name);
+
+            Map<String, Object> data = new HashMap<>();
+            data.put("name", name);
+            data.put("quantity", 1);
+            data.put("status", "pending");
+            data.put("updatedAt", FieldValue.serverTimestamp());
+
+            // Merge to avoid overwriting existing items
+            batch.set(listRef.document(id), data, SetOptions.merge());
+        }
+
+        try {
+            batch.commit().get();
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to add items to shopping list", e);
+        }
+    }
+
     private void showError(String msg){ Alert a=new Alert(Alert.AlertType.ERROR, msg, ButtonType.OK); a.setHeaderText(null); a.showAndWait(); }
     private void showSuccess(String msg){ Alert a=new Alert(Alert.AlertType.INFORMATION, msg, ButtonType.OK); a.setHeaderText(null); a.showAndWait(); }
 
@@ -937,63 +1012,3 @@ public class RecipeTabController extends BaseController {
         }
     }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

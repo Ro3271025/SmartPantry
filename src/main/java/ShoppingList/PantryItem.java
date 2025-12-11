@@ -1,68 +1,126 @@
 package ShoppingList;
 
-import javafx.beans.property.*;
+import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.SimpleBooleanProperty;
 
 import java.time.LocalDate;
 
 public class PantryItem {
-    private final StringProperty name = new SimpleStringProperty();
-    private final IntegerProperty qty = new SimpleIntegerProperty(1);
-    private final StringProperty unit = new SimpleStringProperty("");
-    private final StringProperty location = new SimpleStringProperty("Pantry");
-    private final ObjectProperty<LocalDate> expiration = new SimpleObjectProperty<>(null);
-    private final BooleanProperty lowStock = new SimpleBooleanProperty(false);
-    private final BooleanProperty selected = new SimpleBooleanProperty(false);
+    private BooleanProperty selected;
+    private String name;
+    private int qty;
+    private String unit;
+    private String location;
+    private LocalDate expiration;
+    private boolean lowStock;
+    private String shoppingDocId; // NEW: Store Firestore document ID
 
-    public PantryItem() {}
-
-    // The existing 6-argument constructor
+    // Constructor
     public PantryItem(String name, int qty, String unit, String location, LocalDate expiration, boolean lowStock) {
-        this.name.set(name);
-        this.qty.set(qty);
-        this.unit.set(unit);
-        this.location.set(location);
-        this.expiration.set(expiration);
-        this.lowStock.set(lowStock);
+        this.name = name;
+        this.qty = qty;
+        this.unit = unit;
+        this.location = location;
+        this.expiration = expiration;
+        this.lowStock = lowStock;
+        this.selected = new SimpleBooleanProperty(false);
     }
 
-    // ⭐ NEW 7-argument constructor to resolve the error in ShoppingListController's fromDoc method ⭐
-    public PantryItem(String shoppingDocId, String name, int qty, String unit, String location, LocalDate expiration, boolean lowStock) {
-        // Call the 6-argument constructor for the properties
-        this(name, qty, unit, location, expiration, lowStock);
+    public PantryItem() {
+        this.name = "";
+        this.qty = 1;
+        this.unit = "";
+        this.location = "";
+        this.expiration = null;
+        this.lowStock = false;
+        this.selected = new SimpleBooleanProperty(false);
+    }
 
-        // Set the unique Firebase ID
+
+    // Getters and Setters
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public int getQty() {
+        return qty;
+    }
+
+    public void setQty(int qty) {
+        this.qty = qty;
+    }
+
+    public String getUnit() {
+        return unit;
+    }
+
+    public void setUnit(String unit) {
+        this.unit = unit;
+    }
+
+    public String getLocation() {
+        return location;
+    }
+
+    public void setLocation(String location) {
+        this.location = location;
+    }
+
+    public LocalDate getExpiration() {
+        return expiration;
+    }
+
+    public void setExpiration(LocalDate expiration) {
+        this.expiration = expiration;
+    }
+
+    public boolean isLowStock() {
+        return lowStock;
+    }
+
+    public void setLowStock(boolean lowStock) {
+        this.lowStock = lowStock;
+    }
+
+    // Selected property methods
+    public BooleanProperty selectedProperty() {
+        if (selected == null) {
+            selected = new SimpleBooleanProperty(false);
+        }
+        return selected;
+    }
+
+    public boolean isSelected() {
+        return selected != null && selected.get();
+    }
+
+    public void setSelected(boolean selected) {
+        selectedProperty().set(selected);
+    }
+
+    // NEW: Shopping document ID getter and setter
+    public String getShoppingDocId() {
+        return shoppingDocId;
+    }
+
+    public void setShoppingDocId(String shoppingDocId) {
         this.shoppingDocId = shoppingDocId;
     }
 
-    private String shoppingDocId;
-    public String getShoppingDocId() { return shoppingDocId; }
-    public void setShoppingDocId(String shoppingDocId) { this.shoppingDocId = shoppingDocId; }
-
-    public String getName() { return name.get(); }
-    public void setName(String v) { name.set(v); }
-    public StringProperty nameProperty(){ return name; }
-
-    public int getQty(){ return qty.get(); }
-    public void setQty(int v){ qty.set(v); }
-    public IntegerProperty qtyProperty(){ return qty; }
-
-    public String getUnit(){ return unit.get(); }
-    public void setUnit(String v){ unit.set(v); }
-    public StringProperty unitProperty(){ return unit; }
-
-    public String getLocation(){ return location.get(); }
-    public void setLocation(String v){ location.set(v); }
-    public StringProperty locationProperty(){ return location; }
-
-    public LocalDate getExpiration(){ return expiration.get(); }
-    public void setExpiration(LocalDate v){ expiration.set(v); }
-    public ObjectProperty<LocalDate> expirationProperty(){ return expiration; }
-
-    public boolean isLowStock(){ return lowStock.get(); }
-    public void setLowStock(boolean v){ lowStock.set(v); }
-    public BooleanProperty lowStockProperty(){ return lowStock; }
-
-    public boolean isSelected(){ return selected.get(); }
-    public void setSelected(boolean v){ selected.set(v); }
-    public BooleanProperty selectedProperty(){ return selected; }
+    @Override
+    public String toString() {
+        return "PantryItem{" +
+                "name='" + name + '\'' +
+                ", qty=" + qty +
+                ", unit='" + unit + '\'' +
+                ", location='" + location + '\'' +
+                ", expiration=" + expiration +
+                ", lowStock=" + lowStock +
+                ", selected=" + (selected != null ? selected.get() : false) +
+                '}';
+    }
 }
