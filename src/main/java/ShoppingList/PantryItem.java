@@ -14,6 +14,8 @@ public class PantryItem {
     private final BooleanProperty selected = new SimpleBooleanProperty(false);
 
     public PantryItem() {}
+
+    // The existing 6-argument constructor
     public PantryItem(String name, int qty, String unit, String location, LocalDate expiration, boolean lowStock) {
         this.name.set(name);
         this.qty.set(qty);
@@ -22,6 +24,16 @@ public class PantryItem {
         this.expiration.set(expiration);
         this.lowStock.set(lowStock);
     }
+
+    // ⭐ NEW 7-argument constructor to resolve the error in ShoppingListController's fromDoc method ⭐
+    public PantryItem(String shoppingDocId, String name, int qty, String unit, String location, LocalDate expiration, boolean lowStock) {
+        // Call the 6-argument constructor for the properties
+        this(name, qty, unit, location, expiration, lowStock);
+
+        // Set the unique Firebase ID
+        this.shoppingDocId = shoppingDocId;
+    }
+
     private String shoppingDocId;
     public String getShoppingDocId() { return shoppingDocId; }
     public void setShoppingDocId(String shoppingDocId) { this.shoppingDocId = shoppingDocId; }
@@ -54,4 +66,3 @@ public class PantryItem {
     public void setSelected(boolean v){ selected.set(v); }
     public BooleanProperty selectedProperty(){ return selected; }
 }
-

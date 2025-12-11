@@ -6,6 +6,8 @@ import com.google.cloud.Timestamp;
 import javafx.geometry.Insets;
 import javafx.scene.control.*;
 import javafx.scene.layout.GridPane;
+import javafx.scene.layout.Priority;
+import javafx.scene.text.Font;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -14,17 +16,20 @@ public class Dialogs {
 
     public static Dialog<PantryItem> addItemDialog() {
         Dialog<PantryItem> dialog = new Dialog<>();
-        dialog.setTitle("Add Shopping List Item");
-        dialog.getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
+        dialog.setTitle("Add New Shopping Item");
 
-        // === INPUT FIELDS ===
+        // 1. --- Set up Dialog Pane Appearance ---
+        dialog.getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
+        dialog.getDialogPane().getStyleClass().add("add-item-dialog");
+
+        // 2. --- INPUT FIELDS & SETUP ---
         TextField name = new TextField();
-        name.setPromptText("Item name");
+        name.setPromptText("e.g., Eggs, Milk, Pasta...");
+        GridPane.setHgrow(name, Priority.ALWAYS);
 
         Spinner<Integer> qty = new Spinner<>(1, 999, 1);
         qty.setEditable(true);
 
-        // Unit (editable with some common choices)
         ComboBox<String> unit = new ComboBox<>();
         unit.getItems().addAll(
                 "pcs", "bottles", "sticks",
@@ -33,45 +38,63 @@ public class Dialogs {
                 "ml", "l", "gallon"
         );
         unit.setEditable(true);
-        unit.getSelectionModel().selectFirst(); // default "pcs"
+        unit.setPromptText("Unit");
+        unit.getSelectionModel().selectFirst();
 
         ComboBox<String> location = new ComboBox<>();
         location.getItems().addAll("Pantry", "Fridge", "Freezer");
+        location.setPromptText("Storage Location");
         location.getSelectionModel().selectFirst();
 
-        // === LAYOUT ===
+
+        // 3. --- LAYOUT (Cleaner GridPane) ---
         GridPane gp = new GridPane();
-        gp.setHgap(10);
+        gp.setHgap(15);
         gp.setVgap(10);
-        gp.setPadding(new Insets(10));
-        gp.addRow(0, new Label("Item"),      name);
-        gp.addRow(1, new Label("Quantity"),  qty);
-        gp.addRow(2, new Label("Unit"),      unit);
-        gp.addRow(3, new Label("Location"),  location);
+        gp.setPadding(new Insets(20));
+
+        // Use a slightly bolder font for labels for emphasis
+        Label nameLabel = new Label("Item Name:");
+        nameLabel.setFont(Font.font("System", 13));
+
+        Label qtyLabel = new Label("Quantity:");
+        Label unitLabel = new Label("Unit:");
+        Label locLabel = new Label("Location:");
+
+        // Row 0: Item Name (spans two columns for better expansion)
+        gp.add(nameLabel, 0, 0);
+        gp.add(name, 1, 0, 3, 1); // Span 3 columns
+
+        // Row 1: Quantity and Unit (put side-by-side)
+        gp.add(qtyLabel, 0, 1);
+        gp.add(qty, 1, 1);
+
+        gp.add(unitLabel, 2, 1);
+        gp.add(unit, 3, 1);
+
+        // Row 2: Location
+        gp.add(locLabel, 0, 2);
+        gp.add(location, 1, 2, 3, 1); // Span 3 columns for consistency
 
         dialog.getDialogPane().setContent(gp);
-
-        // Disable OK unless item name is non-empty
         final Button okBtn = (Button) dialog.getDialogPane().lookupButton(ButtonType.OK);
         okBtn.setDisable(true);
         name.textProperty().addListener((obs, oldV, newV) ->
                 okBtn.setDisable(newV == null || newV.trim().isEmpty()));
 
-        // Focus the name field when dialog shows
         dialog.setOnShown(e -> name.requestFocus());
 
         // === RESULT CONVERTER ===
-        // B) in dialog.setResultConverter(...) attach the returned id to the item
         dialog.setResultConverter(bt -> {
             if (bt == ButtonType.OK) {
                 PantryItem item = new PantryItem();
                 item.setName(name.getText().trim());
                 item.setQty(qty.getValue());
-                item.setUnit(unit.getValue());        // keep Unit in the popup
+                item.setUnit(unit.getValue());
                 item.setLocation(location.getValue());
 
-                String id = saveToFirebase(item);     // write to Firestore
-                item.setShoppingDocId(id);            // remember its doc id
+                String id = saveToFirebase(item);
+                item.setShoppingDocId(id);
 
                 return item;
             }
@@ -82,8 +105,158 @@ public class Dialogs {
         return dialog;
     }
 
-    /** Save the item to Firestore under users/{uid}/shoppingList */
-    // A) change saveToFirebase to RETURN the created doc id
+    /** Shows a dialog to edit an existing Shopping List Item. */
+    public static Dialog<PantryItem> editItemDialog(PantryItem existingItem) {
+        Dialog<PantryItem> dialog = new Dialog<>();
+        dialog.setTitle("Edit Shopping List Item: " + existingItem.getName());
+        dialog.getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
+        dialog.getDialogPane().getStyleClass().add("add-item-dialog"); // Apply styling
+
+        // === INPUT FIELDS ===
+        TextField name = new TextField(existingItem.getName());
+        GridPane.setHgrow(name, Priority.ALWAYS); // Ensure it expands
+
+        // Set up Spinner with existing value
+        SpinnerValueFactory<Integer> valueFactory = new SpinnerValueFactory.IntegerSpinnerValueFactory(1, 999, existingItem.getQty());
+        Spinner<Integer> qty = new Spinner<>(valueFactory);
+        qty.setEditable(true);
+
+        // Set up Unit ComboBox with existing value
+        ComboBox<String> unit = new ComboBox<>();
+        unit.getItems().addAll(
+                "pcs", "bottles", "sticks",
+                "count", "pack", "box",
+                "g", "kg", "oz", "lb",
+                "ml", "l", "gallon"
+        );
+        unit.setEditable(true);
+        unit.getSelectionModel().select(existingItem.getUnit());
+
+        // Set up Location ComboBox with existing value
+        ComboBox<String> location = new ComboBox<>();
+        location.getItems().addAll("Pantry", "Fridge", "Freezer");
+        location.getSelectionModel().select(existingItem.getLocation());
+
+
+        // === LAYOUT (Cleaner GridPane - Matching addItemDialog) ===
+        GridPane gp = new GridPane();
+        gp.setHgap(15);
+        gp.setVgap(10);
+        gp.setPadding(new Insets(20));
+
+        Label nameLabel = new Label("Item Name:");
+        nameLabel.setFont(Font.font("System", 13));
+
+        Label qtyLabel = new Label("Quantity:");
+        Label unitLabel = new Label("Unit:");
+        Label locLabel = new Label("Location:");
+
+        // Row 0: Item Name
+        gp.add(nameLabel, 0, 0);
+        gp.add(name, 1, 0, 3, 1);
+
+        // Row 1: Quantity and Unit
+        gp.add(qtyLabel, 0, 1);
+        gp.add(qty, 1, 1);
+
+        gp.add(unitLabel, 2, 1);
+        gp.add(unit, 3, 1);
+
+        // Row 2: Location
+        gp.add(locLabel, 0, 2);
+        gp.add(location, 1, 2, 3, 1);
+
+        dialog.getDialogPane().setContent(gp);
+
+        // === RESULT CONVERTER ===
+        dialog.setResultConverter(bt -> {
+            if (bt == ButtonType.OK) {
+                existingItem.setName(name.getText().trim());
+                existingItem.setQty(qty.getValue());
+                existingItem.setUnit(unit.getValue());
+                existingItem.setLocation(location.getValue());
+
+                updateFirebase(existingItem);
+
+                return existingItem;
+            }
+            return null;
+        });
+
+        return dialog;
+    }
+
+    // --- Firebase Methods (Kept identical to your original code) ---
+
+    /** Delete the item from Firestore based on its document ID */
+    public static void deleteFromFirebase(PantryItem item) {
+        if (item.getShoppingDocId() == null || item.getShoppingDocId().isEmpty()) {
+            System.err.println("⚠ Cannot delete item — item has no document ID.");
+            return;
+        }
+
+        try {
+            String uid = UserSession.getCurrentUserId();
+            if (uid == null || uid.isBlank()) {
+                System.err.println("⚠ Cannot delete item — no logged-in user found.");
+                return;
+            }
+
+            var db = FirebaseConfiguration.getDatabase();
+
+            // 1. Build the exact path to the document to be deleted
+            var docRef = db.collection("users")
+                    .document(uid)
+                    .collection("shoppingList")
+                    .document(item.getShoppingDocId()); // Use the stored ID
+
+            // 2. Execute the delete operation and wait for it to complete
+            docRef.delete().get();
+
+            System.out.println("❌ Deleted from shoppingList: " + item.getName() + " (" + item.getShoppingDocId() + ")");
+
+        } catch (Exception e) {
+            System.err.println("Error deleting item " + item.getName() + ": " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
+    /** Update the existing item in Firestore under users/{uid}/shoppingList */
+    private static void updateFirebase(PantryItem item) {
+        if (item.getShoppingDocId() == null || item.getShoppingDocId().isBlank()) {
+            System.err.println("⚠ Cannot update item — missing document ID.");
+            return;
+        }
+
+        try {
+            String uid = UserSession.getCurrentUserId();
+            if (uid == null || uid.isBlank()) {
+                System.err.println("⚠ Cannot update item — no logged-in user found.");
+                return;
+            }
+
+            var db = FirebaseConfiguration.getDatabase();
+
+            // Target the specific document using its ID
+            var docRef = db.collection("users")
+                    .document(uid)
+                    .collection("shoppingList")
+                    .document(item.getShoppingDocId());
+
+            // Create the map of fields to update
+            Map<String, Object> data = new HashMap<>();
+            data.put("item", item.getName());
+            data.put("quantity", item.getQty());
+            data.put("unit", item.getUnit());
+            data.put("location", item.getLocation());
+            docRef.update(data).get();
+
+            System.out.println("✏️ Updated shoppingList: " + item.getName() + " (" + item.getShoppingDocId() + ")");
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
     private static String saveToFirebase(PantryItem item) {
         try {
             String uid = UserSession.getCurrentUserId();
