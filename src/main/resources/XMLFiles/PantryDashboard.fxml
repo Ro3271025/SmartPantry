@@ -28,7 +28,7 @@
                        text="Pantry Dashboard"
                        styleClass="page-title" />
 
-                <!-- ✅ NEW: Logged-in user display -->
+                <!-- Logged-in user display -->
                 <Label fx:id="userNameLabel"
                        style="-fx-font-size: 14px; -fx-text-fill: -fx-text-base;" />
 
@@ -48,6 +48,12 @@
                         onAction="#goToShoppingList"
                         styleClass="pill"
                         text="🛒 Shopping" />
+
+                <!-- ⭐ NEW: Account button -->
+                <Button fx:id="accountBtn"
+                        onAction="#accountBtnOnAction"
+                        styleClass="pill"
+                        text="👤 Account" />
 
                 <Button fx:id="logoutBtn"
                         onAction="#logoutBtnOnAction"
